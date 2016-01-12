@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import subprocess
+import readline
 
 if __name__ == "__main__":
     print("Hello, How can I help you?")
