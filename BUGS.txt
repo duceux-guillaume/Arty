@@ -2,7 +2,7 @@ bug 0:
 cd doesn't work
 
 bug 1:
-more doesn't work
+more doesn't work properly
 
 bug 2:
 no autocompletion
@@ -13,8 +13,11 @@ no long term history
 bug 4:
 no coloring
 
-bug 5:
-shell engine don't fails on cmd not found
-
 bug 6:
 command lookup doesn't handles typos
+
+bug 7:
+cannot background launch process
+
+bug 8:
+no accessible text editor
