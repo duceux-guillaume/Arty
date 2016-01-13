@@ -1,0 +1,8 @@
+cat
+cd
+less
+mkdir
+more
+mv
+ping
+rm
