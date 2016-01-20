@@ -32,7 +32,7 @@ if __name__ == "__main__":
     print("Hello, How can I help you?")
     
     while 1:
-        user_input = input("> ");
+        user_input = input(">" + shell.get_current_directory() + " ");
        
         # Command lookup
         try:

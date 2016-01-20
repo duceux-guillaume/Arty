@@ -45,10 +45,6 @@ class ShellEngine:
             self.path = os.path.expanduser('~')
             return True
 
-
-
-
-
         try:
             with subprocess.Popen(cmd.split(' '), 
                                   cwd=self.path) as child:
@@ -57,6 +53,10 @@ class ShellEngine:
         except Exception as e:
             print(e)
             return False
+
+    def get_current_directory(self):
+        return os.path.basename(self.path)
+		
 
 if __name__ == "__main__":
     sys.argv.pop(0)
