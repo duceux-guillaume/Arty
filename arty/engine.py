@@ -46,7 +46,7 @@ class ShellEngine:
             return True
 
         try:
-            with subprocess.Popen(cmd.split(' '), 
+            with subprocess.Popen(["/bin/bash", "-c", cmd], 
                                   cwd=self.path) as child:
                 child.wait()
                 return child.returncode == 0
