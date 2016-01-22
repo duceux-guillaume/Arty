@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+#https://github.com/ystk/debian-python3.1/blob/master/Lib/cmd.py
+
 import subprocess
 import readline
 import string_matching
@@ -12,8 +14,9 @@ import atexit
 class Context:
     path = os.getcwd()
     path_history = [path]
-    cmds = {'ls': 'ls --color=auto',
+    aliases = {'ls': 'ls --color=auto',
             'll': 'ls -la --color=auto'}
+    cmds = []
     history_file = os.path.expanduser("~/.arty/user_history.log")
 
 class ArtyShell(cmd.Cmd):
@@ -91,21 +94,32 @@ class ArtyShell(cmd.Cmd):
             with subprocess.Popen(["/bin/bash", "-c", arg], 
                                   cwd=Context.path) as child:
                 child.wait()
+                Context.cmds.append(arg)
                 return
         except Exception as e:
             print(e)
             return
+            
+    def do_compute(self, arg):
+        'compute expression without parsing:  compute expr'
+        try:
+            exec(arg, globals(), locals())
+        except Exception as e:
+            print(e)
 
     # ----- hooks -----
     def postcmd(self, stop, line):
         ArtyShell.prompt = os.path.basename(Context.path) + ": "
         return stop
+        
+    def emptyline(self):
+        pass
 
     # ------ magic stuff ----
     def default(self, arg):
         # Command lookup
         try:
-            cmd = Context.cmds[arg]
+            cmd = Context.aliases[arg]
             self.do_execute(cmd) 
             return
         except KeyError as key:
@@ -119,6 +133,13 @@ class ArtyShell(cmd.Cmd):
         except Exception as e:
             print(e)
 
+
+    def completenames(self, text, *ignored):
+        dotext = 'do_'+text
+        from_dotext = [a[3:] for a in self.get_names() if a.startswith(dotext)]
+        from_aliases = [key for key, val in Context.aliases if key.startswith(text)]
+        from_cmds = [cmd for cmd in Context.cmds if cmd.startswith(text)]
+        return from_aliases + from_dotext + from_cmds
 
 def save_history(history_file=Context.history_file):
     import readline
