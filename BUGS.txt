@@ -1,5 +1,5 @@
 bug 2:
-no autocompletion
+no autocompletion for execute
 
 bug 3:
 no long term history
@@ -7,11 +7,8 @@ no long term history
 bug 6:
 command lookup doesn't handles typos
 
-bug 7:
-cannot background launch process
+bug 10:
+cannot export ROS_MASTER_URI
 
-bug 8:
-no accessible text editor
-
-bug 9:
-dataflow \&;>< not handled
+bug 11:
+cannot roscore

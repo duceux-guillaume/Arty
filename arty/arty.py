@@ -2,64 +2,120 @@
 
 import subprocess
 import readline
-import engine
 import string_matching
+import os
+import sys
+import cmd
 
-Commands = {'ls': ('shell', 'ls --color=auto'),
-            'll': ('shell', 'ls -la --color=auto'),
-            'what is your name?': ('chatter', 'Arty')}
+'A class which contains all persistant information called context'
+class Context:
+    path = os.getcwd()
+    path_history = [path]
+    cmds = {'ls': 'ls --color=auto',
+            'll': 'ls -la --color=auto'}
 
-class PythonEngine:
-    def execute(self, cmd):
+class ArtyShell(cmd.Cmd):
+    # ----- Cmd variables ---------
+    intro = 'Welcome to Arty shell.   Type help or ? to list commands.\n'
+    prompt = os.path.basename(Context.path) + ": "
+
+    # ----- built-in commands -----    
+    def do_cd(self, arg):
+        'Change current directory:  cd [rpath, path, empty, ~/path, foldername]'
+        arg.rstrip()
+        # going back
+        if arg == '-':
+            Context.path = Context.path_history[-1]
+            return
+        # absolute path
+        if len(arg) > 0 and arg[0] == '/':
+            try:
+                subp = subprocess.Popen('pwd', cwd=arg, 
+                                        stdout=subprocess.PIPE)
+                Context.path_history.append(Context.path)
+                Context.path = subp.communicate()[0].decode().rstrip()
+                return
+            except Exception as e:
+                print(e)
+                return
+        # relative path
+        if len(arg) > 0:
+            try:
+                subp = subprocess.Popen('pwd', cwd=Context.path + "/" + arg, 
+                                        stdout=subprocess.PIPE)
+                Context.path_history.append(Context.path)
+                Context.path = subp.communicate()[0].decode().rstrip()
+                return
+            except Exception as e:
+                print(e)
+                return
+        # going home
+        if len(arg) == 0:
+            Context.path_history.append(Context.path)
+            Context.path = os.path.expanduser('~')
+            return
+        #TODO: user path: ~/path
+        #TODO: folder lookup to avoid typing the whole path and jump around
+
+    def complete_cd(self, text, line, begidx, endidx):
         try:
-            eval_res = eval(cmd)
-            print(eval_res)
-            return True
-        except:
-            return False
+            ll = line.rstrip().split(' ')
+            cd = ''
+            if len(ll) > 1:
+                pos = ll[1].rfind('/')
+                if pos >= 0:
+                    cd = ll[1][:pos]
+            return [path+'/' for path in os.listdir(Context.path + "/" + cd) 
+                    if path.startswith(text) and os.path.isdir(Context.path + "/" + cd + "/" + path)]
+        except Exception as e:
+            return []
 
-class ChatterEngine:
-    def execute(self, cmd):
-        print(cmd)
-        return True
+    def do_display(self, arg):
+        'display some context information:  display ctx_attr'
+        #TODO use arg to display some context information
+        list_of_var = [attr for attr in vars(Context) if not attr.startswith("__")]
+        for attr in list_of_var:
+            if attr == arg: 
+                print(getattr(Context, attr))
+                return
 
-if __name__ == "__main__":
+    def complete_display(self, text, line, begidx, endidx):
+        return [attr for attr in vars(Context) if attr.startswith(text) and not attr.startswith("__")]
 
-    python = PythonEngine()
-    shell = engine.ShellEngine()
-    chatter = ChatterEngine()
+    def do_execute(self, arg):
+        'execute cmd line without parsing:  execute cmd'
+        # calling bash
+        try:
+            with subprocess.Popen(["/bin/bash", "-c", arg], 
+                                  cwd=Context.path) as child:
+                child.wait()
+                return
+        except Exception as e:
+            print(e)
+            return
 
-    print("Hello, How can I help you?")
-    
-    while 1:
-        user_input = input(">" + shell.get_current_directory() + " ");
-       
+    # ----- hooks -----
+    def postcmd(self, stop, line):
+        ArtyShell.prompt = os.path.basename(Context.path) + ": "
+        return stop
+
+    # ------ magic stuff ----
+    def default(self, arg):
         # Command lookup
         try:
-            if len(user_input) == 0:
-                chatter.execute(user_input)
-                continue
-            engine, cmd = Commands[user_input]
-            returncode = False
-            if engine == 'shell':
-                returncode = shell.execute(cmd) 
-            elif engine == 'python':
-                returncode = python.execute(cmd)
-            elif engine == 'chatter':
-                returncode = chatter.execute(cmd)
-            if not returncode: # Try all
-                if python.execute(user_input):
-                    continue
-                if shell.execute(user_input):
-                    continue
-                if chatter.execute("wtf?"):
-                    continue
+            cmd = Context.cmds[arg]
+            self.do_execute(cmd) 
+            return
+        except KeyError as key:
+            pass
         except Exception as e:
-            # No match, try every engine
-            if python.execute(user_input):
-                continue
-            if shell.execute(user_input):
-                continue
-            if chatter.execute("wtf?"):
-                continue
+            print(e)
+        # if cmd not found, try the arg instead
+        try:
+            self.do_execute(arg) 
+            return
+        except Exception as e:
+            print(e)
 
+if __name__ == '__main__':
+    ArtyShell().cmdloop()
