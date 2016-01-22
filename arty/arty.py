@@ -8,6 +8,7 @@ import string_matching
 import os
 import sys
 import cmd
+import pickle
 
 'A class which contains all persistant information called context'
 class Context:
@@ -16,20 +17,40 @@ class Context:
     aliases = {'ls': 'ls --color=auto',
             'll': 'ls -la --color=auto'}
     cmds = []
-    history_file = os.path.expanduser("~/.arty/user_history.log")
-    cmds_file = os.path.expanduser("~/.arty/cmds_history.log")
     scope = {}
+    # persistant memory
+    history_file = os.path.expanduser("~/.arty/user_history.log")
+    cmds_file = os.path.expanduser("~/.arty/cmds_history.p")
+    scope_file = os.path.expanduser("~/.arty/scope_history.p")
+    aliases_file = os.path.expanduser("~/.arty/aliases_history.p")
+    path_file = os.path.expanduser("~/.arty/path_history.p")
     
     @classmethod
     def load(kls):
         import readline
-        if os.path.exists(kls.history_file):
-          readline.read_history_file(kls.history_file)
+        if os.path.exists(Context.history_file):
+          readline.read_history_file(Context.history_file)
+        tmp_file = open(Context.cmds_file, 'rb')
+        Context.cmds = pickle.load(tmp_file)
+        tmp_file = open(Context.scope_file, 'rb')
+        Context.scope = pickle.load(tmp_file)
+        tmp_file = open(Context.aliases_file, 'rb')
+        Context.aliases = pickle.load(tmp_file)
+        tmp_file = open(Context.path_file, 'rb')
+        Context.path_history = pickle.load(tmp_file)
 
     @classmethod
     def save(kls):
         import readline
-        readline.write_history_file(kls.history_file)
+        readline.write_history_file(Context.history_file)
+        tmp_file = open(Context.cmds_file, 'wb')
+        pickle.dump(Context.cmds, tmp_file)
+        tmp_file = open(Context.scope_file, 'wb')
+        pickle.dump(Context.scope, tmp_file)
+        tmp_file = open(Context.aliases_file, 'wb')
+        pickle.dump(Context.aliases, tmp_file)
+        tmp_file = open(Context.path_file, 'wb')
+        pickle.dump(Context.path_history, tmp_file)
 
 class ArtyShell(cmd.Cmd):
     # ----- Cmd variables ---------
@@ -115,7 +136,7 @@ class ArtyShell(cmd.Cmd):
         'compute expression without parsing:  compute expr'
         try:
             exec("tmp =" + arg, Context.scope)
-            print(Context.scope['tmp'])
+            print(arg, "=", Context.scope['tmp'])
             return
         except Exception as e:
             pass
@@ -162,6 +183,7 @@ class ArtyShell(cmd.Cmd):
 
 if __name__ == '__main__':
     import atexit
+    Context.load()
     atexit.register(Context.save)
     ArtyShell().cmdloop()
 
