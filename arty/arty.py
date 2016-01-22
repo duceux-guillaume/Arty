@@ -8,7 +8,6 @@ import string_matching
 import os
 import sys
 import cmd
-import atexit
 
 'A class which contains all persistant information called context'
 class Context:
@@ -18,6 +17,19 @@ class Context:
             'll': 'ls -la --color=auto'}
     cmds = []
     history_file = os.path.expanduser("~/.arty/user_history.log")
+    cmds_file = os.path.expanduser("~/.arty/cmds_history.log")
+    scope = {}
+    
+    @classmethod
+    def load(kls):
+        import readline
+        if os.path.exists(kls.history_file):
+          readline.read_history_file(kls.history_file)
+
+    @classmethod
+    def save(kls):
+        import readline
+        readline.write_history_file(kls.history_file)
 
 class ArtyShell(cmd.Cmd):
     # ----- Cmd variables ---------
@@ -94,7 +106,6 @@ class ArtyShell(cmd.Cmd):
             with subprocess.Popen(["/bin/bash", "-c", arg], 
                                   cwd=Context.path) as child:
                 child.wait()
-                Context.cmds.append(arg)
                 return
         except Exception as e:
             print(e)
@@ -103,7 +114,14 @@ class ArtyShell(cmd.Cmd):
     def do_compute(self, arg):
         'compute expression without parsing:  compute expr'
         try:
-            exec(arg, globals(), locals())
+            exec("tmp =" + arg, Context.scope)
+            print(Context.scope['tmp'])
+            return
+        except Exception as e:
+            pass
+            
+        try:
+            exec(arg, Context.scope)
         except Exception as e:
             print(e)
 
@@ -129,6 +147,7 @@ class ArtyShell(cmd.Cmd):
         # if cmd not found, try the arg instead
         try:
             self.do_execute(arg) 
+            Context.cmds.append(arg)
             return
         except Exception as e:
             print(e)
@@ -141,13 +160,8 @@ class ArtyShell(cmd.Cmd):
         from_cmds = [cmd for cmd in Context.cmds if cmd.startswith(text)]
         return from_aliases + from_dotext + from_cmds
 
-def save_history(history_file=Context.history_file):
-    import readline
-    readline.write_history_file(history_file)
-
 if __name__ == '__main__':
-    if os.path.exists(Context.history_file):
-        readline.read_history_file(Context.history_file)
-    atexit.register(save_history)
+    import atexit
+    atexit.register(Context.save)
     ArtyShell().cmdloop()
 
