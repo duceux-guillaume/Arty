@@ -6,6 +6,7 @@ import string_matching
 import os
 import sys
 import cmd
+import atexit
 
 'A class which contains all persistant information called context'
 class Context:
@@ -13,6 +14,7 @@ class Context:
     path_history = [path]
     cmds = {'ls': 'ls --color=auto',
             'll': 'ls -la --color=auto'}
+    history_file = os.path.expanduser("~/.arty/user_history.log")
 
 class ArtyShell(cmd.Cmd):
     # ----- Cmd variables ---------
@@ -117,5 +119,14 @@ class ArtyShell(cmd.Cmd):
         except Exception as e:
             print(e)
 
+
+def save_history(history_file=Context.history_file):
+    import readline
+    readline.write_history_file(history_file)
+
 if __name__ == '__main__':
+    if os.path.exists(Context.history_file):
+        readline.read_history_file(Context.history_file)
+    atexit.register(save_history)
     ArtyShell().cmdloop()
+
