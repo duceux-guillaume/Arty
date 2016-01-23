@@ -28,19 +28,25 @@ class Context:
     @classmethod
     def load(kls):
         import readline
-        if os.path.exists(Context.history_file):
-          readline.read_history_file(Context.history_file)
-        tmp_file = open(Context.cmds_file, 'rb')
-        Context.cmds = pickle.load(tmp_file)
-        tmp_file = open(Context.scope_file, 'rb')
-        Context.scope = pickle.load(tmp_file)
-        tmp_file = open(Context.aliases_file, 'rb')
-        Context.aliases = pickle.load(tmp_file)
-        tmp_file = open(Context.path_file, 'rb')
-        Context.path_history = pickle.load(tmp_file)
+        try:
+            if os.path.exists(Context.history_file):
+              readline.read_history_file(Context.history_file)
+            tmp_file = open(Context.cmds_file, 'rb')
+            Context.cmds = pickle.load(tmp_file)
+            tmp_file = open(Context.scope_file, 'rb')
+            Context.scope = pickle.load(tmp_file)
+            tmp_file = open(Context.aliases_file, 'rb')
+            Context.aliases = pickle.load(tmp_file)
+            tmp_file = open(Context.path_file, 'rb')
+            Context.path_history = pickle.load(tmp_file)
+        except Exception as e:
+            pass
 
     @classmethod
     def save(kls):
+        folder = os.path.expanduser("~/.arty")
+        if not os.path.exists(folder):
+            os.mkdir(folder)
         import readline
         readline.write_history_file(Context.history_file)
         tmp_file = open(Context.cmds_file, 'wb')
