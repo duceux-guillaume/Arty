@@ -126,7 +126,7 @@ class ArtyShell(cmd.Cmd):
     def complete_display(self, text, line, begidx, endidx):
         return [attr for attr in vars(Context) if attr.startswith(text) and not attr.startswith("__")]
 
-    def do_execute(self, arg):
+    def do_shell(self, arg):
         'execute cmd line without parsing:  execute cmd'
         # calling bash
         try:
@@ -165,7 +165,7 @@ class ArtyShell(cmd.Cmd):
         # Command lookup
         try:
             cmd = Context.aliases[arg]
-            self.do_execute(cmd) 
+            self.do_shell(cmd) 
             return
         except KeyError as key:
             pass
@@ -173,18 +173,19 @@ class ArtyShell(cmd.Cmd):
             print(e)
         # if cmd not found, try the arg instead
         try:
-            self.do_execute(arg) 
+            self.do_shell(arg) 
             Context.cmds.append(arg)
             return
         except Exception as e:
             print(e)
 
 
-    def completenames(self, text, *ignored):
-        dotext = 'do_'+text
+    def completedefault(self, text, line, begidx, endidx):
+        from_dotext = []
+        dotext = 'do_'+line
         from_dotext = [a[3:] for a in self.get_names() if a.startswith(dotext)]
-        from_aliases = [key for key, val in Context.aliases if key.startswith(text)]
-        from_cmds = [cmd for cmd in Context.cmds if cmd.startswith(text)]
+        from_aliases = [key[begidx:] for key, val in Context.aliases if key.startswith(line)]
+        from_cmds = [cmd[begidx:] for cmd in Context.cmds if cmd.startswith(line)]
         return from_aliases + from_dotext + from_cmds
 
 if __name__ == '__main__':

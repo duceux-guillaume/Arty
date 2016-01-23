@@ -127,6 +127,7 @@ class Cmd:
                             line = input(self.prompt)
                         except EOFError:
                             line = 'EOF'
+
                     else:
                         self.stdout.write(self.prompt)
                         self.stdout.flush()
@@ -270,7 +271,7 @@ class Cmd:
                     except AttributeError:
                         compfunc = self.completedefault
             else:
-                compfunc = self.completenames
+                compfunc = self.completedefault
             self.completion_matches = compfunc(text, line, begidx, endidx)
         try:
             return self.completion_matches[state]
