@@ -142,26 +142,27 @@ class ArtyShell(cmd.Cmd):
             with subprocess.Popen(["/bin/bash", "-c", arg], 
                                   cwd=Context.path) as child:
                 child.wait()
-                return
+                return child.returncode == 0
         except KeyboardInterrupt:
-            return
+            return False
         except Exception as e:
-            print(e)
-            return
+            return False
             
     def do_python(self, arg):
         'compute expression without parsing:  compute expr'
         try:
             exec("tmp =" + arg, Context.scope)
             print(arg, "=", Context.scope['tmp'])
-            return
+            return True
         except Exception as e:
             pass
             
         try:
             exec(arg, Context.scope)
+            return True
         except Exception as e:
-            print(e)
+            pass
+        return False
 
     # ----- hooks -----
     def postcmd(self, stop, line):
@@ -184,9 +185,11 @@ class ArtyShell(cmd.Cmd):
             print(e)
         # if cmd not found, try the arg instead
         try:
-            self.do_shell(arg) 
-            Context.cmds.append(arg)
-            return
+            if self.do_python(arg):
+                return
+            if self.do_shell(arg): 
+                Context.cmds.append(arg)
+                return
         except Exception as e:
             print(e)
 
