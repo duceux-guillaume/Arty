@@ -103,15 +103,23 @@ class ArtyShell(cmd.Cmd):
 
     def complete_cd(self, text, line, begidx, endidx):
         try:
-            ll = line.rstrip().split(' ')
+            ll = [x.strip() for x in line.rstrip().split(' ')]
             cd = ''
+            abs = False
             if len(ll) > 1:
                 pos = ll[1].rfind('/')
                 if pos >= 0:
-                    cd = ll[1][:pos]
-            return [path+'/' for path in os.listdir(Context.path + "/" + cd) 
-                    if path.startswith(text) and os.path.isdir(Context.path + "/" + cd + "/" + path)]
+                    cd = ll[1][:pos+1]
+                if len(cd) > 0 and cd[0] == '/':
+                    abs = True
+            if abs:
+                return [path+'/' for path in os.listdir(cd) 
+                        if path.startswith(text) and os.path.isdir(cd + path)]
+            else:
+                return [path+'/' for path in os.listdir(Context.path + "/" + cd) 
+                        if path.startswith(text) and os.path.isdir(Context.path + "/" + cd + path)]
         except Exception as e:
+            print(e)
             return []
 
     def do_display(self, arg):
