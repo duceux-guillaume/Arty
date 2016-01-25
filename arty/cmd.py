@@ -125,9 +125,12 @@ class Cmd:
                     if self.use_rawinput:
                         try:
                             line = input(self.prompt)
+                        except KeyboardInterrupt:
+                            print("Bye")
+                            break
                         except EOFError:
-                            line = 'EOF'
-
+                            print("Bye")
+                            break
                     else:
                         self.stdout.write(self.prompt)
                         self.stdout.flush()

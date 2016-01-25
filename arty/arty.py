@@ -102,6 +102,7 @@ class ArtyShell(cmd.Cmd):
         #TODO: folder lookup to avoid typing the whole path and jump around
 
     def complete_cd(self, text, line, begidx, endidx):
+        #TODO: user path: ~/path
         try:
             ll = [x.strip() for x in line.rstrip().split(' ')]
             cd = ''
@@ -142,11 +143,13 @@ class ArtyShell(cmd.Cmd):
                                   cwd=Context.path) as child:
                 child.wait()
                 return
+        except KeyboardInterrupt:
+            return
         except Exception as e:
             print(e)
             return
             
-    def do_compute(self, arg):
+    def do_python(self, arg):
         'compute expression without parsing:  compute expr'
         try:
             exec("tmp =" + arg, Context.scope)
