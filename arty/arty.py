@@ -13,10 +13,10 @@ import pickle
 'A class which contains all persistant information called context'
 class Context:
     path = os.getcwd()
-    path_history = [path]
+    path_history = {path}
     aliases = {'ls': 'ls --color=auto',
             'll': 'ls -la --color=auto'}
-    cmds = []
+    cmds = set()
     scope = {}
     # persistant memory
     history_file = os.path.expanduser("~/.arty/user_history.log")
@@ -76,49 +76,84 @@ class ArtyShell(cmd.Cmd):
             try:
                 subp = subprocess.Popen('pwd', cwd=arg, 
                                         stdout=subprocess.PIPE)
-                Context.path_history.append(Context.path)
+                Context.path_history.add(Context.path)
                 Context.path = subp.communicate()[0].decode().rstrip()
                 return
             except Exception as e:
                 print(e)
                 return
+        # user path
+        if len(arg) > 0 and arg[0] == '~':
+            try:
+                subp = subprocess.Popen('pwd', cwd=os.path.expanduser(arg), 
+                                        stdout=subprocess.PIPE)
+                Context.path_history.add(Context.path)
+                Context.path = subp.communicate()[0].decode().rstrip()
+                return
+            except Exception as e:
+                print(e)
+                return
+
         # relative path
         if len(arg) > 0:
             try:
                 subp = subprocess.Popen('pwd', cwd=Context.path + "/" + arg, 
                                         stdout=subprocess.PIPE)
-                Context.path_history.append(Context.path)
+                Context.path_history.add(Context.path)
                 Context.path = subp.communicate()[0].decode().rstrip()
                 return
             except Exception as e:
-                print(e)
-                return
+                #folder lookup to avoid typing the whole path and jump around
+                try:
+                    for candidate in Context.path_history:
+                        if os.path.basename(candidate) == arg:
+                            subp = subprocess.Popen('pwd', cwd=candidate, 
+                                                    stdout=subprocess.PIPE)
+                            Context.path_history.add(Context.path)
+                            Context.path = subp.communicate()[0].decode().rstrip()
+                            return
+                    # here we got nothing
+                    print(e)
+                    return
+                except Exception as e:
+                    print(e)
+                    return
         # going home
         if len(arg) == 0:
-            Context.path_history.append(Context.path)
+            Context.path_history.add(Context.path)
             Context.path = os.path.expanduser('~')
             return
-        #TODO: user path: ~/path
-        #TODO: folder lookup to avoid typing the whole path and jump around
-
+        
     def complete_cd(self, text, line, begidx, endidx):
         #TODO: user path: ~/path
         try:
             ll = [x.strip() for x in line.rstrip().split(' ')]
             cd = ''
-            abs = False
+            type = 0
             if len(ll) > 1:
                 pos = ll[1].rfind('/')
                 if pos >= 0:
                     cd = ll[1][:pos+1]
                 if len(cd) > 0 and cd[0] == '/':
-                    abs = True
-            if abs:
+                    type = 1 # absolute
+                if len(cd) > 0 and cd[0] == '~':
+                    type = 2 # user
+            if type == 1:
                 return [path+'/' for path in os.listdir(cd) 
                         if path.startswith(text) and os.path.isdir(cd + path)]
+            if type == 2:
+                return [path +'/' for path in os.listdir(os.path.expanduser(cd)) 
+                        if path.startswith(text) and os.path.isdir(os.path.expanduser(cd) + path)]
             else:
-                return [path+'/' for path in os.listdir(Context.path + "/" + cd) 
-                        if path.startswith(text) and os.path.isdir(Context.path + "/" + cd + path)]
+                local = []
+                lookup = []
+                if os.path.isdir(Context.path + "/" + cd):
+                    local = [path+'/' for path in os.listdir(Context.path + "/" + cd) 
+                            if path.startswith(text) and os.path.isdir(Context.path + "/" + cd + path)]
+                if len(text) > 0:
+                        lookup = [os.path.basename(path) for path in Context.path_history
+                            if os.path.basename(path).startswith(text)]
+                return local + lookup
         except Exception as e:
             print(e)
             return []
@@ -188,7 +223,7 @@ class ArtyShell(cmd.Cmd):
             if self.do_python(arg):
                 return
             if self.do_shell(arg): 
-                Context.cmds.append(arg)
+                Context.cmds.add(arg)
                 return
         except Exception as e:
             print(e)
