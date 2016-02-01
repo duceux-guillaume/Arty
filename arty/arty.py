@@ -125,7 +125,6 @@ class ArtyShell(cmd.Cmd):
             return
         
     def complete_cd(self, text, line, begidx, endidx):
-        #TODO: user path: ~/path
         try:
             ll = [x.strip() for x in line.rstrip().split(' ')]
             cd = ''
@@ -160,7 +159,6 @@ class ArtyShell(cmd.Cmd):
 
     def do_display(self, arg):
         'display some context information:  display ctx_attr'
-        #TODO use arg to display some context information
         list_of_var = [attr for attr in vars(Context) if not attr.startswith("__")]
         for attr in list_of_var:
             if attr == arg: 
@@ -174,8 +172,8 @@ class ArtyShell(cmd.Cmd):
         'execute cmd line without parsing:  execute cmd'
         # calling bash
         try:
-            with subprocess.Popen(["/bin/bash", "-c", arg], 
-                                  cwd=Context.path) as child:
+            with subprocess.Popen(["/bin/bash", "-l", "-c", arg], 
+                                  cwd=Context.path, stderr=subprocess.DEVNULL) as child:
                 child.wait()
                 return child.returncode == 0
         except KeyboardInterrupt:
