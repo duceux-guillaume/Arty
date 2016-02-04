@@ -236,7 +236,7 @@ class ArtyShell(cmd.Cmd):
         if len(line.strip()) > 0:
             from_aliases = [key[begidx:] for key, val in Context.aliases if key.startswith(line)]
             from_cmds = [cmd[begidx:] for cmd in Context.cmds if cmd.startswith(line)]
-        return from_aliases + from_dotext + from_cmds
+        return from_aliases + from_dotext + from_cmds + self.complete_cd(text, line, begidx, endidx)
 
 if __name__ == '__main__':
     import atexit
