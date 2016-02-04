@@ -9,6 +9,7 @@ import os
 import sys
 import cmd
 import pickle
+from parser import *
 
 'A class which contains all persistant information called context'
 class Context:
@@ -168,12 +169,38 @@ class ArtyShell(cmd.Cmd):
     def complete_display(self, text, line, begidx, endidx):
         return [attr for attr in vars(Context) if attr.startswith(text) and not attr.startswith("__")]
 
+    def do_self(self, arg):
+        parser = Parser()
+        parser.parse(arg)
+        print(parser.tokens)
+        print(parser.tags)
+        if len(parser.tokens) <= 4:
+            return False
+        if parser.tokens[0] != "alias":
+            return False
+        alias =''
+        id = 1
+        while parser.tokens[id] != "is" and id < len(parser.tokens):
+            alias += " " + parser.tokens[id]
+            id += 1
+        alias = alias.lstrip()
+        if parser.tokens[id] != "is":
+            return False
+        id += 1
+        cmd =''
+        while id < len(parser.tokens):
+            cmd += " " + parser.tokens[id]
+            id += 1
+        cmd = cmd.lstrip()
+        Context.aliases[alias] = cmd
+        return True
+
     def do_shell(self, arg):
         'execute cmd line without parsing:  execute cmd'
         # calling bash
         try:
-            with subprocess.Popen(["/bin/bash", "-l", "-c", arg], 
-                                  cwd=Context.path, stderr=subprocess.DEVNULL) as child:
+            with subprocess.Popen(["/bin/bash", "-c", arg], 
+                                  cwd=Context.path) as child:
                 child.wait()
                 return child.returncode == 0
         except KeyboardInterrupt:
@@ -218,6 +245,8 @@ class ArtyShell(cmd.Cmd):
             print(e)
         # if cmd not found, try the arg instead
         try:
+            if self.do_self(arg):
+                return
             if self.do_python(arg):
                 return
             if self.do_shell(arg): 

@@ -12,8 +12,12 @@ class Parser:
         self.tokens = []
         self.tags = []
 
+    def tokenize(self, sentence):
+        self.tokens = []
+        return sentence.split(' ')
+
     def parse(self, sentence):
-        self.tokens = sentence.split(' ')
+        self.tokens = self.tokenize(sentence)
         for token in self.tokens:
             if RelPath.match(token):
                 self.tags.append("rpath")                
@@ -21,8 +25,6 @@ class Parser:
                 self.tags.append("apath")
             else:
                 self.tags.append("None")
-        print(self.tokens)
-        print(self.tags)
 
 if __name__ == "__main__":
     parser = Parser()
