@@ -31,18 +31,19 @@ class Memory:
     
     @classmethod
     def load(kls):
-        import readline
         try:
-            if os.path.exists(kls.history_file):
-              readline.read_history_file(kls.history_file)
-            tmp_file = open(kls.cmds_file, 'rb')
-            kls.cmds |= pickle.load(tmp_file)
-            tmp_file = open(kls.scope_file, 'rb')
-            kls.scope = pickle.load(tmp_file)
-            tmp_file = open(kls.aliases_file, 'rb')
-            kls.aliases.update(pickle.load(tmp_file))
-            tmp_file = open(kls.path_file, 'rb')
-            kls.path_history |= pickle.load(tmp_file)
+#FIXME those file become too big, find another way to save history
+#            import readline
+#            if os.path.exists(Context.history_file):
+#              readline.read_history_file(Context.history_file)
+            with open(Context.cmds_file, 'rb') as tmp_file:
+                Context.cmds |= pickle.load(tmp_file)
+            with open(Context.scope_file, 'rb') as tmp_file:
+                Context.scope = pickle.load(tmp_file)
+            with open(Context.aliases_file, 'rb') as tmp_file:
+                Context.aliases.update(pickle.load(tmp_file))
+            with open(Context.path_file, 'rb') as tmp_file:
+                Context.path_history |= pickle.load(tmp_file)
         except Exception as e:
             print(e)
             pass
@@ -54,13 +55,18 @@ class Memory:
         folder = os.path.expanduser("~/.arty")
         if not os.path.exists(folder):
             os.mkdir(folder)
-        import readline
-        readline.write_history_file(kls.history_file)
-        tmp_file = open(kls.cmds_file, 'wb')
-        pickle.dump(kls.cmds, tmp_file)
-        tmp_file = open(kls.scope_file, 'wb')
-        pickle.dump(kls.scope, tmp_file)
-        tmp_file = open(kls.aliases_file, 'wb')
-        pickle.dump(kls.aliases, tmp_file)
-        tmp_file = open(kls.path_file, 'wb')
-        pickle.dump(kls.path_history, tmp_file)
+        try:
+#FIXME those file become too big, find another way to save history
+#        import readline
+#        readline.write_history_file(Context.history_file)
+            with open(Context.cmds_file, 'wb') as tmp_file:
+                pickle.dump(Context.cmds, tmp_file)
+            with open(Context.scope_file, 'wb') as tmp_file:
+                pickle.dump(Context.scope, tmp_file)
+            with open(Context.aliases_file, 'wb') as tmp_file:
+                pickle.dump(Context.aliases, tmp_file)
+            with open(Context.path_file, 'wb') as tmp_file:
+                pickle.dump(Context.path_history, tmp_file)
+        except Exception as e:
+            print(e)
+            pass
