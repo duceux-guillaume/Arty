@@ -33,18 +33,21 @@ class Context:
             if os.path.exists(Context.history_file):
               readline.read_history_file(Context.history_file)
             tmp_file = open(Context.cmds_file, 'rb')
-            Context.cmds = pickle.load(tmp_file)
+            Context.cmds |= pickle.load(tmp_file)
             tmp_file = open(Context.scope_file, 'rb')
             Context.scope = pickle.load(tmp_file)
             tmp_file = open(Context.aliases_file, 'rb')
-            Context.aliases = pickle.load(tmp_file)
+            Context.aliases.update(pickle.load(tmp_file))
             tmp_file = open(Context.path_file, 'rb')
-            Context.path_history = pickle.load(tmp_file)
+            Context.path_history |= pickle.load(tmp_file)
         except Exception as e:
+            print(e)
             pass
 
     @classmethod
     def save(kls):
+        # first load to avoid overwriting newer version
+        kls.load()
         folder = os.path.expanduser("~/.arty")
         if not os.path.exists(folder):
             os.mkdir(folder)
