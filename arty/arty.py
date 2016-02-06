@@ -8,59 +8,8 @@ import string_matching
 import os
 import sys
 import cmd
-import pickle
 from parser import *
-
-'A class which contains all persistant information called context'
-class Context:
-    path = os.getcwd()
-    path_history = {path}
-    aliases = {'ls': 'ls --color=auto',
-            'll': 'ls -la --color=auto'}
-    cmds = set()
-    scope = {}
-    # persistant memory
-    history_file = os.path.expanduser("~/.arty/user_history.log")
-    cmds_file = os.path.expanduser("~/.arty/cmds_history.p")
-    scope_file = os.path.expanduser("~/.arty/scope_history.p")
-    aliases_file = os.path.expanduser("~/.arty/aliases_history.p")
-    path_file = os.path.expanduser("~/.arty/path_history.p")
-    
-    @classmethod
-    def load(kls):
-        import readline
-        try:
-            if os.path.exists(Context.history_file):
-              readline.read_history_file(Context.history_file)
-            tmp_file = open(Context.cmds_file, 'rb')
-            Context.cmds |= pickle.load(tmp_file)
-            tmp_file = open(Context.scope_file, 'rb')
-            Context.scope = pickle.load(tmp_file)
-            tmp_file = open(Context.aliases_file, 'rb')
-            Context.aliases.update(pickle.load(tmp_file))
-            tmp_file = open(Context.path_file, 'rb')
-            Context.path_history |= pickle.load(tmp_file)
-        except Exception as e:
-            print(e)
-            pass
-
-    @classmethod
-    def save(kls):
-        # first load to avoid overwriting newer version
-        kls.load()
-        folder = os.path.expanduser("~/.arty")
-        if not os.path.exists(folder):
-            os.mkdir(folder)
-        import readline
-        readline.write_history_file(Context.history_file)
-        tmp_file = open(Context.cmds_file, 'wb')
-        pickle.dump(Context.cmds, tmp_file)
-        tmp_file = open(Context.scope_file, 'wb')
-        pickle.dump(Context.scope, tmp_file)
-        tmp_file = open(Context.aliases_file, 'wb')
-        pickle.dump(Context.aliases, tmp_file)
-        tmp_file = open(Context.path_file, 'wb')
-        pickle.dump(Context.path_history, tmp_file)
+from memory import *
 
 class ArtyShell(cmd.Cmd):
     # ----- Cmd variables ---------
@@ -73,15 +22,15 @@ class ArtyShell(cmd.Cmd):
         arg.rstrip()
         # going back
         if arg == '-':
-            Context.path = Context.path_history[-1]
+            Context.path, Context.last_path = Context.last_path, Context.path
             return
         # absolute path
         if len(arg) > 0 and arg[0] == '/':
             try:
                 subp = subprocess.Popen('pwd', cwd=arg, 
                                         stdout=subprocess.PIPE)
-                Context.path_history.add(Context.path)
                 Context.path = subp.communicate()[0].decode().rstrip()
+                Memory.path_history.add(Context.path)
                 return
             except Exception as e:
                 print(e)
@@ -91,8 +40,8 @@ class ArtyShell(cmd.Cmd):
             try:
                 subp = subprocess.Popen('pwd', cwd=os.path.expanduser(arg), 
                                         stdout=subprocess.PIPE)
-                Context.path_history.add(Context.path)
                 Context.path = subp.communicate()[0].decode().rstrip()
+                Memory.path_history.add(Context.path)
                 return
             except Exception as e:
                 print(e)
@@ -103,8 +52,8 @@ class ArtyShell(cmd.Cmd):
             try:
                 subp = subprocess.Popen('pwd', cwd=Context.path + "/" + arg, 
                                         stdout=subprocess.PIPE)
-                Context.path_history.add(Context.path)
                 Context.path = subp.communicate()[0].decode().rstrip()
+                Memory.path_history.add(Context.path)
                 return
             except Exception as e:
                 #folder lookup to avoid typing the whole path and jump around
@@ -113,8 +62,8 @@ class ArtyShell(cmd.Cmd):
                         if os.path.basename(candidate) == arg:
                             subp = subprocess.Popen('pwd', cwd=candidate, 
                                                     stdout=subprocess.PIPE)
-                            Context.path_history.add(Context.path)
                             Context.path = subp.communicate()[0].decode().rstrip()
+                            Memory.path_history.add(Context.path)
                             return
                     # here we got nothing
                     print(e)
@@ -124,8 +73,8 @@ class ArtyShell(cmd.Cmd):
                     return
         # going home
         if len(arg) == 0:
-            Context.path_history.add(Context.path)
             Context.path = os.path.expanduser('~')
+            Memory.path_history.add(Context.path)
             return
         
     def complete_cd(self, text, line, begidx, endidx):
@@ -154,7 +103,7 @@ class ArtyShell(cmd.Cmd):
                     local = [path+'/' for path in os.listdir(Context.path + "/" + cd) 
                             if path.startswith(text) and os.path.isdir(Context.path + "/" + cd + path)]
                 if len(text) > 0:
-                        lookup = [os.path.basename(path) for path in Context.path_history
+                        lookup = [os.path.basename(path) for path in Memory.path_history
                             if os.path.basename(path).startswith(text)]
                 return local + lookup
         except Exception as e:
@@ -163,14 +112,26 @@ class ArtyShell(cmd.Cmd):
 
     def do_display(self, arg):
         'display some context information:  display ctx_attr'
-        list_of_var = [attr for attr in vars(Context) if not attr.startswith("__")]
-        for attr in list_of_var:
+        list_of_ctx = [attr for attr in vars(Context) if not attr.startswith("__")]
+        for attr in list_of_ctx:
             if attr == arg: 
                 print(getattr(Context, attr))
                 return
+        list_of_mem = [attr for attr in vars(Memory) if not attr.startswith("__")]
+        for attr in list_of_mem:
+            if attr == arg: 
+                print(getattr(Memory, attr))
+                return
+        list_of_con = [attr for attr in vars(Config) if not attr.startswith("__")]
+        for attr in list_of_con:
+            if attr == arg: 
+                print(getattr(Config, attr))
+                return
 
     def complete_display(self, text, line, begidx, endidx):
-        return [attr for attr in vars(Context) if attr.startswith(text) and not attr.startswith("__")]
+        return ([attr for attr in vars(Context) if attr.startswith(text) and not attr.startswith("__")] +
+            [attr for attr in vars(Memory) if attr.startswith(text) and not attr.startswith("__")] +
+            [attr for attr in vars(Config) if attr.startswith(text) and not attr.startswith("__")])
 
     def do_self(self, arg):
         parser = Parser()
@@ -195,7 +156,7 @@ class ArtyShell(cmd.Cmd):
             cmd += " " + parser.tokens[id]
             id += 1
         cmd = cmd.lstrip()
-        Context.aliases[alias] = cmd
+        Memory.aliases[alias] = cmd
         return True
 
     def do_shell(self, arg):
@@ -214,14 +175,14 @@ class ArtyShell(cmd.Cmd):
     def do_python(self, arg):
         'compute expression without parsing:  compute expr'
         try:
-            exec("tmp =" + arg, Context.scope)
-            print(arg, "=", Context.scope['tmp'])
+            exec("tmp =" + arg, Memory.scope)
+            print(arg, "=", Memory.scope['tmp'])
             return True
         except Exception as e:
             pass
             
         try:
-            exec(arg, Context.scope)
+            exec(arg, Memory.scope)
             return True
         except Exception as e:
             pass
@@ -237,9 +198,13 @@ class ArtyShell(cmd.Cmd):
 
     # ------ magic stuff ----
     def default(self, arg):
+        parser = Parser()
+        parser.parse(arg)
+        print(parser.tokens)
+        print(parser.tags)
         # Command lookup
         try:
-            cmd = Context.aliases[arg]
+            cmd = Memory.aliases[arg]
             self.do_shell(cmd) 
             return
         except KeyError as key:
@@ -253,7 +218,7 @@ class ArtyShell(cmd.Cmd):
             if self.do_python(arg):
                 return
             if self.do_shell(arg): 
-                Context.cmds.add(arg)
+                Memory.cmds.add(arg)
                 return
         except Exception as e:
             print(e)
@@ -266,13 +231,13 @@ class ArtyShell(cmd.Cmd):
         dotext = 'do_'+line
         from_dotext = [a[3:] for a in self.get_names() if a.startswith(dotext)]
         if len(line.strip()) > 0:
-            from_aliases = [key[begidx:] for key, val in Context.aliases if key.startswith(line)]
-            from_cmds = [cmd[begidx:] for cmd in Context.cmds if cmd.startswith(line)]
+            from_aliases = [key[begidx:] for key, val in Memory.aliases if key.startswith(line)]
+            from_cmds = [cmd[begidx:] for cmd in Memory.cmds if cmd.startswith(line)]
         return from_aliases + from_dotext + from_cmds + self.complete_cd(text, line, begidx, endidx)
 
 if __name__ == '__main__':
     import atexit
-    Context.load()
-    atexit.register(Context.save)
+    Memory.load()
+    atexit.register(Memory.save)
     ArtyShell().cmdloop()
 
