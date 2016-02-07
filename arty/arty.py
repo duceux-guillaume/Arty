@@ -136,8 +136,6 @@ class ArtyShell(cmd.Cmd):
     def do_self(self, arg):
         parser = Parser()
         parser.parse(arg)
-        print(parser.tokens)
-        print(parser.tags)
         if len(parser.tokens) <= 4:
             return False
         if parser.tokens[0] != "alias":
