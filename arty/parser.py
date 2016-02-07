@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 
-from memory import *
+from memory import Memory
 import features
+import string_matching as sm
 
 class Parser:
 
@@ -11,8 +12,19 @@ class Parser:
         self.features = [attr for attr in vars(features.Features) if not attr.startswith("__")]
 
     def tokenize(self, sentence):
-        self.tokens = []
-        return sentence.split(' ')
+        self.tokens = sentence.split(' ')
+        for i in range(len(self.tokens)):
+            best = 1000
+            argbest = None
+            # Look for aliases
+            for key, val in Memory.aliases.items():
+                dist = sm.levenshtein(self.tokens[i], key)
+                if dist <= best:
+                    best = dist
+                    argbest = key
+            if best <= 1 and argbest != None:
+                self.tokens[i] = Memory.aliases[argbest]
+        return self.tokens
 
     def parse(self, sentence):
         self.tokens = self.tokenize(sentence)
@@ -29,6 +41,7 @@ class Parser:
 
 if __name__ == "__main__":
     try:
+        Memory.load()
         parser = Parser()
         import sys
         if len(sys.argv) >= 2:

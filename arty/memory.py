@@ -2,6 +2,9 @@ import os
 import readline
 import pickle
 
+__all__ = ["Config", "Context", "Memory"]
+
+
 'A class wich contains Arty\'s configuration'
 class Config:
     bash_prefix = "/bin/bash -c"

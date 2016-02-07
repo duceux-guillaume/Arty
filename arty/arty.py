@@ -200,15 +200,7 @@ class ArtyShell(cmd.Cmd):
         parser.parse(arg)
         print(parser.tokens)
         print(parser.tags)
-        # Command lookup
-        try:
-            cmd = Memory.aliases[arg]
-            self.do_shell(cmd) 
-            return
-        except KeyError as key:
-            pass
-        except Exception as e:
-            print(e)
+        arg = ' '.join(parser.tokens)
         # if cmd not found, try the arg instead
         try:
             if self.do_self(arg):
