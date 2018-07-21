@@ -1,0 +1,6 @@
+[package]
+name = "arty"
+version = "0.1.0"
+authors = ["papadoc"]
+
+[dependencies]
