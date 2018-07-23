@@ -2,12 +2,13 @@ mod helper;
 mod interface;
 mod number;
 mod error;
+mod identifier;
 
 use self::number::Number;
+use self::identifier::Identifier;
 use self::error::Error;
 use self::interface::Token;
 use self::interface::State;
-use self::interface::Type;
 
 pub struct Lexer {
     automatas: Vec<Box<interface::ILexer>>,
@@ -20,6 +21,7 @@ impl Lexer {
         };
         lexer.automatas.push(Box::new(Error::new()));
         lexer.automatas.push(Box::new(Number::new()));
+        lexer.automatas.push(Box::new(Identifier::new()));
         return lexer
     }
 
@@ -54,6 +56,7 @@ impl Lexer {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use self::interface::Type;
 
     #[test]
     fn integer() {
@@ -62,6 +65,16 @@ mod tests {
         let res = lexer.process(string.clone());
         assert_eq!(1, res.len());
         assert_eq!(Type::NUMBER, res[0].get_type());
+        assert_eq!(string.trim(), res[0].get_val());
+    }
+
+    #[test]
+    fn identifier() {
+        let string = String::from("aname1 ");
+        let mut lexer = Lexer::new();
+        let res = lexer.process(string.clone());
+        assert_eq!(1, res.len());
+        assert_eq!(Type::IDENTIFIER, res[0].get_type());
         assert_eq!(string.trim(), res[0].get_val());
     }
     
