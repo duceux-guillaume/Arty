@@ -20,6 +20,8 @@ pub enum Type {
     NUMBER,
     STRING,
     IDENTIFIER,
+    MATHOP,
+    CRTLOP,
 }
 
 impl fmt::Display for Type {
@@ -29,6 +31,8 @@ impl fmt::Display for Type {
             Type::NUMBER => write!(f, "NUMBER"),
             Type::STRING => write!(f, "STRING"),
             Type::IDENTIFIER => write!(f, "IDENTIFIER"),
+            Type::MATHOP => write!(f, "MATHOP"),
+            Type::CRTLOP => write!(f, "CRTLOP"),
         }
     }
 }

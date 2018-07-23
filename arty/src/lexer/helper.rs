@@ -12,6 +12,13 @@ pub fn is_letter(c: char) -> bool {
         (c >= 'A' && c <= 'Z')
 }
 
+pub fn is_ctrl_operator(c: char) -> bool {
+    return c == '|' ||
+        c == ';' ||
+        c == '&' ||
+        c == '>';
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -23,6 +30,7 @@ mod tests {
             assert_eq!(true, is_digit(c));
             assert_eq!(false, is_blanck(c));
             assert_eq!(false, is_letter(c));
+            assert_eq!(false, is_ctrl_operator(c));
         }
     }
 
@@ -33,6 +41,7 @@ mod tests {
             assert_eq!(false, is_digit(c));
             assert_eq!(false, is_blanck(c));
             assert_eq!(true, is_letter(c));
+            assert_eq!(false, is_ctrl_operator(c));
         }
     }
     
@@ -43,6 +52,19 @@ mod tests {
             assert_eq!(false, is_digit(c));
             assert_eq!(true, is_blanck(c));
             assert_eq!(false, is_letter(c));
+            assert_eq!(false, is_ctrl_operator(c));
+        }
+    }
+
+
+    #[test]
+    fn crtl_operators() {
+        let blancks = String::from("&|;>");
+        for c in blancks.chars() {
+            assert_eq!(false, is_digit(c));
+            assert_eq!(false, is_blanck(c));
+            assert_eq!(false, is_letter(c));
+            assert_eq!(true, is_ctrl_operator(c));
         }
     }
 }
