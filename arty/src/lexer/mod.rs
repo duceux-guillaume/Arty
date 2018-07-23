@@ -1,5 +1,5 @@
 mod helper;
-mod interface;
+pub mod interface;
 mod number;
 mod error;
 mod identifier;
