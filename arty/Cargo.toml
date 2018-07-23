@@ -3,4 +3,12 @@ name = "arty"
 version = "0.1.0"
 authors = ["papadoc"]
 
+[lib]
+name = "arty"
+path = "src/lib.rs"
+
+[[bin]]
+name = "artyshell"
+path = "src/main.rs"
+
 [dependencies]
