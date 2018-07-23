@@ -1,7 +1,6 @@
 use lexer::interface::ILexer;
 use lexer::interface::State;
-use lexer::interface::Token;
-use lexer::interface::Type;
+use language::Token;
 use lexer::helper;
 
 pub struct CtrlOp {
@@ -49,7 +48,7 @@ impl ILexer for CtrlOp {
     }
 
     fn token(&mut self) -> Token {
-        return Token::new(Type::CRTLOP, self.token.clone())
+        return Token::ERROR(self.token.clone())
     }
 }
 

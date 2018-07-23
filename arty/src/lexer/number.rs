@@ -1,7 +1,6 @@
 use lexer::interface::ILexer;
 use lexer::interface::State;
-use lexer::interface::Token;
-use lexer::interface::Type;
+use language::Token;
 use lexer::helper;
 
 pub struct Number {
@@ -52,7 +51,7 @@ impl ILexer for Number {
     }
     
     fn token(&mut self) -> Token {
-        return Token::new(Type::NUMBER, self.token.clone())
+        return Token::NUMBER(self.token.clone())
     }
 }
 

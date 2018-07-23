@@ -1,7 +1,6 @@
 use lexer::interface::ILexer;
-use lexer::interface::Token;
+use language::Token;
 use lexer::interface::State;
-use lexer::interface::Type;
 use lexer::helper;
 
 
@@ -43,7 +42,7 @@ impl ILexer for Error {
     }
 
     fn token(&mut self) -> Token {
-        return Token::new(Type::ERROR, self.token.clone())
+        return Token::ERROR(self.token.clone())
     }
 }
 

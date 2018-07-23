@@ -9,8 +9,9 @@ use self::number::Number;
 use self::ctrlop::CtrlOp;
 use self::identifier::Identifier;
 use self::error::Error;
-use self::interface::Token;
 use self::interface::State;
+
+use language::Token;
 
 pub struct Lexer {
     automatas: Vec<Box<interface::ILexer>>,
@@ -59,7 +60,6 @@ impl Lexer {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use self::interface::Type;
 
     #[test]
     fn integer() {
@@ -67,7 +67,7 @@ mod tests {
         let mut lexer = Lexer::new();
         let res = lexer.process(string.clone());
         assert_eq!(1, res.len());
-        assert_eq!(Type::NUMBER, res[0].get_type());
+        assert_eq!(Token::NUMBER, res[0].get_type());
         assert_eq!(string.trim(), res[0].get_val());
     }
 
@@ -77,7 +77,7 @@ mod tests {
         let mut lexer = Lexer::new();
         let res = lexer.process(string.clone());
         assert_eq!(1, res.len());
-        assert_eq!(Type::IDENTIFIER, res[0].get_type());
+        assert_eq!(Token::IDENTIFIER, res[0].get_type());
         assert_eq!(string.trim(), res[0].get_val());
     }
     
@@ -87,7 +87,7 @@ mod tests {
         let mut lexer = Lexer::new();
         let res = lexer.process(string.clone());
         assert_eq!(1, res.len());
-        assert_eq!(Type::ERROR, res[0].get_type());
+        assert_eq!(Token::ERROR, res[0].get_type());
         assert_eq!(string.trim(), res[0].get_val());
     }
 
@@ -98,15 +98,15 @@ mod tests {
         let mut lexer = Lexer::new();
         let res = lexer.process(string.clone());
         assert_eq!(5, res.len());
-        assert_eq!(Type::IDENTIFIER, res[0].get_type());
+        assert_eq!(Token::IDENTIFIER, res[0].get_type());
         assert_eq!("cat", res[0].get_val());
-        assert_eq!(Type::IDENTIFIER, res[1].get_type());
+        assert_eq!(Token::IDENTIFIER, res[1].get_type());
         assert_eq!("filename", res[1].get_val());
-        assert_eq!(Type::CRTLOP, res[2].get_type());
+        assert_eq!(Token::CRTLOP, res[2].get_type());
         assert_eq!("|", res[2].get_val());
-        assert_eq!(Type::IDENTIFIER, res[3].get_type());
+        assert_eq!(Token::IDENTIFIER, res[3].get_type());
         assert_eq!("grep", res[3].get_val());
-        assert_eq!(Type::IDENTIFIER, res[4].get_type());
+        assert_eq!(Token::IDENTIFIER, res[4].get_type());
         assert_eq!("pattern", res[4].get_val());
     }
 }

@@ -1,7 +1,5 @@
-use lexer::interface::Token;
-use lexer::interface::Type;
+use language::Token;
 use lexer::Lexer;
-use std::mem::swap;
 
 trait TokenParser {
     fn from_token(token: Token) -> Box<TokenParser> where Self: Sized;
@@ -22,7 +20,7 @@ impl TokenParser for ErrorParser {
     }
 
     fn nud(&self) -> String {
-        return self.token.get_val()
+        return Token::from(self.token.clone())
     }
 
     fn lbp(&self) -> u64 {
@@ -41,7 +39,7 @@ struct IdentifierParser {
 impl TokenParser for IdentifierParser {
     fn from_token(token: Token) -> Box<TokenParser> {
         return Box::new(IdentifierParser {
-            value: token.get_val(),
+            value: Token::from(token),
         })
     }
 
@@ -111,13 +109,13 @@ impl Parser {
         return Parser::expression(0, &mut state);
     }
 
-    fn get_parser(next: usize, mut state: &mut ParsingState) -> Box<TokenParser> {
+    fn get_parser(next: usize, state: &mut ParsingState) -> Box<TokenParser> {
         if next >= state.tokens.len() {
             return Parser::end_parser()
         }
         let t = state.tokens[next].clone();
-        return match t.get_type() {
-            Type::IDENTIFIER => IdentifierParser::from_token(t),
+        return match t {
+            Token::IDENTIFIER(ref _str) => IdentifierParser::from_token(t.clone()),
             _ => ErrorParser::from_token(t),
         }
     }
