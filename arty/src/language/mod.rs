@@ -1,44 +1,44 @@
 use std::fmt;
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone, PartialEq, Debug)]
 pub enum Token {
-    EOF,
-    ERROR(String),
-    NUMBER(String),
-    STRING(String),
-    IDENTIFIER(String),
+    Eof,
+    Error(String),
+    Number(String),
+    String(String),
+    Identifier(String),
     // Math operations
-    PLUS,
-    MINUS,
-    TIMES,
-    DIVIDE,
-    MODULO,
+    Plus,
+    Minus,
+    Times,
+    Divide,
+    Modulo,
     // CTRL OP
-    SEQUENCIAL,
-    BACKGROUND,
+    Sequencial,
+    Background,
 }
 
 impl Token {
     pub fn precedence(token: Token) -> u32 {
         return match token {
-            EOF => 0,
-            ERROR => 0,
+            Token::Eof => 0,
+            Token::Error(_str) => 0,
             // Math OP
-            PLUS => 100,
-            MINUS => 100,
-            TIMES => 101,
-            DIVIDE => 101,
-            MODULO => 102,
+            Token::Plus => 100,
+            Token::Minus => 100,
+            Token::Times => 101,
+            Token::Divide => 101,
+            Token::Modulo => 102,
             _ => 0,
         }
     }
 
     pub fn from(token: Token) -> String {
         return match token {
-            Token::ERROR(str) => str,
-            Token::NUMBER(str) => str,
-            Token::STRING(str) => str,
-            Token::IDENTIFIER(str) => str,
+            Token::Error(str) => str,
+            Token::Number(str) => str,
+            Token::String(str) => str,
+            Token::Identifier(str) => str,
             _ => String::new(),
         }
     }
@@ -47,12 +47,52 @@ impl Token {
 impl fmt::Display for Token {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
-            Token::ERROR(ref str) => write!(f, "ERROR({})", str),
-            Token::NUMBER(ref str) => write!(f, "NUMBER({})", str),
-            Token::STRING(ref str) => write!(f, "STRING({})", str),
-            Token::IDENTIFIER(ref str) => write!(f, "IDENTIFIER({})", str),
-            _ => write!(f, "NA"),
+            Token::Eof => write!(f, "eof"),
+            Token::Error(ref str) => write!(f, "error({})", str),
+            Token::Number(ref str) => write!(f, "number({})", str),
+            Token::String(ref str) => write!(f, "string({})", str),
+            Token::Identifier(ref str) => write!(f, "identifier{})", str),
+            Token::Plus => write!(f, "+"),
+            Token::Minus => write!(f, "-"),
+            _ => write!(f, "na"),
         }
     }
 }
 
+use std::ops;
+
+pub struct Number {
+    data: f64, //TODO(Guillaume): implement something great
+}
+
+impl Number {
+    pub fn from(string: String) -> Number {
+        return Number {
+            data: string.parse().unwrap(),
+        }
+    }
+
+    pub fn to(&self) -> String {
+        return self.data.to_string()
+    }
+}
+
+impl ops::Add<Number> for Number {
+    type Output = Number;
+
+    fn add(self, rhs: Number) -> Number {
+        return Number {
+            data: self.data + rhs.data,
+        }
+    }
+}
+
+impl ops::Mul<Number> for Number {
+    type Output = Number;
+
+    fn mul(self, rhs: Number) -> Number {
+        return Number {
+            data: self.data * rhs.data,
+        }
+    }
+}

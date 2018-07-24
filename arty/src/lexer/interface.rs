@@ -8,10 +8,10 @@ pub trait ILexer {
 
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub enum State {
-    ACC,
-    ONG,
-    REJ,
-    STA
+    Acc,
+    Ong,
+    Rej,
+    Sta
 }
 
 

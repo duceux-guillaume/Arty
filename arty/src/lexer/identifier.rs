@@ -12,7 +12,7 @@ impl Identifier {
     pub fn new() -> Self {
         return Identifier {
             token: String::new(),
-            state: State::STA,
+            state: State::Sta,
         }
     }
 }
@@ -20,24 +20,24 @@ impl Identifier {
 impl ILexer for Identifier {
     fn eat(&mut self, c: char) -> State {
         let new_state: State = match self.state {
-            State::REJ => self.state,
-            State::ACC => self.state,
-            State::STA => {
+            State::Rej => self.state,
+            State::Acc => self.state,
+            State::Sta => {
                 if helper::is_letter(c) {
                     self.token.push(c);
-                    State::ONG
+                    State::Ong
                 } else {
-                    State::REJ
+                    State::Rej
                 }
             },
             _ => {
                 if helper::is_digit(c) || helper::is_letter(c) {
                     self.token.push(c);
-                    State::ONG
+                    State::Ong
                 } else if helper::is_blanck(c) {
-                    State::ACC
+                    State::Acc
                 } else {
-                    State::REJ
+                    State::Rej
                 }
             }
         };
@@ -47,11 +47,11 @@ impl ILexer for Identifier {
 
     fn reset(&mut self) {
         self.token.clear();
-        self.state = State::STA;
+        self.state = State::Sta;
     }
 
     fn token(&mut self) -> Token {
-        return Token::IDENTIFIER(self.token.clone())
+        return Token::Identifier(self.token.clone())
     }
 }
 
@@ -64,9 +64,9 @@ mod tests {
         let string = String::from("1234567890");
         let mut lexer = Identifier::new();
         for c in string.chars() {
-            assert_eq!(State::REJ, lexer.eat(c));
+            assert_eq!(State::Rej, lexer.eat(c));
         }
-        assert_eq!(State::REJ, lexer.eat(' '));
+        assert_eq!(State::Rej, lexer.eat(' '));
     }
 
     #[test]
@@ -74,9 +74,9 @@ mod tests {
         let string = String::from("a1");
         let mut lexer = Identifier::new();
         for c in string.chars() {
-            assert_eq!(State::ONG, lexer.eat(c));
+            assert_eq!(State::Ong, lexer.eat(c));
         }
-        assert_eq!(State::ACC, lexer.eat(' '));
+        assert_eq!(State::Acc, lexer.eat(' '));
     }
 
     #[test]
@@ -84,9 +84,9 @@ mod tests {
         let string = String::from("aname");
         let mut lexer = Identifier::new();
         for c in string.chars() {
-            assert_eq!(State::ONG, lexer.eat(c));
+            assert_eq!(State::Ong, lexer.eat(c));
         }
-        assert_eq!(State::ACC, lexer.eat(' '));
+        assert_eq!(State::Acc, lexer.eat(' '));
     }
 
     #[test]
@@ -94,8 +94,8 @@ mod tests {
         let string = String::from(" ");
         let mut lexer = Identifier::new();
         for c in string.chars() {
-            assert_eq!(State::REJ, lexer.eat(c));
+            assert_eq!(State::Rej, lexer.eat(c));
         }
-        assert_eq!(State::REJ, lexer.eat(' '));
+        assert_eq!(State::Rej, lexer.eat(' '));
     }
 }

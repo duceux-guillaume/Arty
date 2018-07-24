@@ -13,7 +13,7 @@ impl Error {
     pub fn new () -> Self {
         return Error {
             token: String::new(),
-            state: State::STA,
+            state: State::Sta,
         }
     }
 }
@@ -21,14 +21,14 @@ impl Error {
 impl ILexer for Error {
     fn eat(&mut self, c: char) -> State {
         let new_state = match self.state {
-            State::REJ => self.state,
-            State::ACC => self.state,
+            State::Rej => self.state,
+            State::Acc => self.state,
             _ => {
                 if helper::is_blanck(c) {
-                    State::ACC
+                    State::Acc
                 } else {
                     self.token.push(c);
-                    State::ONG
+                    State::Ong
                 }
             }
         };
@@ -38,11 +38,11 @@ impl ILexer for Error {
 
     fn reset(&mut self) {
         self.token.clear();
-        self.state = State::STA;
+        self.state = State::Sta;
     }
 
     fn token(&mut self) -> Token {
-        return Token::ERROR(self.token.clone())
+        return Token::Error(self.token.clone())
     }
 }
 
@@ -55,9 +55,9 @@ mod tests {
         let string = String::from("1234567890");
         let mut lexer = Error::new();
         for c in string.chars() {
-            assert_eq!(State::ONG, lexer.eat(c));
+            assert_eq!(State::Ong, lexer.eat(c));
         }
-        assert_eq!(State::ACC, lexer.eat(' '));
+        assert_eq!(State::Acc, lexer.eat(' '));
     }
 
     #[test]
@@ -65,9 +65,9 @@ mod tests {
         let string = String::from("a1");
         let mut lexer = Error::new();
         for c in string.chars() {
-            assert_eq!(State::ONG, lexer.eat(c));
+            assert_eq!(State::Ong, lexer.eat(c));
         }
-        assert_eq!(State::ACC, lexer.eat(' '));
+        assert_eq!(State::Acc, lexer.eat(' '));
     }
 }
 

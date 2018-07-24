@@ -12,11 +12,19 @@ pub fn is_letter(c: char) -> bool {
         (c >= 'A' && c <= 'Z')
 }
 
-pub fn is_ctrl_operator(c: char) -> bool {
+pub fn is_ctrlop(c: char) -> bool {
     return c == '|' ||
         c == ';' ||
         c == '&' ||
         c == '>';
+}
+
+pub fn is_mathop(c: char) -> bool {
+    return c == '+' ||
+        c == '-' ||
+        c == '*' ||
+        c == '%' ||
+        c == '/';
 }
 
 #[cfg(test)]
@@ -30,7 +38,7 @@ mod tests {
             assert_eq!(true, is_digit(c));
             assert_eq!(false, is_blanck(c));
             assert_eq!(false, is_letter(c));
-            assert_eq!(false, is_ctrl_operator(c));
+            assert_eq!(false, is_ctrlop(c));
         }
     }
 
@@ -41,7 +49,7 @@ mod tests {
             assert_eq!(false, is_digit(c));
             assert_eq!(false, is_blanck(c));
             assert_eq!(true, is_letter(c));
-            assert_eq!(false, is_ctrl_operator(c));
+            assert_eq!(false, is_ctrlop(c));
         }
     }
     
@@ -52,7 +60,7 @@ mod tests {
             assert_eq!(false, is_digit(c));
             assert_eq!(true, is_blanck(c));
             assert_eq!(false, is_letter(c));
-            assert_eq!(false, is_ctrl_operator(c));
+            assert_eq!(false, is_ctrlop(c));
         }
     }
 
@@ -64,7 +72,7 @@ mod tests {
             assert_eq!(false, is_digit(c));
             assert_eq!(false, is_blanck(c));
             assert_eq!(false, is_letter(c));
-            assert_eq!(true, is_ctrl_operator(c));
+            assert_eq!(true, is_ctrlop(c));
         }
     }
 }

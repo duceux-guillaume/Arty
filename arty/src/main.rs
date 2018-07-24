@@ -12,7 +12,7 @@ fn main() {
 
         let res: String = parser::Parser::process(line);
         println!("------");
-        println!("exec: {}", res);
+        println!("{}", res);
         println!("------");
     }
 }
