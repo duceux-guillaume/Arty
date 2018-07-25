@@ -20,20 +20,7 @@ impl Error {
 
 impl ILexer for Error {
     fn eat(&mut self, c: char) -> State {
-        let new_state = match self.state {
-            State::Rej => self.state,
-            State::Acc => self.state,
-            _ => {
-                if helper::is_blanck(c) {
-                    State::Acc
-                } else {
-                    self.token.push(c);
-                    State::Ong
-                }
-            }
-        };
-        self.state = new_state;
-        return self.state
+        return State::Acc
     }
 
     fn reset(&mut self) {
@@ -43,6 +30,46 @@ impl ILexer for Error {
 
     fn token(&mut self) -> Token {
         return Token::Error(self.token.clone())
+    }
+}
+
+pub struct None {
+    state: State
+}
+impl None {
+    pub fn new() -> Self {
+        return None { state: State::Acc }
+    }
+}
+impl ILexer for None {
+    fn eat(&mut self, c: char) -> State {
+        let new_state = match self.state {
+            State::Sta => {
+                if helper::is_blank(c) {
+                    State::Ong
+                } else {
+                    State::Rej
+                }
+            },
+            State::Ong => {
+                if helper::is_blank(c) {
+                    State::Ong
+                } else {
+                    State::Acc
+                }
+            },
+            _ => self.state,
+        };
+        self.state = new_state;
+        return self.state
+    }
+
+    fn reset(&mut self) {
+        self.state = State::Sta;
+    }
+
+    fn token(&mut self) -> Token {
+        return Token::None
     }
 }
 

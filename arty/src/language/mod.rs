@@ -2,6 +2,7 @@ use std::fmt;
 
 #[derive(Clone, PartialEq, Debug)]
 pub enum Token {
+    None,
     Eof,
     Error(String),
     Number(String),
@@ -13,6 +14,8 @@ pub enum Token {
     Times,
     Divide,
     Modulo,
+    ParO,
+    ParC,
     // CTRL OP
     Sequencial,
     Background,
@@ -29,7 +32,13 @@ impl Token {
             Token::Times => 101,
             Token::Divide => 101,
             Token::Modulo => 102,
-            _ => 0,
+            // Groups
+            Token::ParO => 0,
+            Token::ParC => 0,
+            // names
+            Token::Identifier(_str) => 1000,
+            Token::Number(_str) => 1000,
+            _ => 1,
         }
     }
 
@@ -51,10 +60,14 @@ impl fmt::Display for Token {
             Token::Error(ref str) => write!(f, "error({})", str),
             Token::Number(ref str) => write!(f, "number({})", str),
             Token::String(ref str) => write!(f, "string({})", str),
-            Token::Identifier(ref str) => write!(f, "identifier{})", str),
+            Token::Identifier(ref str) => write!(f, "identifier({})", str),
             Token::Plus => write!(f, "+"),
             Token::Minus => write!(f, "-"),
-            _ => write!(f, "na"),
+            Token::Times => write!(f, "*"),
+            Token::Divide => write!(f, "/"),
+            Token::ParO => write!(f, "("),
+            Token::ParC => write!(f, ")"),
+            _ => write!(f, "none"),
         }
     }
 }
@@ -87,12 +100,32 @@ impl ops::Add<Number> for Number {
     }
 }
 
+impl ops::Sub<Number> for Number {
+    type Output = Number;
+
+    fn sub(self, rhs: Number) -> Number {
+        return Number {
+            data: self.data - rhs.data,
+        }
+    }
+}
+
 impl ops::Mul<Number> for Number {
     type Output = Number;
 
     fn mul(self, rhs: Number) -> Number {
         return Number {
             data: self.data * rhs.data,
+        }
+    }
+}
+
+impl ops::Div<Number> for Number {
+    type Output = Number;
+
+    fn div(self, rhs: Number) -> Number {
+        return Number {
+            data: self.data / rhs.data,
         }
     }
 }

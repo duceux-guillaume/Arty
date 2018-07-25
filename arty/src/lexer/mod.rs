@@ -1,17 +1,17 @@
 mod helper;
 pub mod interface;
-mod number;
 mod error;
 mod identifier;
 mod ctrlop;
-mod mathop;
+mod math;
 
-use self::number::Number;
+use self::math::Number;
 use self::ctrlop::CtrlOp;
-use self::mathop::MathOp;
+use self::math::MathOp;
 use self::identifier::Identifier;
-use self::error::Error;
 use self::interface::State;
+use self::error::Error;
+use self::error::None;
 
 use language::Token;
 
@@ -30,6 +30,7 @@ impl Lexer {
             tokens: Vec::new(),
             pos: 0,
         };
+        lexer.automatas.push(Box::new(None::new()));
         lexer.automatas.push(Box::new(Number::new()));
         lexer.automatas.push(Box::new(Identifier::new()));
         lexer.automatas.push(Box::new(CtrlOp::new()));
@@ -59,12 +60,13 @@ impl Lexer {
                 match opt_token {
                     Some(t) => {
                         println!("found token: {}", t);
-                        result.push(t);
+                        match t {
+                            Token::None => {},
+                            _ => result.push(t),
+                        }
                     },
                     None => {
-                        println!("found token: {}", Token::Eof);
-                        result.push(Token::Eof);
-                        pos += 1;
+                        panic!("No token found");
                     },
                 }
                 for l in self.automatas.iter_mut() {

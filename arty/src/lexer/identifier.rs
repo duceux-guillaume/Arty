@@ -34,7 +34,7 @@ impl ILexer for Identifier {
                 if helper::is_digit(c) || helper::is_letter(c) {
                     self.token.push(c);
                     State::Ong
-                } else if helper::is_blanck(c) {
+                } else if helper::is_blank(c) {
                     State::Acc
                 } else {
                     State::Rej

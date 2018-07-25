@@ -31,7 +31,7 @@ impl ILexer for CtrlOp {
                 }
             },
             _ => {
-                if helper::is_blanck(c) {
+                if helper::is_blank(c) {
                     State::Acc
                 } else {
                     State::Rej
