@@ -170,12 +170,6 @@ mod tests {
         }
         assert_eq!(State::Rej, number.eat(' '));
     }
-}
-
-
-#[cfg(test)]
-mod tests {
-    use super::*;
 
     #[test]
     fn operator() {

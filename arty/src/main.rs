@@ -10,9 +10,12 @@ fn main() {
         std::io::stdin().read_line(&mut line)
             .expect("Failed to read line");
 
-        let res: String = parser::Parser::process(line);
+        let res = parser::Parser::process(line);
         println!("------");
-        println!("{}", res);
+        match res {
+            Ok(ref str) => println!("Sucess: {}", str),
+            Err(ref str) => println!("error: {}", str)
+        }
         println!("------");
     }
 }

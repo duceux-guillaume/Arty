@@ -1,6 +1,5 @@
 mod helper;
 pub mod interface;
-mod error;
 mod identifier;
 mod ctrlop;
 mod math;
@@ -10,10 +9,31 @@ use self::ctrlop::CtrlOp;
 use self::math::MathOp;
 use self::identifier::Identifier;
 use self::interface::State;
-use self::error::Error;
-use self::error::None;
+use self::identifier::None;
 
 use language::Token;
+
+use std::result;
+use std::error::Error;
+use std::fmt;
+
+#[derive(Debug)]
+struct LexicalError {
+    cause: String
+}
+impl LexicalError {
+    fn new(cause: String) -> Self {
+        return LexicalError {
+            cause,
+        }
+    }
+}
+impl Error for LexicalError {}
+impl fmt::Display for LexicalError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result { write!(f, "error: {}", self.cause) }
+}
+
+type Result<T> = result::Result<T, Box<Error>>;
 
 pub struct Lexer {
     automatas: Vec<Box<interface::ILexer>>,
@@ -23,7 +43,7 @@ pub struct Lexer {
 }
 
 impl Lexer {
-    pub fn new(data: String) -> Self {
+    pub fn new(data: String) -> Result<Self> {
         let mut lexer = Lexer {
             automatas: Vec::new(),
             data,
@@ -36,11 +56,11 @@ impl Lexer {
         lexer.automatas.push(Box::new(CtrlOp::new()));
         lexer.automatas.push(Box::new(MathOp::new()));
         let data = lexer.data.clone();
-        lexer.tokens = lexer.process(data); //TODO(Guillaume): make a lazy evaluation
-        return lexer
+        lexer.tokens = lexer.process(data)?; //TODO(Guillaume): make a lazy evaluation
+        return Ok(lexer)
     }
 
-    fn process(&mut self, string: String) -> Vec<Token> {
+    fn process(&mut self, string: String) -> Result<Vec<Token>> {
         let mut result = Vec::new();
         let char_vec:Vec<char> = string.chars().collect();
         let mut pos = 0;
@@ -65,9 +85,8 @@ impl Lexer {
                             _ => result.push(t),
                         }
                     },
-                    None => {
-                        panic!("No token found");
-                    },
+                    None => return Err(Box::new(
+                        LexicalError::new(String::from("No token found")))),
                 }
                 for l in self.automatas.iter_mut() {
                     l.reset()
@@ -77,7 +96,7 @@ impl Lexer {
             }
         }
         result.push(Token::Eof);
-        return result;
+        return Ok(result);
     }
 
     pub fn get(&self, idx: usize) -> Token {
@@ -94,19 +113,3 @@ impl Lexer {
         return token;
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn integer() {
-        let string = String::from("123 ");
-        let mut lexer = Lexer::new();
-        let res = lexer.process(string.clone());
-        assert_eq!(1, res.len());
-        assert_eq!(string.trim(), Token::from(res[0].clone()));
-    }
-}
-
-

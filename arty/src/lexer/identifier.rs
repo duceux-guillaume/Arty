@@ -55,6 +55,46 @@ impl ILexer for Identifier {
     }
 }
 
+pub struct None {
+    state: State
+}
+impl None {
+    pub fn new() -> Self {
+        return None { state: State::Acc }
+    }
+}
+impl ILexer for None {
+    fn eat(&mut self, c: char) -> State {
+        let new_state = match self.state {
+            State::Sta => {
+                if helper::is_blank(c) {
+                    State::Ong
+                } else {
+                    State::Rej
+                }
+            },
+            State::Ong => {
+                if helper::is_blank(c) {
+                    State::Ong
+                } else {
+                    State::Acc
+                }
+            },
+            _ => self.state,
+        };
+        self.state = new_state;
+        return self.state
+    }
+
+    fn reset(&mut self) {
+        self.state = State::Sta;
+    }
+
+    fn token(&mut self) -> Token {
+        return Token::None
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

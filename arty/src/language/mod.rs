@@ -1,5 +1,10 @@
 use std::fmt;
 
+use std::result;
+use std::error::Error;
+
+type Result<T> = result::Result<T, Box<Error>>;
+
 #[derive(Clone, PartialEq, Debug)]
 pub enum Token {
     None,
@@ -79,10 +84,11 @@ pub struct Number {
 }
 
 impl Number {
-    pub fn from(string: String) -> Number {
-        return Number {
-            data: string.parse().unwrap(),
-        }
+    pub fn from(string: String) -> Result<Self> {
+        let tmp = string.parse()?;
+        return Ok(Number {
+            data: tmp,
+        })
     }
 
     pub fn to(&self) -> String {
