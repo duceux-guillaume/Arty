@@ -3,6 +3,7 @@ use language::Number;
 use lexer::Lexer;
 use std::result;
 use std::error::Error;
+use std::process::Command;
 
 type Result<T> = result::Result<T, Box<Error>>;
 
@@ -53,6 +54,15 @@ impl Parser {
                 let mut res = String::from("-");
                 res.push_str(Parser::expression(1000, state)?.as_str());
                 Ok(res)
+            },
+            Token::Cmd(path) => {
+                let args = Parser::expression(1000, state)?;
+                let output = if args.is_empty() {
+                    Command::new(path).spawn()?
+                } else {
+                    Command::new(path).arg(args).spawn()?
+                };
+                Ok(String::new())
             }
             _ => Ok(String::new())
         }

@@ -39,6 +39,13 @@ pub fn is_open(c: char) -> bool {
         c == '[';
 }
 
+pub fn is_path_char(c: char) -> bool {
+    return c == '/' ||
+        is_digit(c) ||
+        c == '.' ||
+        is_letter(c);
+}
+
 
 #[cfg(test)]
 mod tests {

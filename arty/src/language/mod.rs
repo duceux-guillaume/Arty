@@ -12,7 +12,7 @@ pub enum Token {
     Error(String),
     Number(String),
     String(String),
-    Identifier(String),
+    Cmd(String),
     // Math operations
     Plus,
     Minus,
@@ -41,7 +41,7 @@ impl Token {
             Token::ParO => 0,
             Token::ParC => 0,
             // names
-            Token::Identifier(_str) => 1000,
+            Token::Cmd(_str) => 1000,
             Token::Number(_str) => 1000,
             _ => 1,
         }
@@ -52,7 +52,7 @@ impl Token {
             Token::Error(str) => str,
             Token::Number(str) => str,
             Token::String(str) => str,
-            Token::Identifier(str) => str,
+            Token::Cmd(str) => str,
             _ => String::new(),
         }
     }
@@ -65,7 +65,7 @@ impl fmt::Display for Token {
             Token::Error(ref str) => write!(f, "error({})", str),
             Token::Number(ref str) => write!(f, "number({})", str),
             Token::String(ref str) => write!(f, "string({})", str),
-            Token::Identifier(ref str) => write!(f, "identifier({})", str),
+            Token::Cmd(ref str) => write!(f, "cmd({})", str),
             Token::Plus => write!(f, "+"),
             Token::Minus => write!(f, "-"),
             Token::Times => write!(f, "*"),

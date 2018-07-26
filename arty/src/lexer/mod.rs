@@ -1,15 +1,15 @@
 mod helper;
 pub mod interface;
-mod identifier;
+mod name;
 mod ctrlop;
 mod math;
 
 use self::math::Number;
 use self::ctrlop::CtrlOp;
 use self::math::MathOp;
-use self::identifier::Identifier;
+use self::name::Empty;
+use self::name::Cmd;
 use self::interface::State;
-use self::identifier::None;
 
 use language::Token;
 
@@ -50,9 +50,9 @@ impl Lexer {
             tokens: Vec::new(),
             pos: 0,
         };
-        lexer.automatas.push(Box::new(None::new()));
+        lexer.automatas.push(Box::new(Empty::new()));
         lexer.automatas.push(Box::new(Number::new()));
-        lexer.automatas.push(Box::new(Identifier::new()));
+        lexer.automatas.push(Box::new(Cmd::new()));
         lexer.automatas.push(Box::new(CtrlOp::new()));
         lexer.automatas.push(Box::new(MathOp::new()));
         let data = lexer.data.clone();

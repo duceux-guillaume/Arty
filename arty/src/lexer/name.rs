@@ -3,27 +3,27 @@ use lexer::interface::State;
 use language::Token;
 use lexer::helper;
 
-pub struct Identifier {
+pub struct Cmd {
     token: String,
     state: State,
 }
 
-impl Identifier {
+impl Cmd {
     pub fn new() -> Self {
-        return Identifier {
+        return Cmd {
             token: String::new(),
             state: State::Sta,
         }
     }
 }
 
-impl ILexer for Identifier {
+impl ILexer for Cmd {
     fn eat(&mut self, c: char) -> State {
         let new_state: State = match self.state {
             State::Rej => self.state,
             State::Acc => self.state,
             State::Sta => {
-                if helper::is_letter(c) {
+                if helper::is_path_char(c) {
                     self.token.push(c);
                     State::Ong
                 } else {
@@ -31,7 +31,7 @@ impl ILexer for Identifier {
                 }
             },
             _ => {
-                if helper::is_digit(c) || helper::is_letter(c) {
+                if helper::is_path_char(c) {
                     self.token.push(c);
                     State::Ong
                 } else if helper::is_blank(c) {
@@ -51,19 +51,19 @@ impl ILexer for Identifier {
     }
 
     fn token(&mut self) -> Token {
-        return Token::Identifier(self.token.clone())
+        return Token::Cmd(self.token.clone())
     }
 }
 
-pub struct None {
+pub struct Empty {
     state: State
 }
-impl None {
+impl Empty {
     pub fn new() -> Self {
-        return None { state: State::Acc }
+        return Empty { state: State::Acc }
     }
 }
-impl ILexer for None {
+impl ILexer for Empty {
     fn eat(&mut self, c: char) -> State {
         let new_state = match self.state {
             State::Sta => {
@@ -102,7 +102,7 @@ mod tests {
     #[test]
     fn integer() {
         let string = String::from("1234567890");
-        let mut lexer = Identifier::new();
+        let mut lexer = Cmd::new();
         for c in string.chars() {
             assert_eq!(State::Rej, lexer.eat(c));
         }
@@ -112,7 +112,7 @@ mod tests {
     #[test]
     fn identifier() {
         let string = String::from("a1");
-        let mut lexer = Identifier::new();
+        let mut lexer = Cmd::new();
         for c in string.chars() {
             assert_eq!(State::Ong, lexer.eat(c));
         }
@@ -122,7 +122,7 @@ mod tests {
     #[test]
     fn identifier2() {
         let string = String::from("aname");
-        let mut lexer = Identifier::new();
+        let mut lexer = Cmd::new();
         for c in string.chars() {
             assert_eq!(State::Ong, lexer.eat(c));
         }
@@ -132,7 +132,7 @@ mod tests {
     #[test]
     fn blanck() {
         let string = String::from(" ");
-        let mut lexer = Identifier::new();
+        let mut lexer = Cmd::new();
         for c in string.chars() {
             assert_eq!(State::Rej, lexer.eat(c));
         }
