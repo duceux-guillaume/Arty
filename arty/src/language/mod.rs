@@ -12,7 +12,6 @@ pub enum Token {
     Error(String),
     Number(String),
     String(String),
-    Cmd(String),
     // Math operations
     Plus,
     Minus,
@@ -24,6 +23,10 @@ pub enum Token {
     // CTRL OP
     Sequencial,
     Background,
+    // Shell
+    Cmd(String),
+    Opts(String),
+    Args(String),
 }
 
 impl Token {
@@ -41,7 +44,9 @@ impl Token {
             Token::ParO => 0,
             Token::ParC => 0,
             // names
-            Token::Cmd(_str) => 1000,
+            Token::Cmd(_str) => 500,
+            Token::Opts(_str) => 1000,
+            Token::Args(_str) => 1000,
             Token::Number(_str) => 1000,
             _ => 1,
         }
@@ -53,6 +58,8 @@ impl Token {
             Token::Number(str) => str,
             Token::String(str) => str,
             Token::Cmd(str) => str,
+            Token::Args(str) => str,
+            Token::Opts(str) => str,
             _ => String::new(),
         }
     }
@@ -66,6 +73,8 @@ impl fmt::Display for Token {
             Token::Number(ref str) => write!(f, "number({})", str),
             Token::String(ref str) => write!(f, "string({})", str),
             Token::Cmd(ref str) => write!(f, "cmd({})", str),
+            Token::Opts(ref str) => write!(f, "opts({})", str),
+            Token::Args(ref str) => write!(f, "args({})", str),
             Token::Plus => write!(f, "+"),
             Token::Minus => write!(f, "-"),
             Token::Times => write!(f, "*"),

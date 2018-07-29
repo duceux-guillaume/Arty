@@ -43,8 +43,8 @@ impl Parser {
     }
 
     fn nud(token: Token, state: &mut ParsingState) -> Result<String> {
+        println!("nud => token:{}", token);
         return match token {
-            Token::Number(str) => Ok(str.clone()),
             Token::ParO => {
                 let res = Parser::expression(Token::precedence(token), state)?;
                 state.token = state.lexer.next();//TODO: match
@@ -56,22 +56,41 @@ impl Parser {
                 Ok(res)
             },
             Token::Cmd(path) => {
-                let args = Parser::expression(1000, state)?;
+                let args = Parser::expression(500, state)?;
+                println!("cmd args: {}", args);
                 let output = if args.is_empty() {
                     Command::new(path).spawn()?
                 } else {
-                    Command::new(path).arg(args).spawn()?
+                    let mut cmd = Command::new(path);
+                    for split in args.split_whitespace() {
+                        cmd.arg(split);
+                    }
+                    cmd.spawn()?
+
                 };
                 Ok(String::new())
             }
-            _ => Ok(String::new())
+            Token::Opts(str) => {
+                let right = Parser::expression(500, state)?;
+                if right.is_empty() {
+                    Ok(str)
+                } else {
+                    let mut res = str.clone();
+                    res.push(' ');
+                    res.push_str(right.as_str());
+                    Ok(res)
+                }
+            }
+            _ => Ok(Token::from(token))
         }
     }
 
     fn led(left: String, token: Token, state: &mut ParsingState) -> Result<String> {
-        println!("left:{}, token:{}", left, token);
+        println!("led => left:{}, token:{}", left, token);
         return Ok(match token {
             Token::Number(ref str) => str.clone(),
+            Token::Opts(ref str) => str.clone(),
+            Token::Args(ref str) => str.clone(),
             Token::Plus => {
                 let right = Parser::expression(Token::precedence(token), state)?;
                 (Number::from(left)? + Number::from(right)?).to()
@@ -91,5 +110,4 @@ impl Parser {
             _ => left,
         })
     }
-
 }

@@ -9,6 +9,7 @@ use self::ctrlop::CtrlOp;
 use self::math::MathOp;
 use self::name::Empty;
 use self::name::Cmd;
+use self::name::Opts;
 use self::interface::State;
 
 use language::Token;
@@ -28,7 +29,13 @@ impl LexicalError {
         }
     }
 }
-impl Error for LexicalError {}
+impl Error for LexicalError {
+    fn description(&self) -> &str {
+        return "lexical error"
+    }
+}
+
+
 impl fmt::Display for LexicalError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result { write!(f, "error: {}", self.cause) }
 }
@@ -40,6 +47,7 @@ pub struct Lexer {
     data: String,
     tokens: Vec<Token>,
     pos: usize,
+    cmd_eaten: bool,
 }
 
 impl Lexer {
@@ -49,12 +57,14 @@ impl Lexer {
             data,
             tokens: Vec::new(),
             pos: 0,
+            cmd_eaten: false,
         };
         lexer.automatas.push(Box::new(Empty::new()));
         lexer.automatas.push(Box::new(Number::new()));
         lexer.automatas.push(Box::new(Cmd::new()));
         lexer.automatas.push(Box::new(CtrlOp::new()));
         lexer.automatas.push(Box::new(MathOp::new()));
+        lexer.automatas.push(Box::new(Opts::new()));
         let data = lexer.data.clone();
         lexer.tokens = lexer.process(data)?; //TODO(Guillaume): make a lazy evaluation
         return Ok(lexer)
@@ -66,7 +76,7 @@ impl Lexer {
         let mut pos = 0;
         while pos < char_vec.len() {
             let c = char_vec[pos];
-            let mut opt_token = None;
+            let mut opt_token: Option<Token> = None;
             let mut ong_count = 0;
             for l in self.automatas.iter_mut() {
                 match l.eat(c) {
@@ -79,9 +89,16 @@ impl Lexer {
             if ong_count == 0 {
                 match opt_token {
                     Some(t) => {
-                        println!("found token: {}", t);
-                        match t {
+                        match t.clone() {
                             Token::None => {},
+                            Token::Cmd(str) => {
+                                if self.cmd_eaten {
+                                    result.push(Token::Args(str))
+                                } else {
+                                    result.push(t);
+                                    self.cmd_eaten = true
+                                }
+                            },
                             _ => result.push(t),
                         }
                     },
@@ -110,6 +127,7 @@ impl Lexer {
     pub fn next(&mut self) -> Token {
         let token = self.get(self.pos);
         self.pos += 1;
+        println!("next token: {}", token);
         return token;
     }
 }

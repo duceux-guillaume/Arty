@@ -95,6 +95,59 @@ impl ILexer for Empty {
     }
 }
 
+pub struct Opts {
+    token: String,
+    state: State,
+}
+
+impl Opts {
+    pub fn new() -> Self {
+        return Opts {
+            token: String::new(),
+            state: State::Sta,
+        }
+    }
+}
+
+impl ILexer for Opts {
+    fn eat(&mut self, c: char) -> State {
+        let new_state: State = match self.state {
+            State::Rej => self.state,
+            State::Acc => self.state,
+            State::Sta => {
+                if c == '-' {
+                    self.token.push(c);
+                    State::Ong
+                } else {
+                    State::Rej
+                }
+            },
+            _ => {
+                if c == '-' || helper::is_letter(c) {
+                    self.token.push(c);
+                    State::Ong
+                } else if helper::is_blank(c) {
+                    State::Acc
+                } else {
+                    State::Rej
+                }
+            }
+        };
+        self.state = new_state;
+        return self.state
+    }
+
+    fn reset(&mut self) {
+        self.token.clear();
+        self.state = State::Sta;
+    }
+
+    fn token(&mut self) -> Token {
+        return Token::Opts(self.token.clone())
+    }
+}
+
+
 #[cfg(test)]
 mod tests {
     use super::*;
