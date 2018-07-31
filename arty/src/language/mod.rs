@@ -27,6 +27,8 @@ pub enum Token {
     Cmd(String),
     Opts(String),
     Args(String),
+    ChangeDir,
+    Path(String),
 }
 
 impl Token {
@@ -40,14 +42,16 @@ impl Token {
             Token::Times => 101,
             Token::Divide => 101,
             Token::Modulo => 102,
+            Token::Number(_str) => 1000,
             // Groups
             Token::ParO => 0,
             Token::ParC => 0,
-            // names
+            // shell
             Token::Cmd(_str) => 500,
             Token::Opts(_str) => 1000,
             Token::Args(_str) => 1000,
-            Token::Number(_str) => 1000,
+            Token::ChangeDir => 500,
+            Token::Path(_str) => 500,
             _ => 1,
         }
     }
@@ -60,8 +64,30 @@ impl Token {
             Token::Cmd(str) => str,
             Token::Args(str) => str,
             Token::Opts(str) => str,
+            Token::Path(str) => str,
             _ => String::new(),
         }
+    }
+
+    pub fn description(&self) -> String {
+        return String::from(match *self {
+            Token::Eof => "Eof",
+            Token::Error(ref _str) => "Error",
+            Token::Number(ref _str) => "Number",
+            Token::String(ref _str) => "String",
+            Token::Cmd(ref _str) => "Cmd",
+            Token::Opts(ref _str) => "Opts",
+            Token::Args(ref _str) => "Args",
+            Token::Path(ref _str) => "Path",
+            Token::Plus => "Plus",
+            Token::Minus => "Minus",
+            Token::Times => "Times",
+            Token::Divide => "Divide",
+            Token::ParO => "ParO",
+            Token::ParC => "ParC",
+            Token::ChangeDir => "ChangeDir",
+            _ => "None",
+        })
     }
 }
 
@@ -75,12 +101,14 @@ impl fmt::Display for Token {
             Token::Cmd(ref str) => write!(f, "cmd({})", str),
             Token::Opts(ref str) => write!(f, "opts({})", str),
             Token::Args(ref str) => write!(f, "args({})", str),
+            Token::Path(ref str) => write!(f, "path({})", str),
             Token::Plus => write!(f, "+"),
             Token::Minus => write!(f, "-"),
             Token::Times => write!(f, "*"),
             Token::Divide => write!(f, "/"),
             Token::ParO => write!(f, "("),
             Token::ParC => write!(f, ")"),
+            Token::ChangeDir => write!(f, "cd"),
             _ => write!(f, "none"),
         }
     }

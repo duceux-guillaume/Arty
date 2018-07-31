@@ -4,8 +4,20 @@ use lexer::Lexer;
 use std::result;
 use std::error::Error;
 use std::process::Command;
-
+use std;
 type Result<T> = result::Result<T, Box<Error>>;
+use std::path::PathBuf;
+
+pub struct ShellContext {
+    env: PathBuf,
+}
+impl ShellContext {
+    pub fn new() -> Result<Self> {
+        return Ok(ShellContext {
+            env: std::env::current_dir()?,
+        })
+    }
+}
 
 pub struct ParsingState {
     lexer: Lexer,
@@ -15,16 +27,16 @@ pub struct ParsingState {
 pub struct Parser {}
 impl Parser {
 
-    fn expression(rbp: u32, state: &mut ParsingState) -> Result<String> {
+    fn expression(rbp: u32, state: &mut ParsingState, ctx: &mut ShellContext) -> Result<String> {
         let mut last = state.token.clone();
         state.token = state.lexer.next();
-        let mut left = Parser::nud(last.clone(), state)?;
+        let mut left = Parser::nud(last.clone(), state, ctx)?;
         println!("l:{}, c:{}, n:{}, rbp:{}", last, state.token, left, rbp);
         while rbp < Token::precedence(state.token.clone()) {
             last = state.token.clone();
             state.token = state.lexer.next();
             println!("l:{}, c:{}, n:{}", last, state.token, left);
-            left = Parser::led(left, last.clone(), state)?;
+            left = Parser::led(left, last.clone(), state, ctx)?;
             println!("led:{}", left);
         }
         println!("out:{} rbp:{}, token:{}, prec:{}", left, rbp, state.token,
@@ -32,36 +44,38 @@ impl Parser {
         return Ok(left)
     }
 
-    pub fn process(string: String) -> Result<String> {
+    pub fn process(string: String, ctx: &mut ShellContext) -> Result<String> {
         let mut state = ParsingState {
             lexer: Lexer::new(string)?,
             token: Token::Eof,
         };
         println!("======");
         state.token = state.lexer.next();
-        return Parser::expression(0, &mut state);
+        return Parser::expression(0, &mut state, ctx);
     }
 
-    fn nud(token: Token, state: &mut ParsingState) -> Result<String> {
+    fn nud(token: Token, state: &mut ParsingState, ctx: &mut ShellContext) -> Result<String> {
         println!("nud => token:{}", token);
         return match token {
             Token::ParO => {
-                let res = Parser::expression(Token::precedence(token), state)?;
+                let res = Parser::expression(Token::precedence(token), state, ctx)?;
                 state.token = state.lexer.next();//TODO: match
                 Ok(res)
             },
             Token::Minus => {
                 let mut res = String::from("-");
-                res.push_str(Parser::expression(1000, state)?.as_str());
+                res.push_str(Parser::expression(1000, state, ctx)?.as_str());
                 Ok(res)
             },
             Token::Cmd(path) => {
-                let args = Parser::expression(500, state)?;
+                let args = Parser::expression(500, state, ctx)?;
                 println!("cmd args: {}", args);
+                println!("cmd env: {}", ctx.env.display());
+                let mut cmd = Command::new(path);
+                cmd.current_dir(ctx.env.as_path());
                 let output = if args.is_empty() {
-                    Command::new(path).spawn()?
+                    cmd.spawn()?
                 } else {
-                    let mut cmd = Command::new(path);
                     for split in args.split_whitespace() {
                         cmd.arg(split);
                     }
@@ -69,9 +83,9 @@ impl Parser {
 
                 };
                 Ok(String::new())
-            }
+            },
             Token::Opts(str) => {
-                let right = Parser::expression(500, state)?;
+                let right = Parser::expression(500, state, ctx)?;
                 if right.is_empty() {
                     Ok(str)
                 } else {
@@ -80,32 +94,47 @@ impl Parser {
                     res.push_str(right.as_str());
                     Ok(res)
                 }
-            }
+            },
+            Token::Args(str) => {
+                let right = Parser::expression(500, state, ctx)?;
+                if right.is_empty() {
+                    Ok(str)
+                } else {
+                    let mut res = str.clone();
+                    res.push(' ');
+                    res.push_str(right.as_str());
+                    Ok(res)
+                }
+            },
+            Token::ChangeDir => {
+                ctx.env = PathBuf::from(Parser::expression(500, state, ctx)?);
+                Ok(String::new())
+            },
             _ => Ok(Token::from(token))
         }
     }
 
-    fn led(left: String, token: Token, state: &mut ParsingState) -> Result<String> {
+    fn led(left: String, token: Token, state: &mut ParsingState, ctx: &mut ShellContext) -> Result<String> {
         println!("led => left:{}, token:{}", left, token);
         return Ok(match token {
             Token::Number(ref str) => str.clone(),
             Token::Opts(ref str) => str.clone(),
             Token::Args(ref str) => str.clone(),
             Token::Plus => {
-                let right = Parser::expression(Token::precedence(token), state)?;
+                let right = Parser::expression(Token::precedence(token), state, ctx)?;
                 (Number::from(left)? + Number::from(right)?).to()
             },
             Token::Minus => {
-                let right = Parser::expression(Token::precedence(token), state)?;
+                let right = Parser::expression(Token::precedence(token), state, ctx)?;
                 (Number::from(left)? - Number::from(right)?).to()
             }
             Token::Times => {
                 (Number::from(left)? * Number::from(Parser::expression(
-                    Token::precedence(token), state)?)?).to()
+                    Token::precedence(token), state, ctx)?)?).to()
             },
             Token::Divide => {
                 (Number::from(left)? / Number::from(Parser::expression(
-                    Token::precedence(token), state)?)?).to()
+                    Token::precedence(token), state, ctx)?)?).to()
             },
             _ => left,
         })

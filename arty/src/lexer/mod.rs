@@ -17,6 +17,7 @@ use language::Token;
 use std::result;
 use std::error::Error;
 use std::fmt;
+use lexer::name::ChangeDir;
 
 #[derive(Debug)]
 struct LexicalError {
@@ -47,7 +48,6 @@ pub struct Lexer {
     data: String,
     tokens: Vec<Token>,
     pos: usize,
-    cmd_eaten: bool,
 }
 
 impl Lexer {
@@ -57,7 +57,6 @@ impl Lexer {
             data,
             tokens: Vec::new(),
             pos: 0,
-            cmd_eaten: false,
         };
         lexer.automatas.push(Box::new(Empty::new()));
         lexer.automatas.push(Box::new(Number::new()));
@@ -65,6 +64,7 @@ impl Lexer {
         lexer.automatas.push(Box::new(CtrlOp::new()));
         lexer.automatas.push(Box::new(MathOp::new()));
         lexer.automatas.push(Box::new(Opts::new()));
+        lexer.automatas.push(Box::new(ChangeDir::new()));
         let data = lexer.data.clone();
         lexer.tokens = lexer.process(data)?; //TODO(Guillaume): make a lazy evaluation
         return Ok(lexer)
@@ -76,29 +76,21 @@ impl Lexer {
         let mut pos = 0;
         while pos < char_vec.len() {
             let c = char_vec[pos];
-            let mut opt_token: Option<Token> = None;
+            let mut acc_tokens: Vec<Token> = Vec::new();
             let mut ong_count = 0;
             for l in self.automatas.iter_mut() {
                 match l.eat(c) {
-                    State::Acc => opt_token = Some(l.token()),
+                    State::Acc => acc_tokens.push(l.token()),
                     State::Ong => ong_count += 1,
                     _ => {},
                 }
             }
             // If we got an accepted on this char, we need to parse it again after global reset
             if ong_count == 0 {
-                match opt_token {
+                match self.select_token(acc_tokens) {
                     Some(t) => {
                         match t.clone() {
                             Token::None => {},
-                            Token::Cmd(str) => {
-                                if self.cmd_eaten {
-                                    result.push(Token::Args(str))
-                                } else {
-                                    result.push(t);
-                                    self.cmd_eaten = true
-                                }
-                            },
                             _ => result.push(t),
                         }
                     },
@@ -114,6 +106,29 @@ impl Lexer {
         }
         result.push(Token::Eof);
         return Ok(result);
+    }
+
+    fn select_token(&self, candidates: Vec<Token>) -> Option<Token> {
+        if candidates.len() == 0 {
+            return None
+        }
+        if candidates.len() == 1 {
+            return Some(candidates.first().unwrap().clone())
+        }
+        // Look for a change directory or a cmd
+        if self.tokens.is_empty() {
+            for token in candidates.iter() {
+                if token.description() == "ChangeDir" {
+                    return Some(token.clone())
+                }
+            }
+            for token in candidates.iter() {
+                if token.description() == "Cmd" {
+                    return Some(token.clone())
+                }
+            }
+        }
+        return Some(candidates.first().unwrap().clone())
     }
 
     pub fn get(&self, idx: usize) -> Token {

@@ -147,6 +147,50 @@ impl ILexer for Opts {
     }
 }
 
+pub struct ChangeDir {
+    state: State,
+}
+
+impl ChangeDir {
+    pub fn new() -> Self {
+        return ChangeDir {
+            state: State::Sta,
+        }
+    }
+}
+
+impl ILexer for ChangeDir {
+    fn eat(&mut self, c: char) -> State {
+        let new_state: State = match self.state {
+            State::Rej => self.state,
+            State::Acc => self.state,
+            State::Sta => {
+                if c == 'c' {
+                    State::Ong
+                } else {
+                    State::Rej
+                }
+            },
+            _ => {
+                if c == 'd' {
+                    State::Acc
+                } else {
+                    State::Rej
+                }
+            }
+        };
+        self.state = new_state;
+        return self.state
+    }
+
+    fn reset(&mut self) {
+        self.state = State::Sta;
+    }
+
+    fn token(&mut self) -> Token {
+        return Token::ChangeDir
+    }
+}
 
 #[cfg(test)]
 mod tests {
