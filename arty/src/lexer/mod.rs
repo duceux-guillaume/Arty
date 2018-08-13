@@ -18,6 +18,7 @@ use std::result;
 use std::error::Error;
 use std::fmt;
 use lexer::name::ChangeDir;
+use lexer::name::Path;
 
 #[derive(Debug)]
 struct LexicalError {
@@ -58,20 +59,20 @@ impl Lexer {
             tokens: Vec::new(),
             pos: 0,
         };
-        lexer.automatas.push(Box::new(Empty::new()));
         lexer.automatas.push(Box::new(Number::new()));
+        lexer.automatas.push(Box::new(ChangeDir::new()));
+        lexer.automatas.push(Box::new(Path::new()));
+        lexer.automatas.push(Box::new(Empty::new()));
         lexer.automatas.push(Box::new(Cmd::new()));
         lexer.automatas.push(Box::new(CtrlOp::new()));
         lexer.automatas.push(Box::new(MathOp::new()));
         lexer.automatas.push(Box::new(Opts::new()));
-        lexer.automatas.push(Box::new(ChangeDir::new()));
         let data = lexer.data.clone();
         lexer.tokens = lexer.process(data)?; //TODO(Guillaume): make a lazy evaluation
         return Ok(lexer)
     }
 
     fn process(&mut self, string: String) -> Result<Vec<Token>> {
-        let mut result = Vec::new();
         let char_vec:Vec<char> = string.chars().collect();
         let mut pos = 0;
         while pos < char_vec.len() {
@@ -89,9 +90,10 @@ impl Lexer {
             if ong_count == 0 {
                 match self.select_token(acc_tokens) {
                     Some(t) => {
+                        println!("selected: {}", t);
                         match t.clone() {
                             Token::None => {},
-                            _ => result.push(t),
+                            _ => self.tokens.push(t),
                         }
                     },
                     None => return Err(Box::new(
@@ -104,11 +106,16 @@ impl Lexer {
                 pos += 1;
             }
         }
-        result.push(Token::Eof);
-        return Ok(result);
+        self.tokens.push(Token::Eof);
+        return Ok(self.tokens.clone());
     }
 
     fn select_token(&self, candidates: Vec<Token>) -> Option<Token> {
+        println!("select number of candidates: {}", candidates.len());
+        for token in candidates.iter() {
+            println!("candidates: {}", token);
+        }
+
         if candidates.len() == 0 {
             return None
         }
@@ -124,6 +131,12 @@ impl Lexer {
             }
             for token in candidates.iter() {
                 if token.description() == "Cmd" {
+                    return Some(token.clone())
+                }
+            }
+        } else {
+            for token in candidates.iter() {
+                if token.description() != "Cmd" && token.description() != "ChangeDir" {
                     return Some(token.clone())
                 }
             }

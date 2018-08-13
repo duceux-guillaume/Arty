@@ -2,10 +2,10 @@ use language::Token;
 use language::Number;
 use lexer::Lexer;
 use std::result;
-use std::error::Error;
+use std::error;
 use std::process::Command;
 use std;
-type Result<T> = result::Result<T, Box<Error>>;
+type Result<T> = result::Result<T, Box<error::Error>>;
 use std::path::PathBuf;
 
 pub struct ShellContext {
@@ -84,18 +84,7 @@ impl Parser {
                 };
                 Ok(String::new())
             },
-            Token::Opts(str) => {
-                let right = Parser::expression(500, state, ctx)?;
-                if right.is_empty() {
-                    Ok(str)
-                } else {
-                    let mut res = str.clone();
-                    res.push(' ');
-                    res.push_str(right.as_str());
-                    Ok(res)
-                }
-            },
-            Token::Args(str) => {
+            Token::Opts(str) | Token::Args(str) | Token::Path(str) => {
                 let right = Parser::expression(500, state, ctx)?;
                 if right.is_empty() {
                     Ok(str)
@@ -107,8 +96,26 @@ impl Parser {
                 }
             },
             Token::ChangeDir => {
-                ctx.env = PathBuf::from(Parser::expression(500, state, ctx)?);
-                Ok(String::new())
+                let new_path = PathBuf::from(Parser::expression(500, state, ctx)?);
+                if new_path.is_absolute() && new_path.exists() {
+                    ctx.env = new_path
+                } else if !new_path.is_absolute() {
+                    let mut tmp = ctx.env.clone();
+                    tmp.push(new_path);
+                    if tmp.exists() {
+                        ctx.env = tmp
+                    } else {
+                        return Err(From::from("path doesn't exists".to_string()))
+                    }
+                } else {
+                    return Err(From::from("path doesn't exists".to_string()))
+                }
+                if !ctx.env.exists() {
+                    ctx.env = std::env::current_dir()?;
+                    Err(From::from("path doesn't exists".to_string()))
+                } else {
+                    Ok(String::new())
+                }
             },
             _ => Ok(Token::from(token))
         }
