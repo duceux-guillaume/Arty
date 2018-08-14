@@ -59,7 +59,6 @@ pub struct Path {
     token: String,
     state: State,
 }
-
 impl Path {
     pub fn new() -> Self {
         return Path {
@@ -68,7 +67,6 @@ impl Path {
         }
     }
 }
-
 impl ILexer for Path {
     fn eat(&mut self, c: char) -> State {
         let new_state: State = match self.state {
@@ -104,6 +102,55 @@ impl ILexer for Path {
 
     fn token(&mut self) -> Token {
         return Token::Path(self.token.clone())
+    }
+}
+
+pub struct StringLexer {
+    token: String,
+    state: State,
+}
+impl StringLexer {
+    pub fn new() -> Self {
+        return StringLexer {
+            token: String::new(),
+            state: State::Sta,
+        }
+    }
+}
+impl ILexer for StringLexer {
+    fn eat(&mut self, c: char) -> State {
+        let new_state: State = match self.state {
+            State::Rej => self.state,
+            State::Acc => self.state,
+            State::Sta => {
+                if c == '"' {
+                    self.token.push(c);
+                    State::Ong
+                } else {
+                    State::Rej
+                }
+            },
+            _ => {
+                if c == '"' {
+                    self.token.push(c);
+                    State::Acc
+                } else {
+                    self.token.push(c);
+                    State::Ong
+                }
+            }
+        };
+        self.state = new_state;
+        return self.state
+    }
+
+    fn reset(&mut self) {
+        self.token.clear();
+        self.state = State::Sta;
+    }
+
+    fn token(&mut self) -> Token {
+        return Token::String(self.token.clone())
     }
 }
 
@@ -178,7 +225,7 @@ impl ILexer for Opts {
                 if c == '-' || helper::is_letter(c) {
                     self.token.push(c);
                     State::Ong
-                } else if helper::is_blank(c) {
+                } else if helper::is_blank(c) || c == '\"' {
                     State::Acc
                 } else {
                     State::Rej

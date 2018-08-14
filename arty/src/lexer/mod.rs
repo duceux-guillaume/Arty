@@ -19,6 +19,7 @@ use std::error::Error;
 use std::fmt;
 use lexer::name::ChangeDir;
 use lexer::name::Path;
+use lexer::name::StringLexer;
 
 #[derive(Debug)]
 struct LexicalError {
@@ -67,6 +68,7 @@ impl Lexer {
         lexer.automatas.push(Box::new(CtrlOp::new()));
         lexer.automatas.push(Box::new(MathOp::new()));
         lexer.automatas.push(Box::new(Opts::new()));
+        lexer.automatas.push(Box::new(StringLexer::new()));
         return Ok(lexer)
     }
 

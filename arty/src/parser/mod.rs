@@ -32,11 +32,11 @@ impl Parser {
 
     fn expression(rbp: u32, state: &mut ParsingState, ctx: &mut ShellContext) -> Result<Token> {
         let mut last = state.token.clone();
-        state.token = state.lexer.next();
+        state.token = state.lexer.next()?;
         let mut left = Parser::call_expr(last.clone(), state, ctx)?;
         while rbp < state.token.rprec() {
             last = state.token.clone();
-            state.token = state.lexer.next();
+            state.token = state.lexer.next()?;
             left = Parser::op_expr(left, last.clone(), state, ctx)?;
         }
         return Ok(left)
@@ -56,7 +56,7 @@ impl Parser {
         return match token {
             Token::ParO => {
                 let res = Parser::expression(token.lprec(), state, ctx)?;
-                state.token = state.lexer.next();//TODO: match
+                state.token = state.lexer.next()?;//TODO: match
                 Ok(res)
             },
             Token::Minus => {
@@ -75,7 +75,7 @@ impl Parser {
                         cmd.arg(split);
                     }
                 }
-                cmd.output();
+                let _output = cmd.output();
                 Ok(Token::None)
             },
             Token::Opts(ref str) | Token::Args(ref str) | Token::Path(ref str) => {

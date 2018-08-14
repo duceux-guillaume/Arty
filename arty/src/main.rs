@@ -23,7 +23,7 @@ impl Terminal {
     fn read_line(&mut self, ctx: &mut ShellContext) -> Option<String> {
 
         let mut stdout = stdout().into_raw_mode().unwrap();
-        write!(stdout, "{} ", Terminal::get_prompt(ctx));
+        write!(stdout, "{} ", Terminal::get_prompt(ctx)).unwrap();
         stdout.flush().unwrap();
 
         let mut line = String::new();
@@ -42,22 +42,22 @@ impl Terminal {
                 },
                 Key::Up => {
                     write!(stdout, "\r{}", termion::clear::AfterCursor).unwrap();
-                    write!(stdout, "{} ", Terminal::get_prompt(ctx));
+                    write!(stdout, "{} ", Terminal::get_prompt(ctx)).unwrap();
                     line = String::from(ctx.last.trim());
-                    write!(stdout, "{}", line);
+                    write!(stdout, "{}", line).unwrap();
                 },
                 Key::Ctrl('c') => return None,
                 Key::Ctrl('l') => {
                     write!(stdout, "{}{}", termion::clear::All,
                            termion::cursor::Goto(1,1)).unwrap();
-                    write!(stdout, "{} ", Terminal::get_prompt(ctx));
+                    write!(stdout, "{} ", Terminal::get_prompt(ctx)).unwrap();
                     line.clear();
                 },
                 Key::Backspace => {
                     write!(stdout, "\r{}", termion::clear::AfterCursor).unwrap();
-                    write!(stdout, "{} ", Terminal::get_prompt(ctx));
+                    write!(stdout, "{} ", Terminal::get_prompt(ctx)).unwrap();
                     line.pop();
-                    write!(stdout, "{}", line);
+                    write!(stdout, "{}", line).unwrap();
                 },
                 _ => {}
             }
@@ -80,8 +80,8 @@ impl Interpreter {
         let res = parser::Parser::process(line, ctx);
         match res {
             Ok(ref str) => {
-                if !str.is_empty() {
-                    println!("{}", str)
+                if !str.as_string().is_empty() {
+                    println!("{}", str.as_string())
                 }
             },
             Err(ref str) => println!("{}", str),
