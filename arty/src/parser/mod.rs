@@ -30,19 +30,19 @@ pub struct ParsingState {
 pub struct Parser {}
 impl Parser {
 
-    fn expression(rbp: u32, state: &mut ParsingState, ctx: &mut ShellContext) -> Result<String> {
+    fn expression(rbp: u32, state: &mut ParsingState, ctx: &mut ShellContext) -> Result<Token> {
         let mut last = state.token.clone();
-        state.token = state.lexer.next()?;
-        let mut left = Parser::nud(last.clone(), state, ctx)?;
-        while rbp < Token::precedence(state.token.clone()) {
+        state.token = state.lexer.next();
+        let mut left = Parser::call_expr(last.clone(), state, ctx)?;
+        while rbp < state.token.rprec() {
             last = state.token.clone();
-            state.token = state.lexer.next()?;
-            left = Parser::led(left, last.clone(), state, ctx)?;
+            state.token = state.lexer.next();
+            left = Parser::op_expr(left, last.clone(), state, ctx)?;
         }
         return Ok(left)
     }
 
-    pub fn process(string: String, ctx: &mut ShellContext) -> Result<String> {
+    pub fn process(string: String, ctx: &mut ShellContext) -> Result<Token> {
         let mut state = ParsingState {
             lexer: Lexer::new(string)?,
             token: Token::Eof,
@@ -51,17 +51,18 @@ impl Parser {
         return Parser::expression(0, &mut state, ctx);
     }
 
-    fn nud(token: Token, state: &mut ParsingState, ctx: &mut ShellContext) -> Result<String> {
+
+    fn call_expr(token: Token, state: &mut ParsingState, ctx: &mut ShellContext) -> Result<Token> {
         return match token {
             Token::ParO => {
-                let res = Parser::expression(Token::precedence(token), state, ctx)?;
-                state.token = state.lexer.next()?;//TODO: match
+                let res = Parser::expression(token.lprec(), state, ctx)?;
+                state.token = state.lexer.next();//TODO: match
                 Ok(res)
             },
             Token::Minus => {
                 let mut res = String::from("-");
-                res.push_str(Parser::expression(1000, state, ctx)?.as_str());
-                Ok(res)
+                res.push_str(Parser::expression(token.lprec(), state, ctx)?.as_string().as_str());
+                Ok(Token::Number(res))
             },
             Token::Cmd(path) => {
                 let args = Parser::expression(500, state, ctx)?;
@@ -69,27 +70,27 @@ impl Parser {
                 cmd.current_dir(ctx.env.as_path())
                     .stdout(Stdio::inherit())
                     .stdin(Stdio::inherit());
-                if !args.is_empty() {
-                    for split in args.split_whitespace() {
+                if !args.as_string().is_empty() {
+                    for split in args.as_string().split_whitespace() {
                         cmd.arg(split);
                     }
-                };
+                }
                 cmd.output();
-                Ok(String::new())
+                Ok(Token::None)
             },
-            Token::Opts(str) | Token::Args(str) | Token::Path(str) => {
+            Token::Opts(ref str) | Token::Args(ref str) | Token::Path(ref str) => {
                 let right = Parser::expression(500, state, ctx)?;
-                if right.is_empty() {
-                    Ok(str)
+                if right.as_string().is_empty() {
+                    Ok(token.clone())
                 } else {
                     let mut res = str.clone();
                     res.push(' ');
-                    res.push_str(right.as_str());
-                    Ok(res)
+                    res.push_str(right.as_string().as_str());
+                    Ok(Token::Args(res))
                 }
             },
             Token::ChangeDir => {
-                let new_path = PathBuf::from(Parser::expression(500, state, ctx)?);
+                let new_path = PathBuf::from(Parser::expression(500, state, ctx)?.as_string());
                 if new_path.is_absolute() && new_path.exists() {
                     ctx.env = new_path
                 } else if !new_path.is_absolute() {
@@ -107,35 +108,32 @@ impl Parser {
                     ctx.env = std::env::current_dir()?;
                     Err(From::from("path doesn't exists".to_string()))
                 } else {
-                    Ok(String::new())
+                    Ok(Token::None)
                 }
             },
-            _ => Ok(Token::from(token))
+            _ => Ok(token)
         }
     }
 
-    fn led(left: String, token: Token, state: &mut ParsingState, ctx: &mut ShellContext) -> Result<String> {
+    fn op_expr(left: Token, token: Token, state: &mut ParsingState, ctx: &mut ShellContext) -> Result<Token> {
         return Ok(match token {
-            Token::Number(ref str) => str.clone(),
-            Token::Opts(ref str) => str.clone(),
-            Token::Args(ref str) => str.clone(),
             Token::Plus => {
-                let right = Parser::expression(Token::precedence(token), state, ctx)?;
-                (Number::from(left)? + Number::from(right)?).to()
+                let right = Parser::expression(token.rprec(), state, ctx)?;
+                (Number::from_token(left)? + Number::from_token(right)?).as_token()
             },
             Token::Minus => {
-                let right = Parser::expression(Token::precedence(token), state, ctx)?;
-                (Number::from(left)? - Number::from(right)?).to()
+                let right = Parser::expression(token.rprec(), state, ctx)?;
+                (Number::from_token(left)? - Number::from_token(right)?).as_token()
             }
             Token::Times => {
-                (Number::from(left)? * Number::from(Parser::expression(
-                    Token::precedence(token), state, ctx)?)?).to()
+                (Number::from_token(left)? * Number::from_token(Parser::expression(
+                    token.rprec(), state, ctx)?)?).as_token()
             },
             Token::Divide => {
-                (Number::from(left)? / Number::from(Parser::expression(
-                    Token::precedence(token), state, ctx)?)?).to()
+                (Number::from_token(left)? / Number::from_token(Parser::expression(
+                    token.rprec(), state, ctx)?)?).as_token()
             },
-            _ => left,
+            _ => token,
         })
     }
 }

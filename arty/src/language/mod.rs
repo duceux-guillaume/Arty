@@ -32,43 +32,6 @@ pub enum Token {
 }
 
 impl Token {
-    pub fn precedence(token: Token) -> u32 {
-        return match token {
-            Token::Eof => 0,
-            Token::Error(_str) => 0,
-            // Math OP
-            Token::Plus => 100,
-            Token::Minus => 100,
-            Token::Times => 101,
-            Token::Divide => 101,
-            Token::Modulo => 102,
-            Token::Number(_str) => 1000,
-            // Groups
-            Token::ParO => 0,
-            Token::ParC => 0,
-            // shell
-            Token::Cmd(_str) => 500,
-            Token::Opts(_str) => 1000,
-            Token::Args(_str) => 1000,
-            Token::ChangeDir => 500,
-            Token::Path(_str) => 500,
-            _ => 1,
-        }
-    }
-
-    pub fn from(token: Token) -> String {
-        return match token {
-            Token::Error(str) => str,
-            Token::Number(str) => str,
-            Token::String(str) => str,
-            Token::Cmd(str) => str,
-            Token::Args(str) => str,
-            Token::Opts(str) => str,
-            Token::Path(str) => str,
-            _ => String::new(),
-        }
-    }
-
     pub fn description(&self) -> String {
         return String::from(match *self {
             Token::Eof => "Eof",
@@ -88,6 +51,52 @@ impl Token {
             Token::ChangeDir => "ChangeDir",
             _ => "None",
         })
+    }
+
+    pub fn rprec(&self) -> u32 {
+        return match *self {
+            Token::Eof => 0,
+            Token::Error(ref _str) => 0,
+            // Math OP
+            Token::Plus => 100,
+            Token::Minus => 100,
+            Token::Times => 101,
+            Token::Divide => 101,
+            Token::Modulo => 102,
+            Token::Number(ref _str) => 1000,
+            // Groups
+            Token::ParO => 0,
+            Token::ParC => 0,
+            // shell
+            Token::Cmd(ref _str) => 500,
+            Token::Opts(ref _str) => 1000,
+            Token::Args(ref _str) => 1000,
+            Token::ChangeDir => 500,
+            Token::Path(ref _str) => 500,
+            _ => 1,
+        }
+    }
+
+
+    pub fn lprec(&self) -> u32 {
+        return match *self {
+            Token::Minus => 1000,
+            _ => self.rprec(),
+        }
+    }
+
+
+    pub fn as_string(&self) -> String {
+        return match *self {
+            Token::Error(ref str) => str.clone(),
+            Token::Number(ref str) => str.clone(),
+            Token::String(ref str) => str.clone(),
+            Token::Cmd(ref str) => str.clone(),
+            Token::Args(ref str) => str.clone(),
+            Token::Opts(ref str) => str.clone(),
+            Token::Path(ref str) => str.clone(),
+            _ => String::new(),
+        }
     }
 }
 
@@ -121,15 +130,28 @@ pub struct Number {
 }
 
 impl Number {
-    pub fn from(string: String) -> Result<Self> {
+    pub fn from_string(string: String) -> Result<Self> {
         let tmp = string.parse()?;
         return Ok(Number {
             data: tmp,
         })
     }
 
-    pub fn to(&self) -> String {
+    pub fn from_token(token: Token) -> Result<Self> {
+        if let Token::Number(str) = token {
+            return Ok(Number {
+                data: str.parse()?,
+            })
+        }
+        return Err(From::from("No a number".to_string()))
+    }
+
+    pub fn as_string(&self) -> String {
         return self.data.to_string()
+    }
+
+    pub fn as_token(&self) -> Token {
+        return Token::Number(self.data.to_string())
     }
 }
 
