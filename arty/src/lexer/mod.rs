@@ -67,16 +67,14 @@ impl Lexer {
         lexer.automatas.push(Box::new(CtrlOp::new()));
         lexer.automatas.push(Box::new(MathOp::new()));
         lexer.automatas.push(Box::new(Opts::new()));
-        let data = lexer.data.clone();
-        lexer.tokens = lexer.process(data)?; //TODO(Guillaume): make a lazy evaluation
         return Ok(lexer)
     }
 
-    fn process(&mut self, string: String) -> Result<Vec<Token>> {
-        let char_vec:Vec<char> = string.chars().collect();
-        let mut pos = 0;
-        while pos < char_vec.len() {
-            let c = char_vec[pos];
+    fn process(&mut self) -> Result<Token> {
+        let char_vec:Vec<char> = self.data.chars().collect();
+        println!("pos: {} out of {}", self.pos, char_vec.len());
+        while self.pos < char_vec.len() {
+            let c = char_vec[self.pos];
             let mut acc_tokens: Vec<Token> = Vec::new();
             let mut ong_count = 0;
             for l in self.automatas.iter_mut() {
@@ -88,26 +86,29 @@ impl Lexer {
             }
             // If we got an accepted on this char, we need to parse it again after global reset
             if ong_count == 0 {
+                for l in self.automatas.iter_mut() {
+                    l.reset()
+                }
                 match self.select_token(acc_tokens) {
                     Some(t) => {
                         println!("selected: {}", t);
                         match t.clone() {
                             Token::None => {},
-                            _ => self.tokens.push(t),
+                            _ => {
+                                self.tokens.push(t.clone());
+                                return Ok(t)
+                            },
                         }
                     },
                     None => return Err(Box::new(
                         LexicalError::new(String::from("No token found")))),
                 }
-                for l in self.automatas.iter_mut() {
-                    l.reset()
-                }
             } else {
-                pos += 1;
+                self.pos += 1;
             }
         }
         self.tokens.push(Token::Eof);
-        return Ok(self.tokens.clone());
+        return Ok(Token::Eof);
     }
 
     fn select_token(&self, candidates: Vec<Token>) -> Option<Token> {
@@ -152,10 +153,9 @@ impl Lexer {
         }
     }
 
-    pub fn next(&mut self) -> Token {
-        let token = self.get(self.pos);
-        self.pos += 1;
+    pub fn next(&mut self) -> Result<Token> {
+        let token = self.process()?;
         println!("next token: {}", token);
-        return token;
+        return Ok(token);
     }
 }

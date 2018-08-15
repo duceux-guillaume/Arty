@@ -29,12 +29,12 @@ impl Parser {
 
     fn expression(rbp: u32, state: &mut ParsingState, ctx: &mut ShellContext) -> Result<String> {
         let mut last = state.token.clone();
-        state.token = state.lexer.next();
+        state.token = state.lexer.next()?;
         let mut left = Parser::nud(last.clone(), state, ctx)?;
         println!("l:{}, c:{}, n:{}, rbp:{}", last, state.token, left, rbp);
         while rbp < Token::precedence(state.token.clone()) {
             last = state.token.clone();
-            state.token = state.lexer.next();
+            state.token = state.lexer.next()?;
             println!("l:{}, c:{}, n:{}", last, state.token, left);
             left = Parser::led(left, last.clone(), state, ctx)?;
             println!("led:{}", left);
@@ -50,7 +50,7 @@ impl Parser {
             token: Token::Eof,
         };
         println!("======");
-        state.token = state.lexer.next();
+        state.token = state.lexer.next()?;
         return Parser::expression(0, &mut state, ctx);
     }
 
@@ -59,7 +59,7 @@ impl Parser {
         return match token {
             Token::ParO => {
                 let res = Parser::expression(Token::precedence(token), state, ctx)?;
-                state.token = state.lexer.next();//TODO: match
+                state.token = state.lexer.next()?;//TODO: match
                 Ok(res)
             },
             Token::Minus => {
@@ -73,7 +73,7 @@ impl Parser {
                 println!("cmd env: {}", ctx.env.display());
                 let mut cmd = Command::new(path);
                 cmd.current_dir(ctx.env.as_path());
-                let output = if args.is_empty() {
+                let _output = if args.is_empty() {
                     cmd.spawn()?
                 } else {
                     for split in args.split_whitespace() {
