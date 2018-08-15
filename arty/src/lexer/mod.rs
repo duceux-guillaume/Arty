@@ -72,7 +72,6 @@ impl Lexer {
 
     fn process(&mut self) -> Result<Token> {
         let char_vec:Vec<char> = self.data.chars().collect();
-        println!("pos: {} out of {}", self.pos, char_vec.len());
         while self.pos < char_vec.len() {
             let c = char_vec[self.pos];
             let mut acc_tokens: Vec<Token> = Vec::new();
@@ -91,7 +90,6 @@ impl Lexer {
                 }
                 match self.select_token(acc_tokens) {
                     Some(t) => {
-                        println!("selected: {}", t);
                         match t.clone() {
                             Token::None => {},
                             _ => {
@@ -101,7 +99,7 @@ impl Lexer {
                         }
                     },
                     None => return Err(Box::new(
-                        LexicalError::new(String::from("No token found")))),
+                        LexicalError::new(format!("No token found at: {}", c)))),
                 }
             } else {
                 self.pos += 1;
@@ -112,11 +110,6 @@ impl Lexer {
     }
 
     fn select_token(&self, candidates: Vec<Token>) -> Option<Token> {
-        println!("select number of candidates: {}", candidates.len());
-        for token in candidates.iter() {
-            println!("candidates: {}", token);
-        }
-
         if candidates.len() == 0 {
             return None
         }
@@ -155,7 +148,6 @@ impl Lexer {
 
     pub fn next(&mut self) -> Result<Token> {
         let token = self.process()?;
-        println!("next token: {}", token);
         return Ok(token);
     }
 }

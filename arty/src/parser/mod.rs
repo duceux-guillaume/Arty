@@ -4,17 +4,20 @@ use lexer::Lexer;
 use std::result;
 use std::error;
 use std::process::Command;
+use std::process::Stdio;
 use std;
 type Result<T> = result::Result<T, Box<error::Error>>;
 use std::path::PathBuf;
 
 pub struct ShellContext {
-    env: PathBuf,
+    pub env: PathBuf,
+    pub last: String,
 }
 impl ShellContext {
     pub fn new() -> Result<Self> {
         return Ok(ShellContext {
             env: std::env::current_dir()?,
+            last: String::new(),
         })
     }
 }
@@ -31,16 +34,11 @@ impl Parser {
         let mut last = state.token.clone();
         state.token = state.lexer.next()?;
         let mut left = Parser::nud(last.clone(), state, ctx)?;
-        println!("l:{}, c:{}, n:{}, rbp:{}", last, state.token, left, rbp);
         while rbp < Token::precedence(state.token.clone()) {
             last = state.token.clone();
             state.token = state.lexer.next()?;
-            println!("l:{}, c:{}, n:{}", last, state.token, left);
             left = Parser::led(left, last.clone(), state, ctx)?;
-            println!("led:{}", left);
         }
-        println!("out:{} rbp:{}, token:{}, prec:{}", left, rbp, state.token,
-                 Token::precedence(state.token.clone()));
         return Ok(left)
     }
 
@@ -49,13 +47,11 @@ impl Parser {
             lexer: Lexer::new(string)?,
             token: Token::Eof,
         };
-        println!("======");
         state.token = state.lexer.next()?;
         return Parser::expression(0, &mut state, ctx);
     }
 
     fn nud(token: Token, state: &mut ParsingState, ctx: &mut ShellContext) -> Result<String> {
-        println!("nud => token:{}", token);
         return match token {
             Token::ParO => {
                 let res = Parser::expression(Token::precedence(token), state, ctx)?;
@@ -69,19 +65,16 @@ impl Parser {
             },
             Token::Cmd(path) => {
                 let args = Parser::expression(500, state, ctx)?;
-                println!("cmd args: {}", args);
-                println!("cmd env: {}", ctx.env.display());
                 let mut cmd = Command::new(path);
-                cmd.current_dir(ctx.env.as_path());
-                let _output = if args.is_empty() {
-                    cmd.spawn()?
-                } else {
+                cmd.current_dir(ctx.env.as_path())
+                    .stdout(Stdio::inherit())
+                    .stdin(Stdio::inherit());
+                if !args.is_empty() {
                     for split in args.split_whitespace() {
                         cmd.arg(split);
                     }
-                    cmd.spawn()?
-
                 };
+                cmd.output();
                 Ok(String::new())
             },
             Token::Opts(str) | Token::Args(str) | Token::Path(str) => {
@@ -122,7 +115,6 @@ impl Parser {
     }
 
     fn led(left: String, token: Token, state: &mut ParsingState, ctx: &mut ShellContext) -> Result<String> {
-        println!("led => left:{}, token:{}", left, token);
         return Ok(match token {
             Token::Number(ref str) => str.clone(),
             Token::Opts(ref str) => str.clone(),

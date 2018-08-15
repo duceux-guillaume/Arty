@@ -12,3 +12,4 @@ name = "artyshell"
 path = "src/main.rs"
 
 [dependencies]
+termion = "1.5.1"
