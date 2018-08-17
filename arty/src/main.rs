@@ -9,6 +9,7 @@ use termion::raw::IntoRawMode;
 
 use arty::parser;
 use arty::parser::ShellContext;
+use termion::color;
 
 struct Terminal {}
 impl Terminal {
@@ -17,7 +18,10 @@ impl Terminal {
     }
 
     fn get_prompt(ctx: &mut ShellContext) -> String {
-        return format!("{}", ctx.env.to_str().unwrap())
+        return format!("{}@{}{}",
+                       color::Fg(color::Red),
+                       ctx.env.file_name().unwrap().to_str().unwrap(),
+                       color::Fg(color::White))
     }
 
     fn read_line(&mut self, ctx: &mut ShellContext) -> Option<String> {

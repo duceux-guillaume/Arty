@@ -96,6 +96,7 @@ impl Parser {
                 } else if !new_path.is_absolute() {
                     let mut tmp = ctx.env.clone();
                     tmp.push(new_path);
+                    tmp = tmp.canonicalize()?;
                     if tmp.exists() {
                         ctx.env = tmp
                     } else {
