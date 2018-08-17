@@ -9,7 +9,7 @@ use self::ctrlop::CtrlOp;
 use self::math::MathOp;
 use self::name::Empty;
 use self::name::Cmd;
-use self::name::Opts;
+use self::name::CmdArgs;
 use self::interface::State;
 
 use language::Token;
@@ -53,26 +53,17 @@ pub struct Lexer {
 }
 
 impl Lexer {
-    pub fn new(data: String) -> Result<Self> {
-        let mut lexer = Lexer {
+    pub fn new(data: String) -> Self {
+        return Lexer {
             automatas: Vec::new(),
             data,
             tokens: Vec::new(),
             pos: 0,
-        };
-        lexer.automatas.push(Box::new(Number::new()));
-        lexer.automatas.push(Box::new(ChangeDir::new()));
-        lexer.automatas.push(Box::new(Path::new()));
-        lexer.automatas.push(Box::new(Empty::new()));
-        lexer.automatas.push(Box::new(Cmd::new()));
-        lexer.automatas.push(Box::new(CtrlOp::new()));
-        lexer.automatas.push(Box::new(MathOp::new()));
-        lexer.automatas.push(Box::new(Opts::new()));
-        lexer.automatas.push(Box::new(StringLexer::new()));
-        return Ok(lexer)
+        }
     }
 
     fn process(&mut self) -> Result<Token> {
+        self.automatas = self.select_lexer();
         let char_vec:Vec<char> = self.data.chars().collect();
         while self.pos < char_vec.len() {
             let c = char_vec[self.pos];
@@ -87,13 +78,13 @@ impl Lexer {
             }
             // If we got an accepted on this char, we need to parse it again after global reset
             if ong_count == 0 {
-                for l in self.automatas.iter_mut() {
-                    l.reset()
-                }
+                self.automatas = self.select_lexer();
                 match self.select_token(acc_tokens) {
                     Some(t) => {
                         match t.clone() {
-                            Token::None => {},
+                            Token::None => {
+                                self.pos += 1;
+                            },
                             _ => {
                                 self.tokens.push(t.clone());
                                 return Ok(t)
@@ -109,6 +100,39 @@ impl Lexer {
         }
         self.tokens.push(Token::Eof);
         return Ok(Token::Eof);
+    }
+
+    fn select_lexer(&self) -> Vec<Box<interface::ILexer>> {
+        if self.tokens.is_empty() {
+            return vec![
+                Box::new(Number::new()),
+                Box::new(ChangeDir::new()),
+                Box::new(Path::new()),
+                Box::new(Cmd::new()),
+                Box::new(MathOp::new()),
+                Box::new(Empty::new()),
+            ]
+        }
+        if let Token::Cmd(ref _cmd) = self.tokens.first().unwrap() {
+            return vec![
+                Box::new(CtrlOp::new()),
+                Box::new(CmdArgs::new()),
+                Box::new(Empty::new())
+            ]
+        }
+        if let Token::ChangeDir = self.tokens.first().unwrap() {
+            return vec![
+                Box::new(Path::new()),
+                Box::new(CmdArgs::new()),
+                Box::new(Empty::new()),
+            ]
+        }
+        return vec![
+            Box::new(Number::new()),
+            Box::new(MathOp::new()),
+            Box::new(StringLexer::new()),
+            Box::new(Empty::new())
+        ]
     }
 
     fn select_token(&self, candidates: Vec<Token>) -> Option<Token> {

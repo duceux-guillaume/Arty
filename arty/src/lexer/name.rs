@@ -7,7 +7,6 @@ pub struct Cmd {
     token: String,
     state: State,
 }
-
 impl Cmd {
     pub fn new() -> Self {
         return Cmd {
@@ -16,7 +15,6 @@ impl Cmd {
         }
     }
 }
-
 impl ILexer for Cmd {
     fn eat(&mut self, c: char) -> State {
         let new_state: State = match self.state {
@@ -194,41 +192,63 @@ impl ILexer for Empty {
     }
 }
 
-pub struct Opts {
+pub struct CmdArgs {
     token: String,
     state: State,
+    is_scoped: bool,
+    closing_scope_char: char,
 }
 
-impl Opts {
+impl CmdArgs {
     pub fn new() -> Self {
-        return Opts {
+        return CmdArgs {
             token: String::new(),
             state: State::Sta,
+            is_scoped: false,
+            closing_scope_char: ' ',
         }
     }
 }
 
-impl ILexer for Opts {
+impl ILexer for CmdArgs {
     fn eat(&mut self, c: char) -> State {
         let new_state: State = match self.state {
             State::Rej => self.state,
             State::Acc => self.state,
             State::Sta => {
-                if c == '-' {
+                if self.is_scoped {
                     self.token.push(c);
+                    if c == self.closing_scope_char {
+                        self.is_scoped = false;
+                    }
+                    State::Ong
+                } else if !helper::is_blank(c) {
+                    self.token.push(c);
+                    if c == '"' {
+                        self.is_scoped = true;
+                        self.closing_scope_char = c;
+                    }
                     State::Ong
                 } else {
                     State::Rej
                 }
             },
-            _ => {
-                if c == '-' || helper::is_letter(c) {
+            State::Ong => {
+                if self.is_scoped {
                     self.token.push(c);
+                    if c == self.closing_scope_char {
+                        self.is_scoped = false;
+                    }
                     State::Ong
-                } else if helper::is_blank(c) || c == '\"' {
-                    State::Acc
+                } else if !helper::is_blank(c) {
+                    self.token.push(c);
+                    if c == '"' {
+                        self.is_scoped = true;
+                        self.closing_scope_char = c;
+                    }
+                    State::Ong
                 } else {
-                    State::Rej
+                    State::Acc
                 }
             }
         };
@@ -242,7 +262,7 @@ impl ILexer for Opts {
     }
 
     fn token(&mut self) -> Token {
-        return Token::Opts(self.token.clone())
+        return Token::CmdArgs(self.token.clone())
     }
 }
 

@@ -81,11 +81,11 @@ impl ILexer for MathOp {
         return self.token.clone()
     }
 }
+
 pub struct Number {
     token: String,
     state: State,
 }
-
 impl Number {
     pub fn new() -> Self {
         return Number {
@@ -94,7 +94,6 @@ impl Number {
         }
     }
 }
-
 impl ILexer for Number {
     fn eat(&mut self, c: char) -> State {
         let new_state: State = match self.state {

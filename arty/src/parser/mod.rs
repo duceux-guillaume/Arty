@@ -4,7 +4,6 @@ use lexer::Lexer;
 use std::result;
 use std::error;
 use std::process::Command;
-use std::process::Stdio;
 use std;
 type Result<T> = result::Result<T, Box<error::Error>>;
 use std::path::PathBuf;
@@ -44,7 +43,7 @@ impl Parser {
 
     pub fn process(string: String, ctx: &mut ShellContext) -> Result<Token> {
         let mut state = ParsingState {
-            lexer: Lexer::new(string)?,
+            lexer: Lexer::new(string),
             token: Token::Eof,
         };
         state.token = state.lexer.next()?;
@@ -64,21 +63,34 @@ impl Parser {
                 res.push_str(Parser::expression(token.lprec(), state, ctx)?.as_string().as_str());
                 Ok(Token::Number(res))
             },
-            Token::Cmd(path) => {
+            Token::Cmd(cmd) => {
                 let args = Parser::expression(500, state, ctx)?;
-                let mut cmd = Command::new(path);
-                cmd.current_dir(ctx.env.as_path())
-                    .stdout(Stdio::inherit())
-                    .stdin(Stdio::inherit());
+                let mut cmd = Command::new(cmd);
+                cmd.current_dir(ctx.env.as_path());
                 if !args.as_string().is_empty() {
-                    for split in args.as_string().split_whitespace() {
+                    for split in args.as_string().split('#') {
                         cmd.arg(split);
                     }
                 }
-                let _output = cmd.output();
-                Ok(Token::None)
+                let status = cmd.status()?;
+                if status.success() {
+                    Ok(Token::None)
+                } else {
+                    Err(From::from("Failed".to_string()))
+                }
             },
-            Token::Opts(ref str) | Token::Args(ref str) | Token::Path(ref str) => {
+            Token::CmdArgs(ref str) => {
+                let right = Parser::expression(500, state, ctx)?;
+                if right.as_string().is_empty() {
+                    Ok(token.clone())
+                } else {
+                    let mut res = str.clone();
+                    res.push('#');
+                    res.push_str(right.as_string().as_str());
+                    Ok(Token::CmdArgs(res))
+                }
+            },
+            Token::Path(ref str) => {
                 let right = Parser::expression(500, state, ctx)?;
                 if right.as_string().is_empty() {
                     Ok(token.clone())
@@ -86,7 +98,7 @@ impl Parser {
                     let mut res = str.clone();
                     res.push(' ');
                     res.push_str(right.as_string().as_str());
-                    Ok(Token::Args(res))
+                    Ok(Token::CmdArgs(res))
                 }
             },
             Token::ChangeDir => {

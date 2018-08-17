@@ -10,6 +10,7 @@ pub enum Token {
     None,
     Eof,
     Error(String),
+    // Language
     Number(String),
     String(String),
     // Math operations
@@ -20,15 +21,15 @@ pub enum Token {
     Modulo,
     ParO,
     ParC,
-    // CTRL OP
-    Sequencial,
-    Background,
+/***************************************************/
     // Shell
     Cmd(String),
-    Opts(String),
-    Args(String),
+    CmdArgs(String),
     ChangeDir,
     Path(String),
+    // Shell CtrlOp
+    Sequencial,
+    Background,
 }
 
 impl Token {
@@ -39,8 +40,7 @@ impl Token {
             Token::Number(ref _str) => "Number",
             Token::String(ref _str) => "String",
             Token::Cmd(ref _str) => "Cmd",
-            Token::Opts(ref _str) => "Opts",
-            Token::Args(ref _str) => "Args",
+            Token::CmdArgs(ref _str) => "CmdArgs",
             Token::Path(ref _str) => "Path",
             Token::Plus => "Plus",
             Token::Minus => "Minus",
@@ -69,8 +69,7 @@ impl Token {
             Token::ParC => 0,
             // shell
             Token::Cmd(ref _str) => 500,
-            Token::Opts(ref _str) => 1000,
-            Token::Args(ref _str) => 1000,
+            Token::CmdArgs(ref _str) => 1000,
             Token::ChangeDir => 500,
             Token::Path(ref _str) => 500,
             _ => 1,
@@ -92,8 +91,7 @@ impl Token {
             Token::Number(ref str) => str.clone(),
             Token::String(ref str) => str.clone(),
             Token::Cmd(ref str) => str.clone(),
-            Token::Args(ref str) => str.clone(),
-            Token::Opts(ref str) => str.clone(),
+            Token::CmdArgs(ref str) => str.clone(),
             Token::Path(ref str) => str.clone(),
             _ => String::new(),
         }
@@ -108,8 +106,7 @@ impl fmt::Display for Token {
             Token::Number(ref str) => write!(f, "number({})", str),
             Token::String(ref str) => write!(f, "string({})", str),
             Token::Cmd(ref str) => write!(f, "cmd({})", str),
-            Token::Opts(ref str) => write!(f, "opts({})", str),
-            Token::Args(ref str) => write!(f, "args({})", str),
+            Token::CmdArgs(ref str) => write!(f, "args({})", str),
             Token::Path(ref str) => write!(f, "path({})", str),
             Token::Plus => write!(f, "+"),
             Token::Minus => write!(f, "-"),
