@@ -103,16 +103,16 @@ impl Parser {
             },
             Token::ChangeDir => {
                 let new_path = PathBuf::from(Parser::expression(500, state, ctx)?.as_string());
-                if new_path.is_absolute() && new_path.exists() {
+                if new_path.to_str().unwrap().is_empty() {
+                    ctx.env = std::env::home_dir().unwrap();
+                } else if new_path.is_absolute() && new_path.exists() {
                     ctx.env = new_path
                 } else if !new_path.is_absolute() {
                     let mut tmp = ctx.env.clone();
                     tmp.push(new_path);
-                    tmp = tmp.canonicalize()?;
-                    if tmp.exists() {
-                        ctx.env = tmp
-                    } else {
-                        return Err(From::from("path doesn't exists".to_string()))
+                    match tmp.canonicalize() {
+                        Ok(path) => ctx.env = path,
+                        Err(error) => return Err(From::from(error)),
                     }
                 } else {
                     return Err(From::from("path doesn't exists".to_string()))

@@ -123,7 +123,6 @@ impl Lexer {
         if let Token::ChangeDir = self.tokens.first().unwrap() {
             return vec![
                 Box::new(Path::new()),
-                Box::new(CmdArgs::new()),
                 Box::new(Empty::new()),
             ]
         }
