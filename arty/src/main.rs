@@ -144,7 +144,9 @@ impl Interpreter {
 
     fn process(&mut self, line: String, ctx: &mut ShellContext) {
         if !line.trim().is_empty() {
-            ctx.last.push(line.clone());
+            if ctx.last.len() == 0 || line != *ctx.last.last().unwrap() {
+                ctx.last.push(line.clone());
+            }
         }
         let res = parser::Parser::process(line, ctx);
         match res {
