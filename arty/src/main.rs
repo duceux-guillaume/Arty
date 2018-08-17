@@ -10,21 +10,22 @@ use termion::raw::IntoRawMode;
 use arty::parser;
 use arty::parser::ShellContext;
 use termion::color;
-use std::cmp::max;
-use std::cmp::min;
 
 struct Terminal {
     up_count: usize,
+    left_count: usize,
 }
 impl Terminal {
     fn new() -> Terminal {
         return Terminal {
-            up_count: 0
+            up_count: 0,
+            left_count: 0
         }
     }
 
     fn reset(&mut self) {
         self.up_count = 0;
+        self.left_count = 0;
     }
 
     fn format_prompt(ctx: &ShellContext) -> String {
@@ -34,10 +35,13 @@ impl Terminal {
                        color::Fg(color::White))
     }
 
-    fn display<W: Write>(out: &mut W, ctx: &ShellContext, line: &String) {
+    fn display<W: Write>(&self, out: &mut W, ctx: &ShellContext, line: String) {
         write!(out, "\r{}", termion::clear::AfterCursor).unwrap();
         write!(out, "{} ", Terminal::format_prompt(&ctx)).unwrap();
         write!(out, "{}", line).unwrap();
+        if self.left_count > 0 {
+            write!(out, "{}", termion::cursor::Left(self.left_count as u16)).unwrap();
+        }
         out.flush().unwrap();
     }
 
@@ -45,61 +49,90 @@ impl Terminal {
         self.reset();
 
         let mut stdout = stdout().into_raw_mode().unwrap();
-        let mut line = String::new();
-        Terminal::display(&mut stdout, &ctx, &line);
-
-
+        let mut line = Vec::new();
         let stdin = stdin();
+
+        self.display(&mut stdout, &ctx, line.iter().collect());
         for key in stdin.keys() {
             match key.unwrap() {
                 Key::Char(character) => {
-                    line.push(character);
-                    if let '\n' = character {
-                        write!(stdout, "{}", "\r\n").unwrap();
-                        return Some(line)
+                    if line.len() == 0 || self.left_count == 0 || character == '\n' {
+                        line.push(character)
                     } else {
-                        write!(stdout, "{}", character).unwrap();
+                        let index = line.len() - self.left_count;
+                        line.insert(index, character);
+                    }
+                    if character == '\n' {
+                        write!(stdout, "{}", "\r\n").unwrap();
+                        return Some(line.iter().collect())
                     }
                 },
                 Key::Up => {
                     let history_size = ctx.last.len();
-                    let index = history_size - 1 - self.up_count%history_size;
-                    line = String::from(ctx.last[index].trim());
-                    Terminal::display(&mut stdout, &ctx, &line);
-                    self.up_count += 1;
+                    if history_size > 0 {
+                        let index = history_size - 1 - self.up_count % history_size;
+                        line = ctx.last[index].trim().chars().collect();
+                        self.up_count += 1;
+                        self.left_count = 0;
+                    }
                 },
                 Key::Down => {
                     let history_size = ctx.last.len();
-                    let index = history_size - 1 - self.up_count%history_size;
-                    line = String::from(ctx.last[index].trim());
-                    Terminal::display(&mut stdout, &ctx, &line);
-                    if self.up_count > 0 {
-                        self.up_count -= 1;
-                    } else if history_size > 0 {
-                        self.up_count = history_size - 1
+                    if history_size > 0 {
+                        let index = history_size - 1 - self.up_count % history_size;
+                        line = ctx.last[index].trim().chars().collect();
+                        if self.up_count > 0 {
+                            self.up_count -= 1;
+                        } else {
+                            self.up_count = history_size - 1
+                        }
+                        self.left_count = 0;
+                    }
+                },
+                Key::Left => {
+                    if self.left_count < line.len() {
+                        self.left_count += 1;
+                    }
+                },
+                Key::Right => {
+                    if self.left_count > 0 {
+                        self.left_count -= 1;
                     }
                 },
                 Key::Ctrl('d') => return None,
                 Key::Ctrl('c') => {
                     self.reset();
                     line.clear();
-                    Terminal::display(&mut stdout, &ctx, &line);
+                },
+                Key::Esc => {
+                    self.reset();
+                    line.clear();
                 },
                 Key::Ctrl('l') => {
                     write!(stdout, "{}{}", termion::clear::All,
                            termion::cursor::Goto(1,1)).unwrap();
                     line.clear();
-                    Terminal::display(&mut stdout, &ctx, &line);
+                    self.reset();
                 },
                 Key::Backspace => {
-                    line.pop();
-                    Terminal::display(&mut stdout, &ctx, &line);
+                    if line.len() > 0 && self.left_count < line.len() {
+                        let index = line.len() - 1 - self.left_count;
+                        line.remove(index);
+                    }
+                },
+                Key::Delete => {
+                    if line.len() > 0 && self.left_count > 0 && self.left_count <= line.len() {
+                        let index = line.len() - self.left_count;
+                        line.remove(index);
+                        if self.left_count > 0 {
+                            self.left_count -= 1;
+                        }                    }
                 },
                 _ => {}
             }
-            stdout.flush().unwrap();
+            self.display(&mut stdout, &ctx, line.iter().collect());
         }
-        return Some(line);
+        return Some(line.iter().collect());
     }
 }
 
