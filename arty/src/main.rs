@@ -10,27 +10,44 @@ use termion::raw::IntoRawMode;
 use arty::parser;
 use arty::parser::ShellContext;
 use termion::color;
+use std::cmp::max;
+use std::cmp::min;
 
-struct Terminal {}
+struct Terminal {
+    up_count: usize,
+}
 impl Terminal {
     fn new() -> Terminal {
-        return Terminal {}
+        return Terminal {
+            up_count: 0
+        }
     }
 
-    fn get_prompt(ctx: &mut ShellContext) -> String {
+    fn reset(&mut self) {
+        self.up_count = 0;
+    }
+
+    fn format_prompt(ctx: &ShellContext) -> String {
         return format!("{}@{}{}",
                        color::Fg(color::Red),
                        ctx.env.file_name().unwrap().to_str().unwrap(),
                        color::Fg(color::White))
     }
 
-    fn read_line(&mut self, ctx: &mut ShellContext) -> Option<String> {
+    fn display<W: Write>(out: &mut W, ctx: &ShellContext, line: &String) {
+        write!(out, "\r{}", termion::clear::AfterCursor).unwrap();
+        write!(out, "{} ", Terminal::format_prompt(&ctx)).unwrap();
+        write!(out, "{}", line).unwrap();
+        out.flush().unwrap();
+    }
+
+    fn read_line(&mut self, ctx: &ShellContext) -> Option<String> {
+        self.reset();
 
         let mut stdout = stdout().into_raw_mode().unwrap();
-        write!(stdout, "{} ", Terminal::get_prompt(ctx)).unwrap();
-        stdout.flush().unwrap();
-
         let mut line = String::new();
+        Terminal::display(&mut stdout, &ctx, &line);
+
 
         let stdin = stdin();
         for key in stdin.keys() {
@@ -45,23 +62,38 @@ impl Terminal {
                     }
                 },
                 Key::Up => {
-                    write!(stdout, "\r{}", termion::clear::AfterCursor).unwrap();
-                    write!(stdout, "{} ", Terminal::get_prompt(ctx)).unwrap();
-                    line = String::from(ctx.last.trim());
-                    write!(stdout, "{}", line).unwrap();
+                    let history_size = ctx.last.len();
+                    let index = history_size - 1 - self.up_count%history_size;
+                    line = String::from(ctx.last[index].trim());
+                    Terminal::display(&mut stdout, &ctx, &line);
+                    self.up_count += 1;
                 },
-                Key::Ctrl('c') => return None,
+                Key::Down => {
+                    let history_size = ctx.last.len();
+                    let index = history_size - 1 - self.up_count%history_size;
+                    line = String::from(ctx.last[index].trim());
+                    Terminal::display(&mut stdout, &ctx, &line);
+                    if self.up_count > 0 {
+                        self.up_count -= 1;
+                    } else if history_size > 0 {
+                        self.up_count = history_size - 1
+                    }
+                },
+                Key::Ctrl('d') => return None,
+                Key::Ctrl('c') => {
+                    self.reset();
+                    line.clear();
+                    Terminal::display(&mut stdout, &ctx, &line);
+                },
                 Key::Ctrl('l') => {
                     write!(stdout, "{}{}", termion::clear::All,
                            termion::cursor::Goto(1,1)).unwrap();
-                    write!(stdout, "{} ", Terminal::get_prompt(ctx)).unwrap();
                     line.clear();
+                    Terminal::display(&mut stdout, &ctx, &line);
                 },
                 Key::Backspace => {
-                    write!(stdout, "\r{}", termion::clear::AfterCursor).unwrap();
-                    write!(stdout, "{} ", Terminal::get_prompt(ctx)).unwrap();
                     line.pop();
-                    write!(stdout, "{}", line).unwrap();
+                    Terminal::display(&mut stdout, &ctx, &line);
                 },
                 _ => {}
             }
@@ -79,7 +111,7 @@ impl Interpreter {
 
     fn process(&mut self, line: String, ctx: &mut ShellContext) {
         if !line.trim().is_empty() {
-            ctx.last = line.clone();
+            ctx.last.push(line.clone());
         }
         let res = parser::Parser::process(line, ctx);
         match res {

@@ -10,13 +10,13 @@ use std::path::PathBuf;
 
 pub struct ShellContext {
     pub env: PathBuf,
-    pub last: String,
+    pub last: Vec<String>,
 }
 impl ShellContext {
     pub fn new() -> Result<Self> {
         return Ok(ShellContext {
             env: std::env::current_dir()?,
-            last: String::new(),
+            last: Vec::new(),
         })
     }
 }
