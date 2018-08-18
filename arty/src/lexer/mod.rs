@@ -113,14 +113,14 @@ impl Lexer {
                 Box::new(Empty::new()),
             ]
         }
-        if let Token::Cmd(ref _cmd) = self.tokens.first().unwrap() {
+        if let &Token::Cmd(ref _cmd) = self.tokens.first().unwrap() {
             return vec![
                 Box::new(CtrlOp::new()),
                 Box::new(CmdArgs::new()),
                 Box::new(Empty::new())
             ]
         }
-        if let Token::ChangeDir = self.tokens.first().unwrap() {
+        if let &Token::ChangeDir = self.tokens.first().unwrap() {
             return vec![
                 Box::new(Path::new()),
                 Box::new(Empty::new()),
