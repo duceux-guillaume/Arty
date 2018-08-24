@@ -2,6 +2,7 @@ extern crate arty;
 extern crate termion;
 
 use std::io::{Write, stdout, stdin};
+use std::path::PathBuf;
 
 use termion::input::TermRead;
 use termion::event::Key;
@@ -10,6 +11,120 @@ use termion::raw::IntoRawMode;
 use arty::parser;
 use arty::parser::ShellContext;
 use termion::color;
+use arty::lexer::Lexer;
+use arty::language::Token;
+
+struct Guess {
+    first_part: Vec<char>,
+    missing_part: Vec<char>
+}
+impl Guess {
+    fn new(first: &str, second: &str) -> Guess {
+        return Guess {
+            first_part: first.chars().collect(),
+            missing_part: second.chars().collect(),
+        }
+    }
+
+    fn missing_part(&self) -> Vec<char> {
+        let mut res = self.missing_part.clone();
+        res.push('/');
+        return res
+    }
+
+    fn to_string(&self) -> String {
+        let first: String = self.first_part.iter().collect();
+        let second: String = self.missing_part.iter().collect();
+        return format!("{}{}", first, second)
+    }
+}
+
+struct PathGuesser {}
+impl PathGuesser {
+    fn new() -> PathGuesser {
+        return PathGuesser{}
+    }
+
+    fn guess(&self, ctx: &ShellContext, line: &Vec<char>) -> Vec<Guess> {
+        let mut lexer = Lexer::new(line.iter().collect());
+        let mut result = Vec::new();
+        // Check first token
+        if let Token::ChangeDir = lexer.get(0) {
+            // Then second
+            match lexer.get(1) {
+                Token::None | Token::Eof => {
+                    result = self.convert(self.list_directory(&ctx.env));
+                },
+                Token::Path(hint) => {
+                    // we have arguments, let's figure out where the user went
+                    let path_hint = PathBuf::from(hint.clone());
+                    if !path_hint.is_absolute() {
+                        let mut env = ctx.env.clone();
+                        env.push(path_hint.clone());
+                        result = self.guess_directory_from_hint(env);
+                    } else {
+                        result = self.guess_directory_from_hint(path_hint);
+                    }
+                },
+                _ => {
+                    println!("what?")
+                },
+            }
+        }
+        return result
+    }
+
+    fn guess_directory_from_hint(&self, hint: PathBuf) -> Vec<Guess> {
+        return if hint.exists() {
+            self.convert(self.list_directory(&hint))
+        } else {
+            // no arguments yet, return context directory
+            let missing_hint = hint.file_name().unwrap().to_str().unwrap();
+            self.filter_match(missing_hint, self.list_partial_directory(&hint))
+        }
+    }
+
+    fn list_directory(&self, ctx: &PathBuf) -> Vec<String> {
+        let mut result = Vec::new();
+        if ctx.is_dir() {
+            for entry in ctx.read_dir().expect("can't list dir") {
+                let path = entry.expect("whatever").path();
+                if path.is_dir() {
+                    result.push(String::from(path.file_name().unwrap().to_str().unwrap()));
+                }
+            }
+        }
+        return result
+    }
+
+    fn list_partial_directory(&self, ctx: &PathBuf) -> Vec<String> {
+        return if ctx.exists() {
+            self.list_directory(ctx)
+        } else {
+            println!("\ndir: {}", ctx.parent().unwrap().to_str().unwrap());
+            self.list_directory(&ctx.parent().unwrap().to_path_buf())
+        }
+    }
+
+    fn filter_match(&self, pattern: &str, src: Vec<String>) -> Vec<Guess> {
+        let mut result = Vec::new();
+        for item in src.iter() {
+            if item.contains(pattern) {
+                let splits: String = item.split(pattern).collect();
+                result.push(Guess::new(pattern, splits.as_str()));
+            }
+        }
+        return result
+    }
+
+    fn convert(&self, src: Vec<String>) -> Vec<Guess> {
+        let mut result = Vec::new();
+        for item in src.iter() {
+            result.push(Guess::new("", item.as_str()));
+        }
+        return result
+    }
+}
 
 struct Terminal {
     up_count: usize,
@@ -35,36 +150,73 @@ impl Terminal {
                        color::Fg(color::White))
     }
 
-    fn display<W: Write>(&self, out: &mut W, ctx: &ShellContext, line: String) {
-        write!(out, "\r{}", termion::clear::AfterCursor).unwrap();
-        write!(out, "{} ", Terminal::format_prompt(&ctx)).unwrap();
-        write!(out, "{}", line).unwrap();
+    fn write_line(&self, ctx: &ShellContext, line: String) {
+        let mut stdout = stdout().into_raw_mode().unwrap();
+        write!(stdout, "\r{}", termion::clear::CurrentLine).unwrap();
+        write!(stdout, "{} ", Terminal::format_prompt(&ctx)).unwrap();
+        write!(stdout, "{}", line).unwrap();
         if self.left_count > 0 {
-            write!(out, "{}", termion::cursor::Left(self.left_count as u16)).unwrap();
+            write!(stdout, "{}", termion::cursor::Left(self.left_count as u16)).unwrap();
         }
-        out.flush().unwrap();
+        stdout.flush().unwrap();
+    }
+
+    fn write_guesses(&self, guesses: Vec<Guess>) {
+        let mut stdout = stdout().into_raw_mode().unwrap();
+        write!(stdout, "\n\r{}", termion::clear::CurrentLine).unwrap();
+        for guess in guesses.iter() {
+            write!(stdout, "{} ", guess.to_string()).unwrap();
+        }
+        write!(stdout, "{}\r", termion::cursor::Up(1)).unwrap();
+        stdout.flush().unwrap();
+    }
+
+    fn write_newline(&self) {
+        let mut stdout = stdout().into_raw_mode().unwrap();
+        write!(stdout, "{}", "\r\n").unwrap();
+        stdout.flush().unwrap();
+    }
+
+    fn clear(&self) {
+        let mut stdout = stdout().into_raw_mode().unwrap();
+        write!(stdout, "{}{}", termion::clear::All,
+               termion::cursor::Goto(1,1)).unwrap();
+        stdout.flush().unwrap();
+    }
+
+    fn get_key(&self) -> Key {
+        let mut _stdout = stdout().into_raw_mode().unwrap();
+        let stdin = stdin();
+        return stdin.keys().next().unwrap().expect("whatever")
     }
 
     fn read_line(&mut self, ctx: &ShellContext) -> Option<String> {
         self.reset();
 
-        let mut stdout = stdout().into_raw_mode().unwrap();
         let mut line = Vec::new();
-        let stdin = stdin();
 
-        self.display(&mut stdout, &ctx, line.iter().collect());
-        for key in stdin.keys() {
-            match key.unwrap() {
+        self.write_line(&ctx, line.iter().collect());
+        loop {
+            match self.get_key() {
                 Key::Char(character) => {
-                    if line.len() == 0 || self.left_count == 0 || character == '\n' {
-                        line.push(character)
+                    if character == '\t' {
+                        let guesser = PathGuesser::new();
+                        let guesses = guesser.guess(ctx, &line);
+                        if guesses.len() == 1 {
+                            line.append(&mut guesses.first().unwrap().missing_part());
+                        }
+                        self.write_guesses(guesses);
                     } else {
-                        let index = line.len() - self.left_count;
-                        line.insert(index, character);
-                    }
-                    if character == '\n' {
-                        write!(stdout, "{}", "\r\n").unwrap();
-                        return Some(line.iter().collect())
+                        if line.len() == 0 || self.left_count == 0 || character == '\n' {
+                            line.push(character)
+                        } else {
+                            let index = line.len() - self.left_count;
+                            line.insert(index, character);
+                        }
+                        if character == '\n' {
+                            self.write_newline();
+                            return Some(line.iter().collect())
+                        }
                     }
                 },
                 Key::Up => {
@@ -109,8 +261,7 @@ impl Terminal {
                     line.clear();
                 },
                 Key::Ctrl('l') => {
-                    write!(stdout, "{}{}", termion::clear::All,
-                           termion::cursor::Goto(1,1)).unwrap();
+                    self.clear();
                     line.clear();
                     self.reset();
                 },
@@ -126,13 +277,13 @@ impl Terminal {
                         line.remove(index);
                         if self.left_count > 0 {
                             self.left_count -= 1;
-                        }                    }
+                        }
+                    }
                 },
                 _ => {}
             }
-            self.display(&mut stdout, &ctx, line.iter().collect());
+            self.write_line(&ctx, line.iter().collect());
         }
-        return Some(line.iter().collect());
     }
 }
 
@@ -163,10 +314,7 @@ impl Interpreter {
 fn main() {
     println!("Hello, world!");
 
-    let mut ctx= match ShellContext::new() {
-        Ok(shell_ctx) => shell_ctx,
-        _ => panic!("no env"),
-    };
+    let mut ctx= ShellContext::new().expect("no suitable env");
     let mut arty = Interpreter::new();
     let mut tty = Terminal::new();
     loop {

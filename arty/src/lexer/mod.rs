@@ -64,7 +64,10 @@ impl Lexer {
 
     fn process(&mut self) -> Result<Token> {
         self.automatas = self.select_lexer();
-        let char_vec:Vec<char> = self.data.chars().collect();
+        let mut char_vec:Vec<char> = self.data.chars().collect();
+        if char_vec.len() > 0 && char_vec.last().unwrap() != &'\n' {
+            char_vec.push('\n');
+        }
         while self.pos < char_vec.len() {
             let c = char_vec[self.pos];
             let mut acc_tokens: Vec<Token> = Vec::new();
@@ -163,9 +166,15 @@ impl Lexer {
         return Some(candidates.first().unwrap().clone())
     }
 
-    pub fn get(&self, idx: usize) -> Token {
+    pub fn get(&mut self, idx: usize) -> Token {
         if idx >= self.tokens.len() {
-            return Token::Eof
+            if self.pos < self.data.len() {
+                // We have not processed enough
+                self.process();
+                return self.get(idx)
+            } else {
+                return Token::Eof
+            }
         } else {
             return self.tokens[idx].clone()
         }
