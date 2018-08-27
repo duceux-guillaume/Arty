@@ -1,3 +1,2 @@
 paste: repo forall -c "git co master"
-autocomplete: filename
 input: crtl+r

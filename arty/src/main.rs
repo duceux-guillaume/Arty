@@ -12,6 +12,7 @@ use arty::parser::ShellContext;
 use termion::color;
 use arty::guesser::Guess;
 use arty::guesser::PathGuesser;
+use arty::guesser::FileGuesser;
 
 struct Terminal {
     up_count: usize,
@@ -87,10 +88,16 @@ impl Terminal {
             match self.get_key() {
                 Key::Char(character) => {
                     if character == '\t' {
-                        let guesser = PathGuesser::new();
-                        let guesses = guesser.guess(ctx, &line);
+                        let mut guesser = PathGuesser::new();
+                        let mut guesses = guesser.guess(ctx, &line);
                         if guesses.len() == 1 {
                             line.append(&mut guesses.first().unwrap().missing_part());
+                        } else if guesses.len() == 0 {
+                            let file_guesser = FileGuesser::new();
+                            guesses = file_guesser.guess(ctx, &line);
+                            if guesses.len() == 1 {
+                                line.append(&mut guesses.first().unwrap().missing_part());
+                            }
                         }
                         self.write_guesses(guesses);
                     } else {

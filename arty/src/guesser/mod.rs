@@ -132,6 +132,112 @@ impl PathGuesser {
     }
 }
 
+pub struct FileGuesser {}
+impl FileGuesser {
+    pub fn new() -> FileGuesser {
+        return FileGuesser {}
+    }
+
+    pub fn guess(&self, ctx: &ShellContext, line: &Vec<char>) -> Vec<Guess> {
+        let mut lexer = Lexer::new(line.iter().collect());
+        let mut result = Vec::new();
+        // Check first token
+        if let Token::Cmd(_cmd) = lexer.get(0) {
+            // Then second
+            match lexer.get(1) {
+                Token::None | Token::Eof => {
+                    result = self.convert(self.list_files(&ctx.env));
+                },
+                Token::CmdArgs(hint) => {
+                    // we have arguments, let's figure out where the user went
+                    let path_hint = PathBuf::from(hint.clone());
+                    if !path_hint.is_absolute() {
+                        let mut env = ctx.env.clone();
+                        env.push(path_hint.clone());
+                        result = self.guess_file_from_hint(env);
+                    } else {
+                        result = self.guess_file_from_hint(path_hint);
+                    }
+                },
+                _ => {
+                    println!("what?")
+                },
+            }
+        }
+        return result
+    }
+
+    fn list_files(&self, ctx: &PathBuf) -> Vec<String> {
+        let mut result = Vec::new();
+        if ctx.is_dir() {
+            for entry in ctx.read_dir().expect("can't list dir") {
+                let file = entry.expect("whatever").path();
+                let mut file_name = String::from(file.file_name().unwrap().to_str().unwrap());
+                if file.is_dir() {
+                    file_name.push('/');
+                }
+                result.push(file_name);
+            }
+        }
+        return result
+    }
+
+    fn convert(&self, src: Vec<String>) -> Vec<Guess> {
+        let mut result = Vec::new();
+        for item in src.iter() {
+            result.push(Guess::new("", item.as_str()));
+        }
+        return result
+    }
+
+
+    fn guess_file_from_hint(&self, hint: PathBuf) -> Vec<Guess> {
+        return if hint.exists() {
+            self.convert(self.list_files(&hint))
+        } else {
+            // no arguments yet, return context directory
+            let missing_hint = hint.file_name().unwrap().to_str().unwrap().to_string();
+            self.filter_match(&missing_hint, self.list_partial_files(&hint))
+        }
+    }
+
+    fn list_partial_files(&self, ctx: &PathBuf) -> Vec<String> {
+        return if ctx.exists() {
+            self.list_files(ctx)
+        } else {
+            self.list_files(&ctx.parent().unwrap().to_path_buf())
+        }
+    }
+
+    fn filter_match(&self, pattern: &String, src: Vec<String>) -> Vec<Guess> {
+        let mut result = Vec::new();
+        for item in src.iter() {
+            if let Some(guess) = self.guess_from_match(item, &pattern.to_string()) {
+                result.push(guess)
+            }
+        }
+        return result
+    }
+
+    fn guess_from_match(&self, entry: &String, pattern: &String) -> Option<Guess> {
+        let matching = entry.get(0..pattern.len());
+        if matching.is_none() {
+            return None
+        }
+        if matching.unwrap() != pattern {
+            return None
+        }
+        let result = entry.get(pattern.len()..entry.len());
+        if result.is_some() {
+            return Some(Guess::new(
+                pattern.as_str(),
+                result.unwrap(),
+            ))
+        }
+        return None
+    }
+}
+
 
 #[cfg(test)]
 mod tests {
