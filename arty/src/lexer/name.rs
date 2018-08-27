@@ -316,16 +316,6 @@ mod tests {
     use super::*;
 
     #[test]
-    fn integer() {
-        let string = String::from("1234567890");
-        let mut lexer = Cmd::new();
-        for c in string.chars() {
-            assert_eq!(State::Rej, lexer.eat(c));
-        }
-        assert_eq!(State::Rej, lexer.eat(' '));
-    }
-
-    #[test]
     fn identifier() {
         let string = String::from("a1");
         let mut lexer = Cmd::new();

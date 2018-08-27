@@ -170,7 +170,7 @@ impl Lexer {
         if idx >= self.tokens.len() {
             if self.pos < self.data.len() {
                 // We have not processed enough
-                self.process();
+                let _ignored = self.process();
                 return self.get(idx)
             } else {
                 return Token::Eof
