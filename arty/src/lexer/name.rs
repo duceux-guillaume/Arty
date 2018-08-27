@@ -344,4 +344,14 @@ mod tests {
         }
         assert_eq!(State::Rej, lexer.eat(' '));
     }
+
+    #[test]
+    fn undescore_path() {
+        let string = String::from("k1_02");
+        let mut lexer = Path::new();
+        for c in string.chars() {
+            assert_eq!(State::Ong, lexer.eat(c));
+        }
+        assert_eq!(State::Acc, lexer.eat(' '));
+    }
 }
