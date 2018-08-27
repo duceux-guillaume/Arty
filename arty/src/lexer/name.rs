@@ -223,10 +223,11 @@ impl ILexer for CmdArgs {
                     }
                     State::Ong
                 } else if !helper::is_blank(c) {
-                    self.token.push(c);
                     if c == '"' {
                         self.is_scoped = true;
                         self.closing_scope_char = c;
+                    } else {
+                        self.token.push(c);
                     }
                     State::Ong
                 } else {
@@ -235,16 +236,18 @@ impl ILexer for CmdArgs {
             },
             State::Ong => {
                 if self.is_scoped {
-                    self.token.push(c);
                     if c == self.closing_scope_char {
                         self.is_scoped = false;
+                    } else {
+                        self.token.push(c);
                     }
                     State::Ong
                 } else if !helper::is_blank(c) {
-                    self.token.push(c);
                     if c == '"' {
                         self.is_scoped = true;
                         self.closing_scope_char = c;
+                    } else {
+                        self.token.push(c);
                     }
                     State::Ong
                 } else {
