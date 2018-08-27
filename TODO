@@ -1,0 +1,3 @@
+cmd: repo forall -c "git co master"
+paste: repo forall -c "git co master"
+autocomplete: filename
