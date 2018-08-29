@@ -20,6 +20,8 @@ use std::fmt;
 use lexer::name::ChangeDir;
 use lexer::name::Path;
 use lexer::name::StringLexer;
+use filesystem::SearchFor;
+use std::env;
 
 #[derive(Debug)]
 struct LexicalError {
@@ -153,7 +155,11 @@ impl Lexer {
             }
             for token in candidates.iter() {
                 if token.description() == "Cmd" {
-                    return Some(token.clone())
+                    // Look up cmd
+                    let paths = env::split_paths(&env::var("PATH").unwrap()).collect();
+                    if !SearchFor::matching(token.as_string()).in_paths(paths).is_empty() {
+                        return Some(token.clone())
+                    }
                 }
             }
         } else {

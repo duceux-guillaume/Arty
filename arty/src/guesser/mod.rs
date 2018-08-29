@@ -1,7 +1,13 @@
-use language::Token;
+use std::env;
 use std::path::PathBuf;
+
+use language::Token;
+
 use parser::ShellContext;
+
 use lexer::Lexer;
+
+use filesystem::SearchFor;
 
 pub struct Guess {
     first_part: Vec<char>,
@@ -142,7 +148,8 @@ impl FileGuesser {
         let mut lexer = Lexer::new(line.iter().collect());
         let mut result = Vec::new();
         // Check first token
-        if let Token::Cmd(_cmd) = lexer.get(0) {
+        let token = lexer.get(0);
+        if let Token::Cmd(_cmd) = token {
             // Then second
             match lexer.get(1) {
                 Token::None | Token::Eof => {
@@ -162,6 +169,15 @@ impl FileGuesser {
                 _ => {
                     println!("what?")
                 },
+            }
+        } else {
+            let paths = SearchFor::starting_with(token.as_string()).in_path(&ctx.env);
+            for item in paths.iter() {
+                let file_name = item.file_name().unwrap().to_str().unwrap().to_string();
+                let option = self.guess_from_match(&file_name, &token.as_string());
+                if option.is_some() {
+                    result.push(option.unwrap());
+                }
             }
         }
         return result

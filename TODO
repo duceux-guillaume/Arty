@@ -1,2 +1,6 @@
 paste: repo forall -c "git co master"
 input: crtl+r
+refactor lexer for '2*3' math operations
+cmd guesser
+log to file
+piped cmd

@@ -30,6 +30,7 @@ pub enum Token {
     // Shell CtrlOp
     Sequencial,
     Background,
+    Pipe,
 }
 
 impl Token {
