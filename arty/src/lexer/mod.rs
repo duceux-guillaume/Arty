@@ -51,7 +51,8 @@ pub struct Lexer {
     automatas: Vec<Box<interface::ILexer>>,
     data: String,
     tokens: Vec<Token>,
-    pos: usize,
+    scanner_pos: usize,
+    last_token_pos: usize,
 }
 
 impl Lexer {
@@ -60,7 +61,8 @@ impl Lexer {
             automatas: Vec::new(),
             data,
             tokens: Vec::new(),
-            pos: 0,
+            scanner_pos: 0,
+            last_token_pos: 0,
         }
     }
 
@@ -70,8 +72,8 @@ impl Lexer {
         if char_vec.len() > 0 && char_vec.last().unwrap() != &'\n' {
             char_vec.push('\n');
         }
-        while self.pos < char_vec.len() {
-            let c = char_vec[self.pos];
+        while self.scanner_pos < char_vec.len() {
+            let c = char_vec[self.scanner_pos];
             let mut acc_tokens: Vec<Token> = Vec::new();
             let mut ong_count = 0;
             for l in self.automatas.iter_mut() {
@@ -88,10 +90,13 @@ impl Lexer {
                     Some(t) => {
                         match t.clone() {
                             Token::None => {
-                                self.pos += 1;
+                                self.scanner_pos += 1;
+                                self.last_token_pos += 1;
                             },
                             _ => {
                                 self.tokens.push(t.clone());
+                                self.scanner_pos = self.last_token_pos + t.len();
+                                self.last_token_pos = self.scanner_pos;
                                 return Ok(t)
                             },
                         }
@@ -100,7 +105,7 @@ impl Lexer {
                         LexicalError::new(format!("No token found at: {}", c)))),
                 }
             } else {
-                self.pos += 1;
+                self.scanner_pos += 1;
             }
         }
         self.tokens.push(Token::Eof);
@@ -174,7 +179,7 @@ impl Lexer {
 
     pub fn get(&mut self, idx: usize) -> Token {
         if idx >= self.tokens.len() {
-            if self.pos < self.data.len() {
+            if self.scanner_pos < self.data.len() {
                 // We have not processed enough
                 let _ignored = self.process();
                 return self.get(idx)

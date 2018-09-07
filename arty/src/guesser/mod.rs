@@ -96,7 +96,6 @@ impl PathGuesser {
         return if ctx.exists() {
             self.list_directory(ctx)
         } else {
-            println!("\ndir: {}", ctx.parent().unwrap().to_str().unwrap());
             self.list_directory(&ctx.parent().unwrap().to_path_buf())
         }
     }

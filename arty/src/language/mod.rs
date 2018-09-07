@@ -97,6 +97,19 @@ impl Token {
             _ => String::new(),
         }
     }
+
+    pub fn len(&self) -> usize {
+        return match *self {
+            Token::Error(ref data) => data.len(),
+            Token::Number(ref data) => data.len(),
+            Token::String(ref data) => data.len(),
+            Token::Cmd(ref data) => data.len(),
+            Token::CmdArgs(ref data) => data.len(),
+            Token::Path(ref data) => data.len(),
+            Token::ChangeDir => 2,
+            _ => 1,
+        }
+    }
 }
 
 impl fmt::Display for Token {
