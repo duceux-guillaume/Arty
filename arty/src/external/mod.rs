@@ -11,7 +11,7 @@ impl UserHistoryFileCreator {
             fs::create_dir(history_path.as_path()).expect(&format!("Couldn't create {:?}", history_path));
         }
         history_path.push("history.txt");
-        let mut file = fs::OpenOptions::new()
+        let file = fs::OpenOptions::new()
             .write(true)
             .append(true)
             .create(true)
