@@ -13,6 +13,8 @@ use termion::color;
 use arty::guesser::Guess;
 use arty::guesser::PathGuesser;
 use arty::guesser::FileGuesser;
+use arty::external::UserHistoryFileCreator;
+use arty::core::UserHistory;
 
 struct Terminal {
     up_count: usize,
@@ -193,9 +195,11 @@ impl Interpreter {
                 ctx.last.push(line.clone());
             }
         }
-        let res = parser::Parser::process(line, ctx);
+        let res = parser::Parser::process(line.clone(), ctx);
         match res {
             Ok(ref str) => {
+                let mut history = UserHistory::new(UserHistoryFileCreator::create_default_file());
+                history.record(line.as_ref());
                 if !str.as_string().is_empty() {
                     println!("{}", str.as_string())
                 }
@@ -207,6 +211,8 @@ impl Interpreter {
 
 fn main() {
     println!("Hello, world!");
+    UserHistoryFileCreator::create_default_file();
+
 
     let mut ctx= ShellContext::new().expect("no suitable env");
     let mut arty = Interpreter::new();

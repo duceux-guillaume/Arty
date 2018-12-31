@@ -13,3 +13,4 @@ path = "src/main.rs"
 
 [dependencies]
 termion = "1.5.1"
+dirs = "1.0.4"

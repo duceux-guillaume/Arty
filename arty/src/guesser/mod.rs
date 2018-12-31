@@ -1,4 +1,3 @@
-use std::env;
 use std::path::PathBuf;
 
 use language::Token;
