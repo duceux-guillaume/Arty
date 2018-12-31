@@ -14,7 +14,7 @@ use arty::guesser::Guess;
 use arty::guesser::PathGuesser;
 use arty::guesser::FileGuesser;
 use arty::external::UserHistoryFileCreator;
-use arty::core::UserHistory;
+use arty::core::UserHistoryFile;
 
 struct Terminal {
     up_count: usize,
@@ -198,7 +198,7 @@ impl Interpreter {
         let res = parser::Parser::process(line.clone(), ctx);
         match res {
             Ok(ref str) => {
-                let mut history = UserHistory::new(UserHistoryFileCreator::create_default_file());
+                let mut history = UserHistoryFile::new(UserHistoryFileCreator::create_default_file());
                 history.record(line.as_ref());
                 if !str.as_string().is_empty() {
                     println!("{}", str.as_string())

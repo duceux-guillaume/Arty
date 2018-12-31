@@ -6,12 +6,12 @@ use std::io::BufRead;
 use std::io::Seek;
 use std::io;
 
-pub struct UserHistory {
+pub struct UserHistoryFile {
     file: File
 }
-impl UserHistory {
-    pub fn new(file: File) -> UserHistory {
-        return UserHistory{
+impl UserHistoryFile {
+    pub fn new(file: File) -> UserHistoryFile {
+        return UserHistoryFile {
             file,
         }
     }
@@ -41,6 +41,27 @@ impl Iterator for UserHistoryIterator {
     }
 }
 
+pub struct UserHistorySearch {
+    iterator: UserHistoryIterator
+}
+impl UserHistorySearch {
+    fn new(iterator: UserHistoryIterator) -> UserHistorySearch {
+        return UserHistorySearch {
+            iterator,
+        }
+    }
+
+    fn search(&mut self, pat: &str) -> Vec<String> {
+        let mut res = Vec::new();
+        while let Some(Ok(line)) = self.iterator.next() {
+            if line.find(pat).is_some() {
+                res.push(line);
+            }
+        }
+        return res;
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -54,7 +75,7 @@ mod tests {
             .create(true)
             .open("/tmp/record_test.txt")
             .expect("Couldn't open test file");
-        let mut history = UserHistory::new(file);
+        let mut history = UserHistoryFile::new(file);
         history.record("ls\n");
         let file2 = fs::OpenOptions::new()
             .read(true)
@@ -66,7 +87,7 @@ mod tests {
 
     #[test]
     fn test() {
-        let mut history = UserHistory::new(fs::OpenOptions::new()
+        let mut history = UserHistoryFile::new(fs::OpenOptions::new()
             .write(true)
             .read(true)
             .truncate(true)
@@ -81,6 +102,23 @@ mod tests {
         assert_eq!(None, it.next());
         history.record("3\n");
         assert_eq!(None, it.next());
+    }
+
+    #[test]
+    fn search() {
+        let mut history = UserHistoryFile::new(fs::OpenOptions::new()
+            .write(true)
+            .read(true)
+            .truncate(true)
+            .create(true)
+            .open("/tmp/search_test.txt")
+            .expect("Couldn't open test file"));
+        history.record("toto\n");
+        history.record("tata\n");
+        let mut re = UserHistorySearch::new(history.iter());
+        assert_eq!(vec![String::from("toto"), String::from("tata")], re.search("t"));
+        re = UserHistorySearch::new(history.iter());
+        assert_eq!(vec![String::from("tata")], re.search("ta"));
     }
 }
 
