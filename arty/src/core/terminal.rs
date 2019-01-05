@@ -1,6 +1,6 @@
 pub trait Terminal {
     fn clear(&self);
-    fn write_prompt(&self, line: String);
+    fn write_prompt(&mut self, line: String);
     fn write_line(&self, line: String);
     fn write_guesses(&self, line: Vec<String>);
     fn write_new_line(&self);
