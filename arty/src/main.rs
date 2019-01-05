@@ -14,7 +14,8 @@ use arty::guesser::Guess;
 use arty::guesser::PathGuesser;
 use arty::guesser::FileGuesser;
 use arty::external::UserHistoryFileCreator;
-use arty::core::UserHistoryFile;
+use arty::core::user_history::UserHistoryFile;
+use arty::feature::user_history_guesser::UserHistoryGuesser;
 
 struct Terminal {
     up_count: usize,
