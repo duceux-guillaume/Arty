@@ -4,6 +4,7 @@ pub trait Terminal {
     fn write_line(&self, line: String);
     fn write_guesses(&self, line: Vec<String>);
     fn write_new_line(&self);
+    fn write_cursor(&mut self, pos: usize);
 }
 
 pub enum Key {

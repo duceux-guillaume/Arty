@@ -16,6 +16,9 @@ use arty::guesser::FileGuesser;
 use arty::external::user_file_factory::UserHistoryFileCreator;
 use arty::core::user_history::UserHistoryFile;
 use arty::feature::user_history_guesser::UserHistoryGuesser;
+use arty::external::terminal_termion_impl::TermionTerminal;
+use arty::external::terminal_termion_impl::TermionKeyboard;
+use arty::feature::shell_controller::ShellController;
 
 struct Terminal {
     up_count: usize,
@@ -211,18 +214,9 @@ impl Interpreter {
 }
 
 fn main() {
-    println!("Hello, world!");
-    UserHistoryFileCreator::create_default_file();
-
-
-    let mut ctx= ShellContext::new().expect("no suitable env");
-    let mut arty = Interpreter::new();
-    let mut tty = Terminal::new();
-    loop {
-        let line = tty.read_line(&mut ctx);
-        match line {
-            Some(string) => arty.process(string, &mut ctx),
-            None => break,
-        }
-    }
+    println!("Hello World");
+    let terminal = Box::new(TermionTerminal::new());
+    let keyboard = Box::new(TermionKeyboard::new());
+    let mut shell = ShellController::new(keyboard, terminal);
+    shell.run();
 }
