@@ -1,37 +1,34 @@
 use std::fs::File;
-use std::io::Write;
+use std::io;
+use std::io::BufRead;
 use std::io::BufReader;
 use std::io::Lines;
-use std::io::BufRead;
 use std::io::Seek;
-use std::io;
+use std::io::Write;
 
 pub struct UserHistoryFile {
-    file: File
+    file: File,
 }
 impl UserHistoryFile {
     pub fn new(file: File) -> UserHistoryFile {
-        return UserHistoryFile {
-            file,
-        }
+        return UserHistoryFile { file };
     }
 
     pub fn record(&mut self, input: &str) {
         write!(self.file, "{}", input);
     }
 
-    pub fn iter(&self) -> UserHistoryIterator  {
+    pub fn iter(&self) -> UserHistoryIterator {
         let mut tmp = self.file.try_clone().expect("couldn't clone file");
-        tmp.seek(io::SeekFrom::Start(0)).expect("couldn't seek to 0");
+        tmp.seek(io::SeekFrom::Start(0))
+            .expect("couldn't seek to 0");
         let buf = BufReader::new(tmp);
-        return UserHistoryIterator{
-            lines: buf.lines()
-        }
+        return UserHistoryIterator { lines: buf.lines() };
     }
 }
 
 pub struct UserHistoryIterator {
-    lines: Lines<BufReader<File>>
+    lines: Lines<BufReader<File>>,
 }
 impl Iterator for UserHistoryIterator {
     type Item = io::Result<String>;
@@ -42,13 +39,11 @@ impl Iterator for UserHistoryIterator {
 }
 
 pub struct UserHistorySearch {
-    iterator: UserHistoryIterator
+    iterator: UserHistoryIterator,
 }
 impl UserHistorySearch {
     fn new(iterator: UserHistoryIterator) -> UserHistorySearch {
-        return UserHistorySearch {
-            iterator,
-        }
+        return UserHistorySearch { iterator };
     }
 
     fn search(&mut self, pat: &str) -> Vec<String> {
@@ -87,13 +82,15 @@ mod tests {
 
     #[test]
     fn test() {
-        let mut history = UserHistoryFile::new(fs::OpenOptions::new()
-            .write(true)
-            .read(true)
-            .truncate(true)
-            .create(true)
-            .open("/tmp/iter_test.txt")
-            .expect("Couldn't open test file"));
+        let mut history = UserHistoryFile::new(
+            fs::OpenOptions::new()
+                .write(true)
+                .read(true)
+                .truncate(true)
+                .create(true)
+                .open("/tmp/iter_test.txt")
+                .expect("Couldn't open test file"),
+        );
         history.record("1\n");
         history.record("2\n");
         let mut it = history.iter().map(|l| l.unwrap());
@@ -106,19 +103,23 @@ mod tests {
 
     #[test]
     fn search() {
-        let mut history = UserHistoryFile::new(fs::OpenOptions::new()
-            .write(true)
-            .read(true)
-            .truncate(true)
-            .create(true)
-            .open("/tmp/search_test.txt")
-            .expect("Couldn't open test file"));
+        let mut history = UserHistoryFile::new(
+            fs::OpenOptions::new()
+                .write(true)
+                .read(true)
+                .truncate(true)
+                .create(true)
+                .open("/tmp/search_test.txt")
+                .expect("Couldn't open test file"),
+        );
         history.record("toto\n");
         history.record("tata\n");
         let mut re = UserHistorySearch::new(history.iter());
-        assert_eq!(vec![String::from("toto"), String::from("tata")], re.search("t"));
+        assert_eq!(
+            vec![String::from("toto"), String::from("tata")],
+            re.search("t")
+        );
         re = UserHistorySearch::new(history.iter());
         assert_eq!(vec![String::from("tata")], re.search("ta"));
     }
 }
-

@@ -1,7 +1,7 @@
-use lexer::interface::ILexer;
-use lexer::interface::State;
 use language::Token;
 use lexer::helper;
+use lexer::interface::ILexer;
+use lexer::interface::State;
 
 pub struct CtrlOp {
     token: String,
@@ -13,7 +13,7 @@ impl CtrlOp {
         return CtrlOp {
             token: String::new(),
             state: State::Sta,
-        }
+        };
     }
 }
 
@@ -29,7 +29,7 @@ impl ILexer for CtrlOp {
                 } else {
                     State::Rej
                 }
-            },
+            }
             _ => {
                 if helper::is_blank(c) {
                     State::Acc
@@ -39,7 +39,7 @@ impl ILexer for CtrlOp {
             }
         };
         self.state = new_state;
-        return self.state
+        return self.state;
     }
 
     fn reset(&mut self) {
@@ -48,7 +48,7 @@ impl ILexer for CtrlOp {
     }
 
     fn token(&mut self) -> Token {
-        return Token::Error(self.token.clone())
+        return Token::Error(self.token.clone());
     }
 }
 

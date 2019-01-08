@@ -1,7 +1,7 @@
-use lexer::interface::ILexer;
-use lexer::interface::State;
 use language::Token;
 use lexer::helper;
+use lexer::interface::ILexer;
+use lexer::interface::State;
 
 pub struct Cmd {
     token: String,
@@ -12,7 +12,7 @@ impl Cmd {
         return Cmd {
             token: String::new(),
             state: State::Sta,
-        }
+        };
     }
 }
 impl ILexer for Cmd {
@@ -27,7 +27,7 @@ impl ILexer for Cmd {
                 } else {
                     State::Rej
                 }
-            },
+            }
             _ => {
                 if helper::is_path_char(c) {
                     self.token.push(c);
@@ -40,7 +40,7 @@ impl ILexer for Cmd {
             }
         };
         self.state = new_state;
-        return self.state
+        return self.state;
     }
 
     fn reset(&mut self) {
@@ -49,7 +49,7 @@ impl ILexer for Cmd {
     }
 
     fn token(&mut self) -> Token {
-        return Token::Cmd(self.token.clone())
+        return Token::Cmd(self.token.clone());
     }
 }
 
@@ -62,7 +62,7 @@ impl Path {
         return Path {
             token: String::new(),
             state: State::Sta,
-        }
+        };
     }
 }
 impl ILexer for Path {
@@ -77,7 +77,7 @@ impl ILexer for Path {
                 } else {
                     State::Rej
                 }
-            },
+            }
             _ => {
                 if helper::is_path_char(c) {
                     self.token.push(c);
@@ -90,7 +90,7 @@ impl ILexer for Path {
             }
         };
         self.state = new_state;
-        return self.state
+        return self.state;
     }
 
     fn reset(&mut self) {
@@ -99,7 +99,7 @@ impl ILexer for Path {
     }
 
     fn token(&mut self) -> Token {
-        return Token::Path(self.token.clone())
+        return Token::Path(self.token.clone());
     }
 }
 
@@ -112,7 +112,7 @@ impl StringLexer {
         return StringLexer {
             token: String::new(),
             state: State::Sta,
-        }
+        };
     }
 }
 impl ILexer for StringLexer {
@@ -127,7 +127,7 @@ impl ILexer for StringLexer {
                 } else {
                     State::Rej
                 }
-            },
+            }
             _ => {
                 if c == '"' {
                     self.token.push(c);
@@ -139,7 +139,7 @@ impl ILexer for StringLexer {
             }
         };
         self.state = new_state;
-        return self.state
+        return self.state;
     }
 
     fn reset(&mut self) {
@@ -148,16 +148,16 @@ impl ILexer for StringLexer {
     }
 
     fn token(&mut self) -> Token {
-        return Token::String(self.token.clone())
+        return Token::String(self.token.clone());
     }
 }
 
 pub struct Empty {
-    state: State
+    state: State,
 }
 impl Empty {
     pub fn new() -> Self {
-        return Empty { state: State::Acc }
+        return Empty { state: State::Acc };
     }
 }
 impl ILexer for Empty {
@@ -169,18 +169,18 @@ impl ILexer for Empty {
                 } else {
                     State::Rej
                 }
-            },
+            }
             State::Ong => {
                 if helper::is_blank(c) {
                     State::Ong
                 } else {
                     State::Acc
                 }
-            },
+            }
             _ => self.state,
         };
         self.state = new_state;
-        return self.state
+        return self.state;
     }
 
     fn reset(&mut self) {
@@ -188,7 +188,7 @@ impl ILexer for Empty {
     }
 
     fn token(&mut self) -> Token {
-        return Token::None
+        return Token::None;
     }
 }
 
@@ -206,7 +206,7 @@ impl CmdArgs {
             state: State::Sta,
             is_scoped: false,
             closing_scope_char: ' ',
-        }
+        };
     }
 }
 
@@ -233,7 +233,7 @@ impl ILexer for CmdArgs {
                 } else {
                     State::Rej
                 }
-            },
+            }
             State::Ong => {
                 if self.is_scoped {
                     if c == self.closing_scope_char {
@@ -256,7 +256,7 @@ impl ILexer for CmdArgs {
             }
         };
         self.state = new_state;
-        return self.state
+        return self.state;
     }
 
     fn reset(&mut self) {
@@ -265,7 +265,7 @@ impl ILexer for CmdArgs {
     }
 
     fn token(&mut self) -> Token {
-        return Token::CmdArgs(self.token.clone())
+        return Token::CmdArgs(self.token.clone());
     }
 }
 
@@ -275,9 +275,7 @@ pub struct ChangeDir {
 
 impl ChangeDir {
     pub fn new() -> Self {
-        return ChangeDir {
-            state: State::Sta,
-        }
+        return ChangeDir { state: State::Sta };
     }
 }
 
@@ -292,7 +290,7 @@ impl ILexer for ChangeDir {
                 } else {
                     State::Rej
                 }
-            },
+            }
             _ => {
                 if c == 'd' {
                     State::Acc
@@ -302,7 +300,7 @@ impl ILexer for ChangeDir {
             }
         };
         self.state = new_state;
-        return self.state
+        return self.state;
     }
 
     fn reset(&mut self) {
@@ -310,7 +308,7 @@ impl ILexer for ChangeDir {
     }
 
     fn token(&mut self) -> Token {
-        return Token::ChangeDir
+        return Token::ChangeDir;
     }
 }
 

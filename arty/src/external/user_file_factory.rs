@@ -8,7 +8,8 @@ impl UserHistoryFileCreator {
         let mut history_path = dirs::home_dir().expect("Couldn't get home directory");
         history_path.push(".arty");
         if !history_path.exists() {
-            fs::create_dir(history_path.as_path()).expect(&format!("Couldn't create {:?}", history_path));
+            fs::create_dir(history_path.as_path())
+                .expect(&format!("Couldn't create {:?}", history_path));
         }
         history_path.push("history.txt");
         let file = fs::OpenOptions::new()

@@ -1,48 +1,34 @@
-   
 pub fn is_digit(c: char) -> bool {
-    return c >= '0' && c <= '9'
+    return c >= '0' && c <= '9';
 }
 
 pub fn is_blank(c: char) -> bool {
-    return c == ' ' || c == '\n' || c == '\t'
+    return c == ' ' || c == '\n' || c == '\t';
 }
 
 pub fn is_letter(c: char) -> bool {
-    return (c >= 'a' && c <= 'z') || 
-        (c >= 'A' && c <= 'Z')
+    return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');
 }
 
 pub fn is_ctrlop(c: char) -> bool {
-    return c == '|' ||
-        c == ';' ||
-        c == '&' ||
-        c == '>';
+    return c == '|' || c == ';' || c == '&' || c == '>';
 }
 
 pub fn is_mathop(c: char) -> bool {
-    return c == '+' ||
-        c == '-' ||
-        c == '*' ||
-        c == '%' ||
-        c == '/';
+    return c == '+' || c == '-' || c == '*' || c == '%' || c == '/';
 }
 
 pub fn is_close(c: char) -> bool {
-    return c == ')' ||
-        c == '}' ||
-        c == ']';
+    return c == ')' || c == '}' || c == ']';
 }
 
 pub fn is_open(c: char) -> bool {
-    return c == '(' ||
-        c == '{' ||
-        c == '[';
+    return c == '(' || c == '{' || c == '[';
 }
 
 pub fn is_path_char(c: char) -> bool {
-    return !c.is_whitespace()
+    return !c.is_whitespace();
 }
-
 
 #[cfg(test)]
 mod tests {
@@ -69,7 +55,7 @@ mod tests {
             assert_eq!(false, is_ctrlop(c));
         }
     }
-    
+
     #[test]
     fn blancks() {
         let blancks = String::from(" \n\t");
@@ -80,7 +66,6 @@ mod tests {
             assert_eq!(false, is_ctrlop(c));
         }
     }
-
 
     #[test]
     fn crtl_operators() {
@@ -93,4 +78,3 @@ mod tests {
         }
     }
 }
-    

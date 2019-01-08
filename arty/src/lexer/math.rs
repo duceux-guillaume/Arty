@@ -1,7 +1,7 @@
-use lexer::interface::ILexer;
-use lexer::interface::State;
 use language::Token;
 use lexer::helper;
+use lexer::interface::ILexer;
+use lexer::interface::State;
 
 pub struct MathOp {
     val: char,
@@ -15,7 +15,7 @@ impl MathOp {
             val: ' ',
             token: Token::Eof,
             state: State::Sta,
-        }
+        };
     }
 }
 
@@ -33,43 +33,37 @@ impl ILexer for MathOp {
                     '%' => self.token = Token::Modulo,
                     '(' => self.token = Token::ParO,
                     ')' => self.token = Token::ParC,
-                    _ => {},
+                    _ => {}
                 }
                 if self.token == Token::Eof {
                     State::Rej
                 } else {
                     State::Ong
                 }
-            },
+            }
             State::Ong => {
                 if helper::is_blank(c) || helper::is_digit(c) {
                     State::Acc
-                }
-
-                else if helper::is_mathop(self.val) {
+                } else if helper::is_mathop(self.val) {
                     if c == '(' {
                         State::Acc
                     } else {
                         State::Rej
                     }
-                }
-
-                else if self.val == ')' {
+                } else if self.val == ')' {
                     if helper::is_mathop(c) {
                         State::Acc
                     } else {
                         State::Rej
                     }
-                }
-
-                else {
+                } else {
                     State::Rej
                 }
-            },
+            }
         };
         self.val = c;
         self.state = new_state;
-        return self.state
+        return self.state;
     }
 
     fn reset(&mut self) {
@@ -78,7 +72,7 @@ impl ILexer for MathOp {
     }
 
     fn token(&mut self) -> Token {
-        return self.token.clone()
+        return self.token.clone();
     }
 }
 
@@ -91,7 +85,7 @@ impl Number {
         return Number {
             token: String::new(),
             state: State::Sta,
-        }
+        };
     }
 }
 impl ILexer for Number {
@@ -106,7 +100,7 @@ impl ILexer for Number {
                 } else {
                     State::Rej
                 }
-            },
+            }
             State::Ong => {
                 if helper::is_digit(c) {
                     self.token.push(c);
@@ -114,8 +108,12 @@ impl ILexer for Number {
                 } else if c == '.' {
                     self.token.push(c);
                     State::Ong
-                } else if helper::is_close(c) || helper::is_blank(c) || helper::is_mathop(c) ||
-                        helper::is_ctrlop(c) || helper::is_open(c) {
+                } else if helper::is_close(c)
+                    || helper::is_blank(c)
+                    || helper::is_mathop(c)
+                    || helper::is_ctrlop(c)
+                    || helper::is_open(c)
+                {
                     State::Acc
                 } else {
                     State::Rej
@@ -123,7 +121,7 @@ impl ILexer for Number {
             }
         };
         self.state = new_state;
-        return self.state
+        return self.state;
     }
 
     fn reset(&mut self) {
@@ -132,7 +130,7 @@ impl ILexer for Number {
     }
 
     fn token(&mut self) -> Token {
-        return Token::Number(self.token.clone())
+        return Token::Number(self.token.clone());
     }
 }
 

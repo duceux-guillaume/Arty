@@ -1,19 +1,19 @@
 extern crate termion;
 
-use core::terminal::Terminal;
-use core::terminal::Keyboard;
 use core::terminal::Key;
+use core::terminal::Keyboard;
+use core::terminal::Terminal;
 
-use std::io::{Write, stdout, stdin};
+use std::io::{stdin, stdout, Write};
 
-use self::termion::input::TermRead;
-use self::termion::event::Key as TermKey;
-use self::termion::raw::IntoRawMode;
 use self::termion::color;
+use self::termion::event::Key as TermKey;
+use self::termion::input::TermRead;
+use self::termion::raw::IntoRawMode;
 
 pub struct TermionTerminal {
     prompt: String,
-    pos: usize
+    pos: usize,
 }
 
 impl TermionTerminal {
@@ -21,7 +21,7 @@ impl TermionTerminal {
         return TermionTerminal {
             prompt: String::new(),
             pos: 0,
-        }
+        };
     }
 }
 
@@ -64,8 +64,12 @@ impl Terminal for TermionTerminal {
 
     fn clear(&self) {
         let mut stdout = stdout().into_raw_mode().unwrap();
-        write!(stdout, "{}{}", termion::clear::All,
-               termion::cursor::Goto(1,1)).unwrap();
+        write!(
+            stdout,
+            "{}{}",
+            termion::clear::All,
+            termion::cursor::Goto(1, 1)
+        ).unwrap();
         stdout.flush().unwrap();
     }
 }
@@ -74,7 +78,7 @@ pub struct TermionKeyboard {}
 
 impl TermionKeyboard {
     pub fn new() -> TermionKeyboard {
-        return TermionKeyboard {}
+        return TermionKeyboard {};
     }
 }
 
@@ -82,10 +86,7 @@ impl Keyboard for TermionKeyboard {
     fn get_key(&self) -> Key {
         let mut _stdout = stdout().into_raw_mode().unwrap();
         let stdin = stdin();
-        return match stdin.keys().next()
-                .unwrap()
-                .expect("couldn't read stdin")
-                {
+        return match stdin.keys().next().unwrap().expect("couldn't read stdin") {
             TermKey::Char(charr) => {
                 if charr == '\n' {
                     Key::Enter
@@ -94,7 +95,7 @@ impl Keyboard for TermionKeyboard {
                 } else {
                     Key::Char(charr)
                 }
-            },
+            }
             TermKey::Left => Key::Left,
             TermKey::Right => Key::Right,
             TermKey::Up => Key::Up,
@@ -104,10 +105,7 @@ impl Keyboard for TermionKeyboard {
             TermKey::Esc => Key::Esc,
             TermKey::Backspace => Key::Backspace,
             TermKey::Delete => Key::Delete,
-            _ => {
-                Key::Esc
-            }
-        }
+            _ => Key::Esc,
+        };
     }
 }
-

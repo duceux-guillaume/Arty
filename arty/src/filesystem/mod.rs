@@ -9,30 +9,30 @@ impl MatchingPattern {
         return match *self {
             MatchingPattern::Exact(ref string) => string,
             MatchingPattern::Start(ref string) => string,
-        }
+        };
     }
 
     fn match_with(&self, path: &String) -> bool {
         return match *self {
             MatchingPattern::Exact(ref string) => MatchingPattern::exact_match(string, path),
             MatchingPattern::Start(ref string) => MatchingPattern::start_match(string, path),
-        }
+        };
     }
 
     fn exact_match(pat: &String, filename: &String) -> bool {
-        return pat.eq(filename)
+        return pat.eq(filename);
     }
 
     fn start_match(pat: &String, filename: &String) -> bool {
         if pat.len() > filename.len() {
             return false;
         }
-        return pat.eq(filename.get(0..pat.len()).unwrap())
+        return pat.eq(filename.get(0..pat.len()).unwrap());
     }
 }
 
 pub struct SearchTask {
-    pattern: MatchingPattern
+    pattern: MatchingPattern,
 }
 
 impl SearchTask {
@@ -53,7 +53,6 @@ impl SearchTask {
         }
         return res;
     }
-
 
     fn search_directory(&self, path: &PathBuf, res: &mut Vec<PathBuf>) {
         for item in path.read_dir().expect("can't read directory") {

@@ -11,8 +11,5 @@ pub enum State {
     Acc,
     Ong,
     Rej,
-    Sta
+    Sta,
 }
-
-
-

@@ -10,31 +10,31 @@ use filesystem::SearchFor;
 
 pub struct Guess {
     first_part: Vec<char>,
-    missing_part: Vec<char>
+    missing_part: Vec<char>,
 }
 impl Guess {
     pub fn new(first: &str, second: &str) -> Guess {
         return Guess {
             first_part: first.chars().collect(),
             missing_part: second.chars().collect(),
-        }
+        };
     }
 
     pub fn missing_part(&self) -> Vec<char> {
-        return  self.missing_part.clone();
+        return self.missing_part.clone();
     }
 
     pub fn to_string(&self) -> String {
         let first: String = self.first_part.iter().collect();
         let second: String = self.missing_part.iter().collect();
-        return format!("{}{}", first, second)
+        return format!("{}{}", first, second);
     }
 }
 
 pub struct PathGuesser {}
 impl PathGuesser {
     pub fn new() -> PathGuesser {
-        return PathGuesser{}
+        return PathGuesser {};
     }
 
     pub fn guess(&self, ctx: &ShellContext, line: &Vec<char>) -> Vec<Guess> {
@@ -46,7 +46,7 @@ impl PathGuesser {
             match lexer.get(1) {
                 Token::None | Token::Eof => {
                     result = self.convert(self.list_directory(&ctx.env));
-                },
+                }
                 Token::Path(hint) => {
                     // we have arguments, let's figure out where the user went
                     let path_hint = PathBuf::from(hint.clone());
@@ -57,13 +57,11 @@ impl PathGuesser {
                     } else {
                         result = self.guess_directory_from_hint(path_hint);
                     }
-                },
-                _ => {
-                    println!("what?")
-                },
+                }
+                _ => println!("what?"),
             }
         }
-        return result
+        return result;
     }
 
     fn guess_directory_from_hint(&self, hint: PathBuf) -> Vec<Guess> {
@@ -73,7 +71,7 @@ impl PathGuesser {
             // no arguments yet, return context directory
             let missing_hint = hint.file_name().unwrap().to_str().unwrap().to_string();
             self.filter_match(&missing_hint, self.list_partial_directory(&hint))
-        }
+        };
     }
 
     fn list_directory(&self, ctx: &PathBuf) -> Vec<String> {
@@ -88,7 +86,7 @@ impl PathGuesser {
                 }
             }
         }
-        return result
+        return result;
     }
 
     fn list_partial_directory(&self, ctx: &PathBuf) -> Vec<String> {
@@ -96,7 +94,7 @@ impl PathGuesser {
             self.list_directory(ctx)
         } else {
             self.list_directory(&ctx.parent().unwrap().to_path_buf())
-        }
+        };
     }
 
     fn filter_match(&self, pattern: &String, src: Vec<String>) -> Vec<Guess> {
@@ -106,7 +104,7 @@ impl PathGuesser {
                 result.push(guess)
             }
         }
-        return result
+        return result;
     }
 
     fn convert(&self, src: Vec<String>) -> Vec<Guess> {
@@ -114,32 +112,29 @@ impl PathGuesser {
         for item in src.iter() {
             result.push(Guess::new("", item.as_str()));
         }
-        return result
+        return result;
     }
 
     fn guess_from_match(&self, entry: &String, pattern: &String) -> Option<Guess> {
         let matching = entry.get(0..pattern.len());
         if matching.is_none() {
-            return None
+            return None;
         }
         if matching.unwrap() != pattern {
-            return None
+            return None;
         }
         let result = entry.get(pattern.len()..entry.len());
         if result.is_some() {
-            return Some(Guess::new(
-                pattern.as_str(),
-                result.unwrap(),
-            ))
+            return Some(Guess::new(pattern.as_str(), result.unwrap()));
         }
-        return None
+        return None;
     }
 }
 
 pub struct FileGuesser {}
 impl FileGuesser {
     pub fn new() -> FileGuesser {
-        return FileGuesser {}
+        return FileGuesser {};
     }
 
     pub fn guess(&self, ctx: &ShellContext, line: &Vec<char>) -> Vec<Guess> {
@@ -152,7 +147,7 @@ impl FileGuesser {
             match lexer.get(1) {
                 Token::None | Token::Eof => {
                     result = self.convert(self.list_files(&ctx.env));
-                },
+                }
                 Token::CmdArgs(hint) => {
                     // we have arguments, let's figure out where the user went
                     let path_hint = PathBuf::from(hint.clone());
@@ -163,10 +158,8 @@ impl FileGuesser {
                     } else {
                         result = self.guess_file_from_hint(path_hint);
                     }
-                },
-                _ => {
-                    println!("what?")
-                },
+                }
+                _ => println!("what?"),
             }
         } else {
             let paths = SearchFor::starting_with(token.as_string()).in_path(&ctx.env);
@@ -178,7 +171,7 @@ impl FileGuesser {
                 }
             }
         }
-        return result
+        return result;
     }
 
     fn list_files(&self, ctx: &PathBuf) -> Vec<String> {
@@ -193,7 +186,7 @@ impl FileGuesser {
                 result.push(file_name);
             }
         }
-        return result
+        return result;
     }
 
     fn convert(&self, src: Vec<String>) -> Vec<Guess> {
@@ -201,9 +194,8 @@ impl FileGuesser {
         for item in src.iter() {
             result.push(Guess::new("", item.as_str()));
         }
-        return result
+        return result;
     }
-
 
     fn guess_file_from_hint(&self, hint: PathBuf) -> Vec<Guess> {
         return if hint.exists() {
@@ -212,7 +204,7 @@ impl FileGuesser {
             // no arguments yet, return context directory
             let missing_hint = hint.file_name().unwrap().to_str().unwrap().to_string();
             self.filter_match(&missing_hint, self.list_partial_files(&hint))
-        }
+        };
     }
 
     fn list_partial_files(&self, ctx: &PathBuf) -> Vec<String> {
@@ -220,7 +212,7 @@ impl FileGuesser {
             self.list_files(ctx)
         } else {
             self.list_files(&ctx.parent().unwrap().to_path_buf())
-        }
+        };
     }
 
     fn filter_match(&self, pattern: &String, src: Vec<String>) -> Vec<Guess> {
@@ -230,28 +222,24 @@ impl FileGuesser {
                 result.push(guess)
             }
         }
-        return result
+        return result;
     }
 
     fn guess_from_match(&self, entry: &String, pattern: &String) -> Option<Guess> {
         let matching = entry.get(0..pattern.len());
         if matching.is_none() {
-            return None
+            return None;
         }
         if matching.unwrap() != pattern {
-            return None
+            return None;
         }
         let result = entry.get(pattern.len()..entry.len());
         if result.is_some() {
-            return Some(Guess::new(
-                pattern.as_str(),
-                result.unwrap(),
-            ))
+            return Some(Guess::new(pattern.as_str(), result.unwrap()));
         }
-        return None
+        return None;
     }
 }
-
 
 #[cfg(test)]
 mod tests {
@@ -260,8 +248,7 @@ mod tests {
     #[test]
     fn guess_from_good_match() {
         let guesser = PathGuesser::new();
-        let guess = guesser.guess_from_match(&"target/".to_string(),
-                                             &"t".to_string());
+        let guess = guesser.guess_from_match(&"target/".to_string(), &"t".to_string());
         assert!(guess.is_some());
         let missing_part: String = guess.unwrap().missing_part().iter().collect();
         assert_eq!("arget/", missing_part);
@@ -270,8 +257,7 @@ mod tests {
     #[test]
     fn guess_from_bad_match() {
         let guesser = PathGuesser::new();
-        let guess = guesser.guess_from_match(&"target/".to_string(),
-                                             &"what".to_string());
+        let guess = guesser.guess_from_match(&"target/".to_string(), &"what".to_string());
         assert!(guess.is_none());
     }
 

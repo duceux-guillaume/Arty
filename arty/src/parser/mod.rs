@@ -1,10 +1,10 @@
-use language::Token;
 use language::Number;
+use language::Token;
 use lexer::Lexer;
-use std::result;
+use std;
 use std::error;
 use std::process::Command;
-use std;
+use std::result;
 type Result<T> = result::Result<T, Box<error::Error>>;
 use std::path::PathBuf;
 
@@ -17,7 +17,7 @@ impl ShellContext {
         return Ok(ShellContext {
             env: std::env::current_dir()?,
             last: Vec::new(),
-        })
+        });
     }
 }
 
@@ -28,7 +28,6 @@ pub struct ParsingState {
 
 pub struct Parser {}
 impl Parser {
-
     fn expression(rbp: u32, state: &mut ParsingState, ctx: &mut ShellContext) -> Result<Token> {
         let mut last = state.token.clone();
         state.token = state.lexer.next()?;
@@ -38,7 +37,7 @@ impl Parser {
             state.token = state.lexer.next()?;
             left = Parser::op_expr(left, last.clone(), state, ctx)?;
         }
-        return Ok(left)
+        return Ok(left);
     }
 
     pub fn process(string: String, ctx: &mut ShellContext) -> Result<Token> {
@@ -50,19 +49,22 @@ impl Parser {
         return Parser::expression(0, &mut state, ctx);
     }
 
-
     fn call_expr(token: Token, state: &mut ParsingState, ctx: &mut ShellContext) -> Result<Token> {
         return match token {
             Token::ParO => {
                 let res = Parser::expression(token.lprec(), state, ctx)?;
-                state.token = state.lexer.next()?;//TODO: match
+                state.token = state.lexer.next()?; //TODO: match
                 Ok(res)
-            },
+            }
             Token::Minus => {
                 let mut res = String::from("-");
-                res.push_str(Parser::expression(token.lprec(), state, ctx)?.as_string().as_str());
+                res.push_str(
+                    Parser::expression(token.lprec(), state, ctx)?
+                        .as_string()
+                        .as_str(),
+                );
                 Ok(Token::Number(res))
-            },
+            }
             Token::Cmd(cmd) => {
                 let args = Parser::expression(500, state, ctx)?;
                 let mut cmd = Command::new(cmd);
@@ -78,7 +80,7 @@ impl Parser {
                 } else {
                     Err(From::from("Failed".to_string()))
                 }
-            },
+            }
             Token::CmdArgs(ref str) => {
                 let right = Parser::expression(500, state, ctx)?;
                 if right.as_string().is_empty() {
@@ -89,7 +91,7 @@ impl Parser {
                     res.push_str(right.as_string().as_str());
                     Ok(Token::CmdArgs(res))
                 }
-            },
+            }
             Token::Path(ref str) => {
                 let right = Parser::expression(500, state, ctx)?;
                 if right.as_string().is_empty() {
@@ -100,7 +102,7 @@ impl Parser {
                     res.push_str(right.as_string().as_str());
                     Ok(Token::CmdArgs(res))
                 }
-            },
+            }
             Token::ChangeDir => {
                 let new_path = PathBuf::from(Parser::expression(500, state, ctx)?.as_string());
                 if new_path.to_str().unwrap().is_empty() {
@@ -115,7 +117,7 @@ impl Parser {
                         Err(error) => return Err(From::from(error)),
                     }
                 } else {
-                    return Err(From::from("path doesn't exists".to_string()))
+                    return Err(From::from("path doesn't exists".to_string()));
                 }
                 if !ctx.env.exists() {
                     ctx.env = std::env::current_dir()?;
@@ -123,30 +125,34 @@ impl Parser {
                 } else {
                     Ok(Token::None)
                 }
-            },
-            _ => Ok(token)
-        }
+            }
+            _ => Ok(token),
+        };
     }
 
-    fn op_expr(left: Token, token: Token, state: &mut ParsingState, ctx: &mut ShellContext) -> Result<Token> {
+    fn op_expr(
+        left: Token,
+        token: Token,
+        state: &mut ParsingState,
+        ctx: &mut ShellContext,
+    ) -> Result<Token> {
         return Ok(match token {
             Token::Plus => {
                 let right = Parser::expression(token.rprec(), state, ctx)?;
                 (Number::from_token(left)? + Number::from_token(right)?).as_token()
-            },
+            }
             Token::Minus => {
                 let right = Parser::expression(token.rprec(), state, ctx)?;
                 (Number::from_token(left)? - Number::from_token(right)?).as_token()
             }
-            Token::Times => {
-                (Number::from_token(left)? * Number::from_token(Parser::expression(
-                    token.rprec(), state, ctx)?)?).as_token()
-            },
-            Token::Divide => {
-                (Number::from_token(left)? / Number::from_token(Parser::expression(
-                    token.rprec(), state, ctx)?)?).as_token()
-            },
+            Token::Times => (Number::from_token(left)?
+                * Number::from_token(Parser::expression(token.rprec(), state, ctx)?)?).as_token(),
+            Token::Divide => (Number::from_token(left)? / Number::from_token(Parser::expression(
+                token.rprec(),
+                state,
+                ctx,
+            )?)?).as_token(),
             _ => token,
-        })
+        });
     }
 }

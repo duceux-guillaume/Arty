@@ -1,24 +1,27 @@
 extern crate arty;
 extern crate termion;
 
-use std::io::{Write, stdout, stdin};
+use std::io::{stdin, stdout, Write};
 
-use termion::input::TermRead;
 use termion::event::Key;
+use termion::input::TermRead;
 use termion::raw::IntoRawMode;
 
+use arty::core::guesser::DummyGuesser;
+use arty::core::guesser::GuesserManager;
+use arty::core::guesser::ZeroGuesser;
+use arty::core::user_history::UserHistoryFile;
+use arty::external::terminal_termion_impl::TermionKeyboard;
+use arty::external::terminal_termion_impl::TermionTerminal;
+use arty::external::user_file_factory::UserHistoryFileCreator;
+use arty::feature::shell_controller::ShellController;
+use arty::feature::user_history_guesser::UserHistoryGuesser;
+use arty::guesser::FileGuesser;
+use arty::guesser::Guess;
+use arty::guesser::PathGuesser;
 use arty::parser;
 use arty::parser::ShellContext;
 use termion::color;
-use arty::guesser::Guess;
-use arty::guesser::PathGuesser;
-use arty::guesser::FileGuesser;
-use arty::external::user_file_factory::UserHistoryFileCreator;
-use arty::core::user_history::UserHistoryFile;
-use arty::feature::user_history_guesser::UserHistoryGuesser;
-use arty::external::terminal_termion_impl::TermionTerminal;
-use arty::external::terminal_termion_impl::TermionKeyboard;
-use arty::feature::shell_controller::ShellController;
 
 struct Terminal {
     up_count: usize,
@@ -28,8 +31,8 @@ impl Terminal {
     fn new() -> Terminal {
         return Terminal {
             up_count: 0,
-            left_count: 0
-        }
+            left_count: 0,
+        };
     }
 
     fn reset(&mut self) {
@@ -38,10 +41,12 @@ impl Terminal {
     }
 
     fn format_prompt(ctx: &ShellContext) -> String {
-        return format!("{}@{}{}",
-                       color::Fg(color::Red),
-                       ctx.env.file_name().unwrap().to_str().unwrap(),
-                       color::Fg(color::White))
+        return format!(
+            "{}@{}{}",
+            color::Fg(color::Red),
+            ctx.env.file_name().unwrap().to_str().unwrap(),
+            color::Fg(color::White)
+        );
     }
 
     fn write_line(&self, ctx: &ShellContext, line: String) {
@@ -73,15 +78,19 @@ impl Terminal {
 
     fn clear(&self) {
         let mut stdout = stdout().into_raw_mode().unwrap();
-        write!(stdout, "{}{}", termion::clear::All,
-               termion::cursor::Goto(1,1)).unwrap();
+        write!(
+            stdout,
+            "{}{}",
+            termion::clear::All,
+            termion::cursor::Goto(1, 1)
+        ).unwrap();
         stdout.flush().unwrap();
     }
 
     fn get_key(&self) -> Key {
         let mut _stdout = stdout().into_raw_mode().unwrap();
         let stdin = stdin();
-        return stdin.keys().next().unwrap().expect("whatever")
+        return stdin.keys().next().unwrap().expect("whatever");
     }
 
     fn read_line(&mut self, ctx: &ShellContext) -> Option<String> {
@@ -115,10 +124,10 @@ impl Terminal {
                         }
                         if character == '\n' {
                             self.write_newline();
-                            return Some(line.iter().collect())
+                            return Some(line.iter().collect());
                         }
                     }
-                },
+                }
                 Key::Up => {
                     let history_size = ctx.last.len();
                     if history_size > 0 {
@@ -127,7 +136,7 @@ impl Terminal {
                         self.up_count += 1;
                         self.left_count = 0;
                     }
-                },
+                }
                 Key::Down => {
                     let history_size = ctx.last.len();
                     if history_size > 0 {
@@ -140,37 +149,37 @@ impl Terminal {
                         }
                         self.left_count = 0;
                     }
-                },
+                }
                 Key::Left => {
                     if self.left_count < line.len() {
                         self.left_count += 1;
                     }
-                },
+                }
                 Key::Right => {
                     if self.left_count > 0 {
                         self.left_count -= 1;
                     }
-                },
+                }
                 Key::Ctrl('d') => return None,
                 Key::Ctrl('c') => {
                     self.reset();
                     line.clear();
-                },
+                }
                 Key::Esc => {
                     self.reset();
                     line.clear();
-                },
+                }
                 Key::Ctrl('l') => {
                     self.clear();
                     line.clear();
                     self.reset();
-                },
+                }
                 Key::Backspace => {
                     if line.len() > 0 && self.left_count < line.len() {
                         let index = line.len() - 1 - self.left_count;
                         line.remove(index);
                     }
-                },
+                }
                 Key::Delete => {
                     if line.len() > 0 && self.left_count > 0 && self.left_count <= line.len() {
                         let index = line.len() - self.left_count;
@@ -179,7 +188,7 @@ impl Terminal {
                             self.left_count -= 1;
                         }
                     }
-                },
+                }
                 _ => {}
             }
             self.write_line(&ctx, line.iter().collect());
@@ -190,7 +199,7 @@ impl Terminal {
 struct Interpreter {}
 impl Interpreter {
     fn new() -> Interpreter {
-        return Interpreter {}
+        return Interpreter {};
     }
 
     fn process(&mut self, line: String, ctx: &mut ShellContext) {
@@ -202,12 +211,13 @@ impl Interpreter {
         let res = parser::Parser::process(line.clone(), ctx);
         match res {
             Ok(ref str) => {
-                let mut history = UserHistoryFile::new(UserHistoryFileCreator::create_default_file());
+                let mut history =
+                    UserHistoryFile::new(UserHistoryFileCreator::create_default_file());
                 history.record(line.as_ref());
                 if !str.as_string().is_empty() {
                     println!("{}", str.as_string())
                 }
-            },
+            }
             Err(ref str) => println!("{}", str),
         }
     }
@@ -217,6 +227,9 @@ fn main() {
     println!("Hello World");
     let terminal = Box::new(TermionTerminal::new());
     let keyboard = Box::new(TermionKeyboard::new());
-    let mut shell = ShellController::new(keyboard, terminal);
+    let mut guesser = GuesserManager::new();
+    guesser.add(Box::new(DummyGuesser::new()));
+    guesser.add(Box::new(ZeroGuesser::new()));
+    let mut shell = ShellController::new(keyboard, terminal, guesser);
     shell.run();
 }
