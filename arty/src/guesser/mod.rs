@@ -1,11 +1,11 @@
 use std::env;
 use std::path::PathBuf;
 
-use language::Token;
+use language::token::Token;
 
-use parser::ShellContext;
+use language::parser::ShellContext;
 
-use lexer::Lexer;
+use language::lexer::Lexer;
 
 use filesystem::SearchFor;
 

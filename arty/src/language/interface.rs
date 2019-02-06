@@ -1,4 +1,4 @@
-use language::Token;
+use language::token::Token;
 
 pub trait ILexer {
     fn eat(&mut self, c: char) -> State;

@@ -1,6 +1,6 @@
-use language::Token;
-use language::Number;
-use lexer::Lexer;
+use language::token::Token;
+use language::token::Number;
+use language::lexer::Lexer;
 use std::result;
 use std::error;
 use std::process::Command;

@@ -7,8 +7,8 @@ use termion::input::TermRead;
 use termion::event::Key;
 use termion::raw::IntoRawMode;
 
-use arty::parser;
-use arty::parser::ShellContext;
+use arty::language::parser;
+use arty::language::parser::ShellContext;
 use termion::color;
 use arty::guesser::Guess;
 use arty::guesser::PathGuesser;

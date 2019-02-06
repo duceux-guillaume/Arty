@@ -1,25 +1,19 @@
-mod helper;
-pub mod interface;
-mod name;
-mod ctrlop;
-mod math;
-
-use self::math::Number;
-use self::ctrlop::CtrlOp;
-use self::math::MathOp;
-use self::name::Empty;
-use self::name::Cmd;
-use self::name::CmdArgs;
-use self::interface::State;
-
-use language::Token;
+use language::math::Number;
+use language::ctrlop::CtrlOp;
+use language::math::MathOp;
+use language::name::Empty;
+use language::name::Cmd;
+use language::name::CmdArgs;
+use language::interface::State;
+use language::interface;
+use language::token::Token;
 
 use std::result;
 use std::error::Error;
 use std::fmt;
-use lexer::name::ChangeDir;
-use lexer::name::Path;
-use lexer::name::StringLexer;
+use language::name::ChangeDir;
+use language::name::Path;
+use language::name::StringLexer;
 use filesystem::SearchFor;
 use std::env;
 
