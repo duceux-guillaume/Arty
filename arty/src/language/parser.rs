@@ -50,6 +50,24 @@ impl Parser {
         return Parser::expression(0, &mut state, ctx);
     }
 
+    fn peek(state: &mut ParsingState) -> Token {
+        return state.token.clone();
+    }
+
+
+    fn step(state: &mut ParsingState) {
+        state.token = state.lexer.next().expect("oh boy!");
+    }
+    
+    fn command(token: String, state: &mut ParsingState, ctx: &mut ShellContext) -> Result<Command> { 
+        let mut cmd = Command::new(token);
+        cmd.current_dir(ctx.env.as_path());
+        while let Token::CmdArgs(arg) = Parser::peek(state) {
+            cmd.arg(arg);
+            Parser::step(state);
+        }
+        return Ok(cmd);
+    }
 
     fn call_expr(token: Token, state: &mut ParsingState, ctx: &mut ShellContext) -> Result<Token> {
         return match token {
@@ -63,20 +81,23 @@ impl Parser {
                 res.push_str(Parser::expression(token.lprec(), state, ctx)?.as_string().as_str());
                 Ok(Token::Number(res))
             },
-            Token::Cmd(cmd) => {
-                let args = Parser::expression(500, state, ctx)?;
-                let mut cmd = Command::new(cmd);
-                cmd.current_dir(ctx.env.as_path());
-                if !args.as_string().is_empty() {
-                    for split in args.as_string().split('#') {
-                        cmd.arg(split);
+            Token::Cmd(cmd_tok) => {
+                let mut cmd = Parser::command(cmd_tok, state, ctx)?;
+                match Parser::peek(state) {
+                    Token::Eof => {
+                        let status = cmd.status()?;
+                        if status.success() {
+                            Ok(Token::None)
+                        } else {
+                            Err(From::from("Failed".to_string()))
+                        }
+                    },
+                    Token::Pipe => {
+                       println!("piping");
+                       Ok(Token::None)
+                       
                     }
-                }
-                let status = cmd.status()?;
-                if status.success() {
-                    Ok(Token::None)
-                } else {
-                    Err(From::from("Failed".to_string()))
+                    _ => Err(From::from("Not implemented yet".to_string())),
                 }
             },
             Token::CmdArgs(ref str) => {

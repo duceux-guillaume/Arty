@@ -50,6 +50,7 @@ impl Token {
             Token::ParO => "ParO",
             Token::ParC => "ParC",
             Token::ChangeDir => "ChangeDir",
+            Token::Pipe => "Pipe",
             _ => "None",
         })
     }
@@ -129,6 +130,7 @@ impl fmt::Display for Token {
             Token::ParO => write!(f, "("),
             Token::ParC => write!(f, ")"),
             Token::ChangeDir => write!(f, "cd"),
+            Token::Pipe => write!(f, "|"),
             _ => write!(f, "none"),
         }
     }

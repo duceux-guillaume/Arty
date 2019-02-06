@@ -119,7 +119,7 @@ impl Lexer {
         }
         if let &Token::Cmd(ref _cmd) = self.tokens.first().unwrap() {
             return vec![
-                Box::new(CtrlOp::new()),
+                Box::new(MathOp::new()),
                 Box::new(CmdArgs::new()),
                 Box::new(Empty::new())
             ]
@@ -187,6 +187,7 @@ impl Lexer {
 
     pub fn next(&mut self) -> Result<Token> {
         let token = self.process()?;
+        println!("next: {}", token);
         return Ok(token);
     }
 }
