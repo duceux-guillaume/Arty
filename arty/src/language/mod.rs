@@ -4,6 +4,5 @@ pub mod lexer;
 mod helper;
 pub mod interface;
 mod name;
-mod ctrlop;
 mod math;
 

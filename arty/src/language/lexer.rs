@@ -1,5 +1,4 @@
 use language::math::Number;
-use language::ctrlop::CtrlOp;
 use language::math::MathOp;
 use language::name::Empty;
 use language::name::Cmd;
