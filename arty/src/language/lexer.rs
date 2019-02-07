@@ -187,7 +187,6 @@ impl Lexer {
 
     pub fn next(&mut self) -> Result<Token> {
         let token = self.process()?;
-        println!("next: {}", token);
         return Ok(token);
     }
 }
