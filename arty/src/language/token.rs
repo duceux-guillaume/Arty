@@ -21,6 +21,8 @@ pub enum Token {
     Modulo,
     ParO,
     ParC,
+    CheO,
+    CheC,
 /***************************************************/
     // Shell
     Cmd(String),
@@ -49,6 +51,8 @@ impl Token {
             Token::Divide => "Divide",
             Token::ParO => "ParO",
             Token::ParC => "ParC",
+            Token::CheO => "CheO",
+            Token::CheC => "CheC",
             Token::ChangeDir => "ChangeDir",
             Token::Pipe => "Pipe",
             _ => "None",
@@ -69,6 +73,8 @@ impl Token {
             // Groups
             Token::ParO => 0,
             Token::ParC => 0,
+            Token::CheO => 0,
+            Token::CheC => 0,
             // shell
             Token::Cmd(ref _str) => 500,
             Token::CmdArgs(ref _str) => 1000,
@@ -129,6 +135,8 @@ impl fmt::Display for Token {
             Token::Divide => write!(f, "/"),
             Token::ParO => write!(f, "("),
             Token::ParC => write!(f, ")"),
+            Token::CheO => write!(f, "<"),
+            Token::CheC => write!(f, ">"),
             Token::ChangeDir => write!(f, "cd"),
             Token::Pipe => write!(f, "|"),
             _ => write!(f, "none"),

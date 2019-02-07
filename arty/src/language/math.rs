@@ -34,6 +34,8 @@ impl ILexer for MathOp {
                     '(' => self.token = Token::ParO,
                     ')' => self.token = Token::ParC,
                     '|' => self.token = Token::Pipe,
+                    '<' => self.token = Token::CheO,
+                    '>' => self.token = Token::CheC,
                     _ => {},
                 }
                 if self.token == Token::Eof {
