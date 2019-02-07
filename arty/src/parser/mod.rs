@@ -7,19 +7,7 @@ use std::process::Command;
 use std::result;
 type Result<T> = result::Result<T, Box<error::Error>>;
 use std::path::PathBuf;
-
-pub struct ShellContext {
-    pub env: PathBuf,
-    pub last: Vec<String>,
-}
-impl ShellContext {
-    pub fn new() -> Result<Self> {
-        return Ok(ShellContext {
-            env: std::env::current_dir()?,
-            last: Vec::new(),
-        });
-    }
-}
+use feature::shell::Context;
 
 pub struct ParsingState {
     lexer: Lexer,
@@ -28,7 +16,7 @@ pub struct ParsingState {
 
 pub struct Parser {}
 impl Parser {
-    fn expression(rbp: u32, state: &mut ParsingState, ctx: &mut ShellContext) -> Result<Token> {
+    fn expression(rbp: u32, state: &mut ParsingState, ctx: &mut Context) -> Result<Token> {
         let mut last = state.token.clone();
         state.token = state.lexer.next()?;
         let mut left = Parser::call_expr(last.clone(), state, ctx)?;
@@ -40,7 +28,7 @@ impl Parser {
         return Ok(left);
     }
 
-    pub fn process(string: String, ctx: &mut ShellContext) -> Result<Token> {
+    pub fn process(string: String, ctx: &mut Context) -> Result<Token> {
         let mut state = ParsingState {
             lexer: Lexer::new(string),
             token: Token::Eof,
@@ -49,7 +37,7 @@ impl Parser {
         return Parser::expression(0, &mut state, ctx);
     }
 
-    fn call_expr(token: Token, state: &mut ParsingState, ctx: &mut ShellContext) -> Result<Token> {
+    fn call_expr(token: Token, state: &mut ParsingState, ctx: &mut Context) -> Result<Token> {
         return match token {
             Token::ParO => {
                 let res = Parser::expression(token.lprec(), state, ctx)?;
@@ -68,7 +56,7 @@ impl Parser {
             Token::Cmd(cmd) => {
                 let args = Parser::expression(500, state, ctx)?;
                 let mut cmd = Command::new(cmd);
-                cmd.current_dir(ctx.env.as_path());
+                cmd.current_dir(ctx.current_directory().as_path());
                 if !args.as_string().is_empty() {
                     for split in args.as_string().split('#') {
                         cmd.arg(split);
@@ -106,21 +94,21 @@ impl Parser {
             Token::ChangeDir => {
                 let new_path = PathBuf::from(Parser::expression(500, state, ctx)?.as_string());
                 if new_path.to_str().unwrap().is_empty() {
-                    ctx.env = std::env::home_dir().unwrap();
+                    ctx.set_current_directory(std::env::home_dir().unwrap());
                 } else if new_path.is_absolute() && new_path.exists() {
-                    ctx.env = new_path
+                    ctx.set_current_directory(new_path);
                 } else if !new_path.is_absolute() {
-                    let mut tmp = ctx.env.clone();
+                    let mut tmp = ctx.current_directory().clone();
                     tmp.push(new_path);
                     match tmp.canonicalize() {
-                        Ok(path) => ctx.env = path,
+                        Ok(path) => ctx.set_current_directory(path),
                         Err(error) => return Err(From::from(error)),
                     }
                 } else {
                     return Err(From::from("path doesn't exists".to_string()));
                 }
-                if !ctx.env.exists() {
-                    ctx.env = std::env::current_dir()?;
+                if !ctx.current_directory().exists() {
+                    ctx.set_current_directory(std::env::current_dir()?);
                     Err(From::from("path doesn't exists".to_string()))
                 } else {
                     Ok(Token::None)
@@ -134,7 +122,7 @@ impl Parser {
         left: Token,
         token: Token,
         state: &mut ParsingState,
-        ctx: &mut ShellContext,
+        ctx: &mut Context,
     ) -> Result<Token> {
         return Ok(match token {
             Token::Plus => {

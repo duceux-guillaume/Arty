@@ -1,2 +1,3 @@
-pub mod shell_controller;
+pub mod shell;
 pub mod user_history_guesser;
+pub mod interpreter;

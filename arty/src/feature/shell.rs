@@ -2,6 +2,27 @@ use core::guesser::GuesserManager;
 use core::terminal::Key;
 use core::terminal::Keyboard;
 use core::terminal::Terminal;
+use feature::interpreter::Interpreter;
+
+pub struct Context {
+    current_directory: std::path::PathBuf,
+}
+impl Context {
+    pub fn new() -> Context {
+        return Context {
+            current_directory: std::env::home_dir().unwrap(),
+        }
+    }
+
+    pub fn current_directory(&self) -> &std::path::PathBuf {
+        return &self.current_directory;
+    }
+
+    pub fn set_current_directory(&mut self, path: std::path::PathBuf) {
+        self.current_directory = path;
+    }
+}
+
 
 pub struct ShellController {
     buffer: Vec<char>,
@@ -9,6 +30,8 @@ pub struct ShellController {
     keyboard: Box<Keyboard>,
     terminal: Box<Terminal>,
     guesser: GuesserManager,
+    interpreter: Interpreter,
+    context: Context,
 }
 impl ShellController {
     fn reset(&mut self) {
@@ -23,7 +46,7 @@ impl ShellController {
                 println!("bye bye");
                 return;
             }
-            println!("some response");
+            self.interpreter.process(self.buffer.iter().collect(), &mut self.context);
         }
     }
 
@@ -89,6 +112,7 @@ impl ShellController {
         keyboard: Box<Keyboard>,
         terminal: Box<Terminal>,
         guesser: GuesserManager,
+        interpreter: Interpreter,
     ) -> ShellController {
         return ShellController {
             buffer: Vec::new(),
@@ -96,6 +120,8 @@ impl ShellController {
             keyboard,
             terminal,
             guesser,
+            interpreter,
+            context: Context::new(),
         };
     }
 }
