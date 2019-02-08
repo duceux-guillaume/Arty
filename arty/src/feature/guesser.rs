@@ -1,67 +1,20 @@
 use std::path::PathBuf;
-
+use std::rc::Rc;
 use language::Token;
-
-use parser::ShellContext;
-
+use super::shell::Context;
 use lexer::Lexer;
-
 use filesystem::SearchFor;
+use core::guesser::Guess;
+use core::guesser::Guesser;
 
-pub struct Guess {
-    first_part: Vec<char>,
-    missing_part: Vec<char>,
+pub struct PathGuesser {
+    ctx: Rc<Context>,
 }
-impl Guess {
-    pub fn new(first: &str, second: &str) -> Guess {
-        return Guess {
-            first_part: first.chars().collect(),
-            missing_part: second.chars().collect(),
-        };
-    }
-
-    pub fn missing_part(&self) -> Vec<char> {
-        return self.missing_part.clone();
-    }
-
-    pub fn to_string(&self) -> String {
-        let first: String = self.first_part.iter().collect();
-        let second: String = self.missing_part.iter().collect();
-        return format!("{}{}", first, second);
-    }
-}
-
-pub struct PathGuesser {}
 impl PathGuesser {
-    pub fn new() -> PathGuesser {
-        return PathGuesser {};
-    }
-
-    pub fn guess(&self, ctx: &ShellContext, line: &Vec<char>) -> Vec<Guess> {
-        let mut lexer = Lexer::new(line.iter().collect());
-        let mut result = Vec::new();
-        // Check first token
-        if let Token::ChangeDir = lexer.get(0) {
-            // Then second
-            match lexer.get(1) {
-                Token::None | Token::Eof => {
-                    result = self.convert(self.list_directory(&ctx.env));
-                }
-                Token::Path(hint) => {
-                    // we have arguments, let's figure out where the user went
-                    let path_hint = PathBuf::from(hint.clone());
-                    if !path_hint.is_absolute() {
-                        let mut env = ctx.env.clone();
-                        env.push(path_hint.clone());
-                        result = self.guess_directory_from_hint(env);
-                    } else {
-                        result = self.guess_directory_from_hint(path_hint);
-                    }
-                }
-                _ => println!("what?"),
-            }
-        }
-        return result;
+    pub fn new(ctx: Rc<Context>) -> PathGuesser {
+        return PathGuesser {
+            ctx,
+        };
     }
 
     fn guess_directory_from_hint(&self, hint: PathBuf) -> Vec<Guess> {
@@ -110,7 +63,7 @@ impl PathGuesser {
     fn convert(&self, src: Vec<String>) -> Vec<Guess> {
         let mut result = Vec::new();
         for item in src.iter() {
-            result.push(Guess::new("", item.as_str()));
+            result.push(Guess::new(item.to_string()));
         }
         return result;
     }
@@ -125,53 +78,48 @@ impl PathGuesser {
         }
         let result = entry.get(pattern.len()..entry.len());
         if result.is_some() {
-            return Some(Guess::new(pattern.as_str(), result.unwrap()));
+            return Some(Guess::new(entry.to_string()));
         }
         return None;
     }
 }
-
-pub struct FileGuesser {}
-impl FileGuesser {
-    pub fn new() -> FileGuesser {
-        return FileGuesser {};
-    }
-
-    pub fn guess(&self, ctx: &ShellContext, line: &Vec<char>) -> Vec<Guess> {
-        let mut lexer = Lexer::new(line.iter().collect());
+impl Guesser for PathGuesser {
+    fn guess(&self, request: String) -> Vec<Guess> {
+        let mut lexer = Lexer::new(request);
         let mut result = Vec::new();
         // Check first token
-        let token = lexer.get(0);
-        if let Token::Cmd(_cmd) = token {
+        if let Token::ChangeDir = lexer.get(0) {
             // Then second
             match lexer.get(1) {
                 Token::None | Token::Eof => {
-                    result = self.convert(self.list_files(&ctx.env));
+                    result = self.convert(self.list_directory(self.ctx.current_directory()));
                 }
-                Token::CmdArgs(hint) => {
+                Token::Path(hint) => {
                     // we have arguments, let's figure out where the user went
                     let path_hint = PathBuf::from(hint.clone());
                     if !path_hint.is_absolute() {
-                        let mut env = ctx.env.clone();
+                        let mut env = self.ctx.current_directory().clone();
                         env.push(path_hint.clone());
-                        result = self.guess_file_from_hint(env);
+                        result = self.guess_directory_from_hint(env);
                     } else {
-                        result = self.guess_file_from_hint(path_hint);
+                        result = self.guess_directory_from_hint(path_hint);
                     }
                 }
                 _ => println!("what?"),
             }
-        } else {
-            let paths = SearchFor::starting_with(token.as_string()).in_path(&ctx.env);
-            for item in paths.iter() {
-                let file_name = item.file_name().unwrap().to_str().unwrap().to_string();
-                let option = self.guess_from_match(&file_name, &token.as_string());
-                if option.is_some() {
-                    result.push(option.unwrap());
-                }
-            }
         }
         return result;
+    }
+}
+
+pub struct FileGuesser {
+    ctx: Rc<Context>
+}
+impl FileGuesser {
+    pub fn new(ctx: Rc<Context>) -> FileGuesser {
+        return FileGuesser {
+            ctx,
+        };
     }
 
     fn list_files(&self, ctx: &PathBuf) -> Vec<String> {
@@ -192,7 +140,7 @@ impl FileGuesser {
     fn convert(&self, src: Vec<String>) -> Vec<Guess> {
         let mut result = Vec::new();
         for item in src.iter() {
-            result.push(Guess::new("", item.as_str()));
+            result.push(Guess::new(item.to_string()));
         }
         return result;
     }
@@ -235,9 +183,47 @@ impl FileGuesser {
         }
         let result = entry.get(pattern.len()..entry.len());
         if result.is_some() {
-            return Some(Guess::new(pattern.as_str(), result.unwrap()));
+            return Some(Guess::new(entry.to_string()));
         }
         return None;
+    }
+}
+impl Guesser for FileGuesser {
+    fn guess(&self, line: String) -> Vec<Guess> {
+        let mut lexer = Lexer::new(line);
+        let mut result = Vec::new();
+        // Check first token
+        let token = lexer.get(0);
+        if let Token::Cmd(_cmd) = token {
+            // Then second
+            match lexer.get(1) {
+                Token::None | Token::Eof => {
+                    result = self.convert(self.list_files(self.ctx.current_directory()));
+                }
+                Token::CmdArgs(hint) => {
+                    // we have arguments, let's figure out where the user went
+                    let path_hint = PathBuf::from(hint.clone());
+                    if !path_hint.is_absolute() {
+                        let mut env = self.ctx.current_directory().clone();
+                        env.push(path_hint.clone());
+                        result = self.guess_file_from_hint(env);
+                    } else {
+                        result = self.guess_file_from_hint(path_hint);
+                    }
+                }
+                _ => println!("what?"),
+            }
+        } else {
+            let paths = SearchFor::starting_with(token.as_string()).in_path(self.ctx.current_directory());
+            for item in paths.iter() {
+                let file_name = item.file_name().unwrap().to_str().unwrap().to_string();
+                let option = self.guess_from_match(&file_name, &token.as_string());
+                if option.is_some() {
+                    result.push(option.unwrap());
+                }
+            }
+        }
+        return result;
     }
 }
 

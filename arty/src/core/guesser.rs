@@ -21,35 +21,6 @@ impl Guess {
     }
 }
 
-pub struct ZeroGuesser {}
-impl ZeroGuesser {
-    pub fn new() -> ZeroGuesser {
-        return ZeroGuesser {};
-    }
-}
-impl Guesser for ZeroGuesser {
-    fn guess(&self, request: String) -> Vec<Guess> {
-        return Vec::new();
-    }
-}
-
-pub struct DummyGuesser {}
-impl DummyGuesser {
-    pub fn new() -> DummyGuesser {
-        return DummyGuesser {};
-    }
-}
-impl Guesser for DummyGuesser {
-    fn guess(&self, request: String) -> Vec<Guess> {
-        return vec![
-            Guess::new("1".to_string()),
-            Guess::new("2".to_string()),
-            Guess::new("3".to_string()),
-            Guess::new("4".to_string()),
-        ];
-    }
-}
-
 pub struct GuesserManager {
     workers: Vec<Box<Guesser>>,
     guesses: Vec<Guess>,
@@ -87,6 +58,9 @@ impl GuesserManager {
 
     pub fn process(&mut self, request: String) {
         self.guesses = Vec::new();
+        if request.len() == 0 {
+            return;
+        }
         for worker in self.workers.iter() {
             let mut tmp = worker.guess(request.clone());
             self.guesses.append(&mut tmp);

@@ -1,7 +1,10 @@
+use std::rc::Rc;
+
 use core::guesser::GuesserManager;
 use core::terminal::Key;
 use core::terminal::Keyboard;
 use core::terminal::Terminal;
+
 use feature::interpreter::Interpreter;
 
 pub struct Context {
@@ -10,7 +13,7 @@ pub struct Context {
 impl Context {
     pub fn new() -> Context {
         return Context {
-            current_directory: std::env::home_dir().unwrap(),
+            current_directory: std::env::current_dir().unwrap(),
         }
     }
 
@@ -31,7 +34,7 @@ pub struct ShellController {
     terminal: Box<Terminal>,
     guesser: GuesserManager,
     interpreter: Interpreter,
-    context: Context,
+    context: Rc<Context>,
 }
 impl ShellController {
     fn reset(&mut self) {
@@ -46,13 +49,12 @@ impl ShellController {
                 println!("bye bye");
                 return;
             }
-            self.interpreter.process(self.buffer.iter().collect(), &mut self.context);
+            self.interpreter.process(self.buffer.iter().collect(), Rc::clone(&self.context));
         }
     }
 
     fn read_user_input(&mut self) -> bool {
         loop {
-            self.guesser.process(self.buffer.iter().collect());
             self.terminal.write_guesses(self.guesser.to_string_vec());
             self.terminal.write_cursor(self.insert_index);
             self.terminal.write_line(self.buffer.iter().collect());
@@ -60,6 +62,7 @@ impl ShellController {
                 Key::Char(charr) => {
                     self.buffer.insert(self.insert_index, charr);
                     self.insert_index += 1;
+                    self.guesser.process(self.buffer.iter().collect());
                 }
                 Key::Left => {
                     if self.insert_index > 0 {
@@ -113,6 +116,7 @@ impl ShellController {
         terminal: Box<Terminal>,
         guesser: GuesserManager,
         interpreter: Interpreter,
+        context: Rc<Context>,
     ) -> ShellController {
         return ShellController {
             buffer: Vec::new(),
@@ -121,7 +125,7 @@ impl ShellController {
             terminal,
             guesser,
             interpreter,
-            context: Context::new(),
+            context,
         };
     }
 }

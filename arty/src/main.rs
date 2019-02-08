@@ -1,11 +1,13 @@
 extern crate arty;
 
-use arty::core::guesser::DummyGuesser;
+use std::rc::Rc;
+
 use arty::core::guesser::GuesserManager;
-use arty::core::guesser::ZeroGuesser;
+use arty::feature::guesser::PathGuesser;
+use arty::feature::guesser::FileGuesser;
 use arty::external::terminal_termion_impl::TermionKeyboard;
 use arty::external::terminal_termion_impl::TermionTerminal;
-use arty::feature::shell::ShellController;
+use arty::feature::shell::{ShellController, Context};
 use arty::feature::interpreter::Interpreter;
 
 fn main() {
@@ -13,8 +15,9 @@ fn main() {
     let terminal = Box::new(TermionTerminal::new());
     let keyboard = Box::new(TermionKeyboard::new());
     let mut guesser = GuesserManager::new();
-    guesser.add(Box::new(DummyGuesser::new()));
-    guesser.add(Box::new(ZeroGuesser::new()));
-    let mut shell = ShellController::new(keyboard, terminal, guesser, Interpreter::new());
+    let context = Rc::new(Context::new());
+//    guesser.add(Box::new(FileGuesser::new(Rc::clone(&context))));
+    guesser.add(Box::new(PathGuesser::new(Rc::clone(&context))));
+    let mut shell = ShellController::new(keyboard, terminal, guesser, Interpreter::new(), context);
     shell.run();
 }

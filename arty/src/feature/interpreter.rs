@@ -1,3 +1,5 @@
+use std::rc::Rc;
+
 use parser::Parser;
 use super::shell::Context;
 
@@ -7,7 +9,7 @@ impl Interpreter {
         return Interpreter {};
     }
 
-    pub fn process(&mut self, line: String, ctx: &mut Context) {
+    pub fn process(&mut self, line: String, ctx: Rc<Context>) {
         let res = Parser::process(line.clone(), ctx);
         match res {
             Ok(ref str) => {
