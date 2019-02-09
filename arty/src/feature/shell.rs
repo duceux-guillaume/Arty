@@ -40,6 +40,7 @@ impl ShellController {
     fn reset(&mut self) {
         self.buffer = Vec::new();
         self.insert_index = 0;
+        self.guesser.process(self.buffer.iter().collect());
     }
 
     pub fn run(&mut self) {
@@ -65,7 +66,7 @@ impl ShellController {
                     self.guesser.process(self.buffer.iter().collect());
                 }
                 Key::Left => {
-                    if self.insert_index > 0 {
+                   if self.insert_index > 0 {
                         self.insert_index -= 1;
                     }
                 }
@@ -78,11 +79,13 @@ impl ShellController {
                     if self.buffer.len() > 0 && self.insert_index > 0 {
                         self.insert_index -= 1;
                         self.buffer.remove(self.insert_index);
+                        self.guesser.process(self.buffer.iter().collect());
                     }
                 }
                 Key::Delete => {
                     if self.buffer.len() > 0 && self.insert_index < self.buffer.len() {
                         self.buffer.remove(self.insert_index);
+                        self.guesser.process(self.buffer.iter().collect());
                     }
                 }
                 Key::Enter => {
@@ -98,9 +101,9 @@ impl ShellController {
                     self.terminal.clear();
                 }
                 Key::Tab => {
-                    let opt = self.guesser.next();
+                    let opt = self.guesser.fill_with_next();
                     if let Some(guess) = opt {
-                        self.buffer = guess.as_char();
+                        self.buffer = guess;
                         self.insert_index = self.buffer.len();
                     }
                 }

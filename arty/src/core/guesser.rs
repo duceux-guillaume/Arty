@@ -4,20 +4,24 @@ pub trait Guesser {
 
 #[derive(Clone)]
 pub struct Guess {
-    line: String,
+    guess: String,
+    missing: String,
 }
 
 impl Guess {
-    pub fn new(line: String) -> Guess {
-        return Guess { line };
+    pub fn new(guess: String, missing: String) -> Guess {
+        return Guess {
+            guess,
+            missing,
+        }
     }
 
-    pub fn as_string(&self) -> String {
-        return self.line.clone();
+    pub fn as_string(&self) -> &String {
+        return &self.guess;
     }
 
-    pub fn as_char(&self) -> Vec<char> {
-        return self.line.chars().collect();
+    pub fn missing(&self) -> &String {
+        return &self.missing;
     }
 }
 
@@ -25,6 +29,7 @@ pub struct GuesserManager {
     workers: Vec<Box<Guesser>>,
     guesses: Vec<Guess>,
     index: usize,
+    user_input: String,
 }
 impl GuesserManager {
     pub fn new() -> GuesserManager {
@@ -32,6 +37,7 @@ impl GuesserManager {
             workers: Vec::new(),
             guesses: Vec::new(),
             index: 0,
+            user_input: "".to_string(),
         };
     }
 
@@ -42,7 +48,7 @@ impl GuesserManager {
     pub fn to_string_vec(&self) -> Vec<String> {
         let mut res = Vec::new();
         for guess in self.guesses.iter() {
-            res.push(guess.as_string());
+            res.push(guess.as_string().clone());
         }
         return res;
     }
@@ -56,13 +62,24 @@ impl GuesserManager {
         return res;
     }
 
+    pub fn fill_with_next(&mut self) -> Option<Vec<char>> {
+        let mut tmp = self.user_input.clone();
+        if let Some(guess) = self.next() {
+            tmp.push_str(guess.missing().as_str());
+            return Some(tmp.chars().collect())
+        } else {
+            return None
+        }
+    }
+
     pub fn process(&mut self, request: String) {
         self.guesses = Vec::new();
-        if request.len() == 0 {
+        self.user_input = request;
+        if self.user_input.len() == 0 {
             return;
         }
         for worker in self.workers.iter() {
-            let mut tmp = worker.guess(request.clone());
+            let mut tmp = worker.guess(self.user_input.clone());
             self.guesses.append(&mut tmp);
         }
     }
