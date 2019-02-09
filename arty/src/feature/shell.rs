@@ -105,6 +105,9 @@ impl ShellController {
                     if let Some(guess) = opt {
                         self.buffer = guess;
                         self.insert_index = self.buffer.len();
+                        if self.guesser.count() == 1 {
+                            self.guesser.process(self.buffer.iter().collect());
+                        }
                     }
                 }
                 _ => {

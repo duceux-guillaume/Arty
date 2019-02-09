@@ -83,4 +83,8 @@ impl GuesserManager {
             self.guesses.append(&mut tmp);
         }
     }
+
+    pub fn count(&self) -> usize {
+        return self.guesses.len();
+    }
 }
