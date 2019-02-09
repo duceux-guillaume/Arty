@@ -35,12 +35,14 @@ pub struct ShellController {
     guesser: GuesserManager,
     interpreter: Interpreter,
     context: Rc<Context>,
+    in_guess_selection: bool,
 }
 impl ShellController {
     fn reset(&mut self) {
         self.buffer = Vec::new();
         self.insert_index = 0;
         self.guesser.process(self.buffer.iter().collect());
+        self.in_guess_selection = false;
     }
 
     pub fn run(&mut self) {
@@ -61,8 +63,12 @@ impl ShellController {
             self.terminal.write_line(self.buffer.iter().collect());
             match self.keyboard.get_key() {
                 Key::Char(charr) => {
-                    self.buffer.insert(self.insert_index, charr);
-                    self.insert_index += 1;
+                    if charr != ' ' || !self.in_guess_selection {
+                        self.buffer.insert(self.insert_index, charr);
+                        self.insert_index += 1;
+                    } else {
+                        self.in_guess_selection = false;
+                    }
                     self.guesser.process(self.buffer.iter().collect());
                 }
                 Key::Left => {
@@ -107,6 +113,8 @@ impl ShellController {
                         self.insert_index = self.buffer.len();
                         if self.guesser.count() == 1 {
                             self.guesser.process(self.buffer.iter().collect());
+                        } else {
+                            self.in_guess_selection = true;
                         }
                     }
                 }
@@ -132,6 +140,7 @@ impl ShellController {
             guesser,
             interpreter,
             context,
+            in_guess_selection: false,
         };
     }
 }
