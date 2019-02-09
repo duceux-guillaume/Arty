@@ -140,7 +140,7 @@ impl FileGuesser {
     fn convert(&self, src: Vec<String>) -> Vec<Guess> {
         let mut result = Vec::new();
         for item in src.iter() {
-            result.push(Guess::new("".to_string(), item.to_string()));
+            result.push(Guess::new(item.to_string(), item.to_string()));
         }
         return result;
     }
@@ -182,8 +182,8 @@ impl FileGuesser {
             return None;
         }
         let result = entry.get(pattern.len()..entry.len());
-        if result.is_some() {
-            return Some(Guess::new(pattern.to_string(), entry.to_string()));
+        if let Some(missing) = result {
+            return Some(Guess::new(entry.to_string(), missing.to_string()));
         }
         return None;
     }

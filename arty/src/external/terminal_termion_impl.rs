@@ -45,9 +45,16 @@ impl Terminal for TermionTerminal {
     fn write_guesses(&self, guesses: Vec<String>) {
         let mut stdout = stdout().into_raw_mode().unwrap();
         write!(stdout, "\n\r{}", termion::clear::CurrentLine).unwrap();
+        let mut indicator = String::new();
         for guess in guesses.iter() {
-            write!(stdout, "{} ", guess.to_string()).unwrap();
+            indicator.push_str(guess.as_str());
+            indicator.push(' ');
+            if indicator.len() > 50 {
+                indicator.push_str("...");
+                break;
+            }
         }
+        write!(stdout, "{}", indicator).unwrap();
         write!(stdout, "{}\r", termion::cursor::Up(1)).unwrap();
         stdout.flush().unwrap();
     }
