@@ -4,17 +4,12 @@ use language::Token;
 use super::shell::Context;
 use lexer::Lexer;
 use filesystem::SearchFor;
-use core::guesser::Guess;
-use core::guesser::Guesser;
+use core::guesser::{Guess, Guesser, GuessRequest};
 
-pub struct PathGuesser {
-    ctx: Rc<Context>,
-}
+pub struct PathGuesser {}
 impl PathGuesser {
-    pub fn new(ctx: Rc<Context>) -> PathGuesser {
-        return PathGuesser {
-            ctx,
-        };
+    pub fn new() -> PathGuesser {
+        return PathGuesser {}
     }
 
     fn guess_directory_from_hint(&self, hint: PathBuf) -> Vec<Guess> {
@@ -84,21 +79,21 @@ impl PathGuesser {
     }
 }
 impl Guesser for PathGuesser {
-    fn guess(&self, request: String) -> Vec<Guess> {
-        let mut lexer = Lexer::new(request);
+    fn guess(&self, request: &GuessRequest) -> Vec<Guess> {
+        let mut lexer = Lexer::new(request.user_input.clone());
         let mut result = Vec::new();
         // Check first token
         if let Token::ChangeDir = lexer.get(0) {
             // Then second
             match lexer.get(1) {
                 Token::None | Token::Eof => {
-                    result = self.convert(self.list_directory(self.ctx.current_directory()));
+                    result = self.convert(self.list_directory(&request.current_dir));
                 }
                 Token::Path(hint) => {
                     // we have arguments, let's figure out where the user went
                     let path_hint = PathBuf::from(hint.clone());
                     if !path_hint.is_absolute() {
-                        let mut env = self.ctx.current_directory().clone();
+                        let mut env = request.current_dir.clone();
                         env.push(path_hint.clone());
                         result = self.guess_directory_from_hint(env);
                     } else {
@@ -112,14 +107,10 @@ impl Guesser for PathGuesser {
     }
 }
 
-pub struct FileGuesser {
-    ctx: Rc<Context>
-}
+pub struct FileGuesser {}
 impl FileGuesser {
-    pub fn new(ctx: Rc<Context>) -> FileGuesser {
-        return FileGuesser {
-            ctx,
-        };
+    pub fn new() -> FileGuesser {
+        return FileGuesser {};
     }
 
     fn list_files(&self, ctx: &PathBuf) -> Vec<String> {
@@ -189,22 +180,25 @@ impl FileGuesser {
     }
 }
 impl Guesser for FileGuesser {
-    fn guess(&self, line: String) -> Vec<Guess> {
-        let mut lexer = Lexer::new(line);
+    fn guess(&self, request: &GuessRequest) -> Vec<Guess> {
+        let mut lexer = Lexer::new(request.user_input.clone());
         let mut result = Vec::new();
         // Check first token
         let token = lexer.get(0);
+        if let Token::ChangeDir = token {
+            return result;
+        }
         if let Token::Cmd(_cmd) = token {
             // Then second
             match lexer.get(1) {
                 Token::None | Token::Eof => {
-                    result = self.convert(self.list_files(self.ctx.current_directory()));
+                    result = self.convert(self.list_files(&request.current_dir));
                 }
                 Token::CmdArgs(hint) => {
                     // we have arguments, let's figure out where the user went
                     let path_hint = PathBuf::from(hint.clone());
                     if !path_hint.is_absolute() {
-                        let mut env = self.ctx.current_directory().clone();
+                        let mut env = request.current_dir.clone();
                         env.push(path_hint.clone());
                         result = self.guess_file_from_hint(env);
                     } else {
@@ -214,7 +208,7 @@ impl Guesser for FileGuesser {
                 _ => println!("what?"),
             }
         } else {
-            let paths = SearchFor::starting_with(token.as_string()).in_path(self.ctx.current_directory());
+            let paths = SearchFor::starting_with(token.as_string()).in_path(&request.current_dir);
             for item in paths.iter() {
                 let file_name = item.file_name().unwrap().to_str().unwrap().to_string();
                 let option = self.guess_from_match(&file_name, &token.as_string());

@@ -1,5 +1,18 @@
+pub struct GuessRequest {
+    pub user_input: String,
+    pub current_dir: std::path::PathBuf,
+}
+impl GuessRequest {
+    pub fn new(user_input: String, current_dir: std::path::PathBuf) -> GuessRequest {
+        return GuessRequest {
+            user_input,
+            current_dir,
+        }
+    }
+}
+
 pub trait Guesser {
-    fn guess(&self, request: String) -> Vec<Guess>;
+    fn guess(&self, request: &GuessRequest) -> Vec<Guess>;
 }
 
 #[derive(Clone)]
@@ -72,14 +85,14 @@ impl GuesserManager {
         }
     }
 
-    pub fn process(&mut self, request: String) {
+    pub fn process(&mut self, request: &GuessRequest) {
         self.guesses = Vec::new();
-        self.user_input = request;
+        self.user_input = request.user_input.clone();
         if self.user_input.len() == 0 {
             return;
         }
         for worker in self.workers.iter() {
-            let mut tmp = worker.guess(self.user_input.clone());
+            let mut tmp = worker.guess(request);
             self.guesses.append(&mut tmp);
         }
     }

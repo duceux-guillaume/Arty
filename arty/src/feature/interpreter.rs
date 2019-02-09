@@ -9,7 +9,7 @@ impl Interpreter {
         return Interpreter {};
     }
 
-    pub fn process(&mut self, line: String, ctx: Rc<Context>) {
+    pub fn process(&mut self, line: String, ctx: &mut Context) {
         let res = Parser::process(line.clone(), ctx);
         match res {
             Ok(ref str) => {

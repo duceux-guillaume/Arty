@@ -1,6 +1,4 @@
-use std::rc::Rc;
-
-use core::guesser::GuesserManager;
+use core::guesser::{GuessRequest, GuesserManager};
 use core::terminal::Key;
 use core::terminal::Keyboard;
 use core::terminal::Terminal;
@@ -34,14 +32,14 @@ pub struct ShellController {
     terminal: Box<Terminal>,
     guesser: GuesserManager,
     interpreter: Interpreter,
-    context: Rc<Context>,
+    context: Context,
     in_guess_selection: bool,
 }
 impl ShellController {
     fn reset(&mut self) {
         self.buffer = Vec::new();
         self.insert_index = 0;
-        self.guesser.process(self.buffer.iter().collect());
+        self.guess();
         self.in_guess_selection = false;
     }
 
@@ -52,8 +50,13 @@ impl ShellController {
                 println!("bye bye");
                 return;
             }
-            self.interpreter.process(self.buffer.iter().collect(), Rc::clone(&self.context));
+            self.interpreter.process(self.buffer.iter().collect(), &mut self.context);
         }
+    }
+
+    fn guess(&mut self) {
+        self.guesser.process(&GuessRequest::new(self.buffer.iter().collect(),
+                                                self.context.current_directory().clone()));
     }
 
     fn read_user_input(&mut self) -> bool {
@@ -69,7 +72,7 @@ impl ShellController {
                     } else {
                         self.in_guess_selection = false;
                     }
-                    self.guesser.process(self.buffer.iter().collect());
+                    self.guess();
                 }
                 Key::Left => {
                    if self.insert_index > 0 {
@@ -85,13 +88,13 @@ impl ShellController {
                     if self.buffer.len() > 0 && self.insert_index > 0 {
                         self.insert_index -= 1;
                         self.buffer.remove(self.insert_index);
-                        self.guesser.process(self.buffer.iter().collect());
+                        self.guess();
                     }
                 }
                 Key::Delete => {
                     if self.buffer.len() > 0 && self.insert_index < self.buffer.len() {
                         self.buffer.remove(self.insert_index);
-                        self.guesser.process(self.buffer.iter().collect());
+                        self.guess();
                     }
                 }
                 Key::Enter => {
@@ -112,7 +115,7 @@ impl ShellController {
                         self.buffer = guess;
                         self.insert_index = self.buffer.len();
                         if self.guesser.count() == 1 {
-                            self.guesser.process(self.buffer.iter().collect());
+                            self.guess();
                         } else {
                             self.in_guess_selection = true;
                         }
@@ -130,7 +133,6 @@ impl ShellController {
         terminal: Box<Terminal>,
         guesser: GuesserManager,
         interpreter: Interpreter,
-        context: Rc<Context>,
     ) -> ShellController {
         return ShellController {
             buffer: Vec::new(),
@@ -139,7 +141,7 @@ impl ShellController {
             terminal,
             guesser,
             interpreter,
-            context,
+            context: Context::new(),
             in_guess_selection: false,
         };
     }

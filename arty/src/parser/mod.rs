@@ -1,5 +1,3 @@
-use std::rc::Rc;
-
 use language::Number;
 use language::Token;
 use lexer::Lexer;
@@ -18,19 +16,19 @@ pub struct ParsingState {
 
 pub struct Parser {}
 impl Parser {
-    fn expression(rbp: u32, state: &mut ParsingState, ctx: Rc<Context>) -> Result<Token> {
+    fn expression(rbp: u32, state: &mut ParsingState, ctx: &mut Context) -> Result<Token> {
         let mut last = state.token.clone();
         state.token = state.lexer.next()?;
-        let mut left = Parser::call_expr(last.clone(), state, &mut Rc::clone(&ctx))?;
+        let mut left = Parser::call_expr(last.clone(), state, ctx)?;
         while rbp < state.token.rprec() {
             last = state.token.clone();
             state.token = state.lexer.next()?;
-            left = Parser::op_expr(left, last.clone(), state, Rc::clone(&ctx))?;
+            left = Parser::op_expr(left, last.clone(), state, ctx)?;
         }
         return Ok(left);
     }
 
-    pub fn process(string: String, ctx: Rc<Context>) -> Result<Token> {
+    pub fn process(string: String, ctx: &mut Context) -> Result<Token> {
         let mut state = ParsingState {
             lexer: Lexer::new(string),
             token: Token::Eof,
@@ -39,24 +37,24 @@ impl Parser {
         return Parser::expression(0, &mut state, ctx);
     }
 
-    fn call_expr(token: Token, state: &mut ParsingState, ctx: &mut Rc<Context>) -> Result<Token> {
+    fn call_expr(token: Token, state: &mut ParsingState, ctx: &mut Context) -> Result<Token> {
         return match token {
             Token::ParO => {
-                let res = Parser::expression(token.lprec(), state, Rc::clone(ctx))?;
+                let res = Parser::expression(token.lprec(), state, ctx)?;
                 state.token = state.lexer.next()?; //TODO: match
                 Ok(res)
             }
             Token::Minus => {
                 let mut res = String::from("-");
                 res.push_str(
-                    Parser::expression(token.lprec(), state, Rc::clone(ctx))?
+                    Parser::expression(token.lprec(), state, ctx)?
                         .as_string()
                         .as_str(),
                 );
                 Ok(Token::Number(res))
             }
             Token::Cmd(cmd) => {
-                let args = Parser::expression(500, state, Rc::clone(&ctx))?;
+                let args = Parser::expression(500, state, ctx)?;
                 let mut cmd = Command::new(cmd);
                 cmd.current_dir(ctx.current_directory().as_path());
                 if !args.as_string().is_empty() {
@@ -72,7 +70,7 @@ impl Parser {
                 }
             }
             Token::CmdArgs(ref str) => {
-                let right = Parser::expression(500, state, Rc::clone(ctx))?;
+                let right = Parser::expression(500, state, ctx)?;
                 if right.as_string().is_empty() {
                     Ok(token.clone())
                 } else {
@@ -83,7 +81,7 @@ impl Parser {
                 }
             }
             Token::Path(ref str) => {
-                let right = Parser::expression(500, state, Rc::clone(&ctx))?;
+                let right = Parser::expression(500, state, ctx)?;
                 if right.as_string().is_empty() {
                     Ok(token.clone())
                 } else {
@@ -94,25 +92,23 @@ impl Parser {
                 }
             }
             Token::ChangeDir => {
-                let new_path = PathBuf::from(Parser::expression(500, state, Rc::clone(&ctx))?.as_string());
+                let new_path = PathBuf::from(Parser::expression(500, state, ctx)?.as_string());
                 if new_path.to_str().unwrap().is_empty() {
-                    //ctx.set_current_directory(std::env::home_dir().unwrap());
+                    ctx.set_current_directory(std::env::home_dir().unwrap());
                 } else if new_path.is_absolute() && new_path.exists() {
-                    //ctx.set_current_directory(new_path);
+                    ctx.set_current_directory(new_path);
                 } else if !new_path.is_absolute() {
                     let mut tmp = ctx.current_directory().clone();
                     tmp.push(new_path);
-                    /*
                     match tmp.canonicalize() {
-                        Ok(path) => /*ctx.set_current_directory(path)*/,
+                        Ok(path) => ctx.set_current_directory(path),
                         Err(error) => return Err(From::from(error)),
                     }
-                */
                 } else {
                     return Err(From::from("path doesn't exists".to_string()));
                 }
                 if !ctx.current_directory().exists() {
-                    //ctx.set_current_directory(std::env::current_dir()?);
+                    ctx.set_current_directory(std::env::current_dir()?);
                     Err(From::from("path doesn't exists".to_string()))
                 } else {
                     Ok(Token::None)
@@ -126,7 +122,7 @@ impl Parser {
         left: Token,
         token: Token,
         state: &mut ParsingState,
-        ctx: Rc<Context>,
+        ctx: &mut Context,
     ) -> Result<Token> {
         return Ok(match token {
             Token::Plus => {
