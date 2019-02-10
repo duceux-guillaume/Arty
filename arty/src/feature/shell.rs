@@ -59,10 +59,17 @@ impl ShellController {
                                                 self.context.current_directory().clone()));
     }
 
+    fn compute_prompt(&self) -> String {
+        return format!("@{}",
+                       self.context.current_directory().file_name().unwrap().to_str().unwrap())
+    }
+
     fn read_user_input(&mut self) -> bool {
         loop {
             self.terminal.write_guesses(self.guesser.to_string_vec());
             self.terminal.write_cursor(self.insert_index);
+            let prompt = self.compute_prompt();
+            self.terminal.write_prompt(prompt);
             self.terminal.write_line(self.buffer.iter().collect());
             match self.keyboard.get_key() {
                 Key::Char(charr) => {
