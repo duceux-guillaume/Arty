@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use parser::Parser;
+use language::parser::Parser;
 use super::shell::Context;
 
 pub struct Interpreter {}

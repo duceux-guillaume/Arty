@@ -1,10 +1,10 @@
-use language::Number;
-use language::Token;
-use lexer::Lexer;
-use std;
-use std::error;
-use std::process::Command;
+use language::token::Token;
+use language::token::Number;
+use language::lexer::Lexer;
 use std::result;
+use std::error;
+use std::process::{Command, Stdio};
+use std;
 type Result<T> = result::Result<T, Box<error::Error>>;
 use std::path::PathBuf;
 use feature::shell::Context;
@@ -37,6 +37,47 @@ impl Parser {
         return Parser::expression(0, &mut state, ctx);
     }
 
+    fn peek(state: &mut ParsingState) -> Token {
+        return state.token.clone();
+    }
+
+    fn step(state: &mut ParsingState) {
+        state.token = state.lexer.next().expect("oh boy!");
+    }
+
+    fn next(state: &mut ParsingState) -> Token {
+        let res = Parser::peek(state);
+        Parser::step(state);
+        return res;
+    }
+
+    fn command(token: String, state: &mut ParsingState, ctx: &mut Context, stdin: Stdio) -> Result<Token> {
+        let mut cmd = Command::new(token);
+        cmd.current_dir(ctx.current_directory());
+        cmd.stdin(stdin);
+        cmd.stdout(Stdio::inherit());
+        while let Token::CmdArgs(arg) = Parser::peek(state) {
+            cmd.arg(arg);
+            Parser::step(state);
+        }
+        return match Parser::next(state) {
+            Token::Eof => {
+                let status = cmd.status()?;
+                if status.success() {
+                    Ok(Token::None)
+                } else {
+                    Err(From::from("Failed".to_string()))
+                }
+            },
+            Token::Pipe => {
+                let handle = cmd.stdout(Stdio::piped()).spawn()?;
+                Parser::command(Parser::next(state).as_string(), state, ctx, Stdio::from(handle.stdout.unwrap()))
+            }
+            _ => Err(From::from("Not implemented yet".to_string())),
+        }
+    }
+
+
     fn call_expr(token: Token, state: &mut ParsingState, ctx: &mut Context) -> Result<Token> {
         return match token {
             Token::ParO => {
@@ -52,23 +93,10 @@ impl Parser {
                         .as_str(),
                 );
                 Ok(Token::Number(res))
-            }
-            Token::Cmd(cmd) => {
-                let args = Parser::expression(500, state, ctx)?;
-                let mut cmd = Command::new(cmd);
-                cmd.current_dir(ctx.current_directory().as_path());
-                if !args.as_string().is_empty() {
-                    for split in args.as_string().split('#') {
-                        cmd.arg(split);
-                    }
-                }
-                let status = cmd.status()?;
-                if status.success() {
-                    Ok(Token::None)
-                } else {
-                    Err(From::from("Failed".to_string()))
-                }
-            }
+            },
+            Token::Cmd(cmd_tok) => {
+                return Parser::command(cmd_tok, state, ctx, Stdio::inherit())
+            },
             Token::CmdArgs(ref str) => {
                 let right = Parser::expression(500, state, ctx)?;
                 if right.as_string().is_empty() {

@@ -1,7 +1,7 @@
-use language::Token;
-use lexer::helper;
-use lexer::interface::ILexer;
-use lexer::interface::State;
+use  language::interface::ILexer;
+use  language::interface::State;
+use language::token::Token;
+use language::helper;
 
 pub struct Cmd {
     token: String,

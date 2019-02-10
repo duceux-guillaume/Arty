@@ -1,27 +1,21 @@
-mod ctrlop;
-mod helper;
-pub mod interface;
-mod math;
-mod name;
+use language::math::Number;
+use language::math::MathOp;
+use language::name::Empty;
+use language::name::Cmd;
+use language::name::CmdArgs;
+use language::interface::State;
+use language::interface;
+use language::token::Token;
+use language::name::ChangeDir;
+use language::name::Path;
+use language::name::StringLexer;
 
-use self::ctrlop::CtrlOp;
-use self::interface::State;
-use self::math::MathOp;
-use self::math::Number;
-use self::name::Cmd;
-use self::name::CmdArgs;
-use self::name::Empty;
-
-use language::Token;
-
-use filesystem::SearchFor;
-use lexer::name::ChangeDir;
-use lexer::name::Path;
-use lexer::name::StringLexer;
-use std::env;
+use std::result;
 use std::error::Error;
 use std::fmt;
-use std::result;
+use std::env;
+
+use filesystem::SearchFor;
 
 #[derive(Debug)]
 struct LexicalError {
@@ -126,7 +120,7 @@ impl Lexer {
         }
         if let &Token::Cmd(ref _cmd) = self.tokens.first().unwrap() {
             return vec![
-                Box::new(CtrlOp::new()),
+                Box::new(MathOp::new()),
                 Box::new(CmdArgs::new()),
                 Box::new(Empty::new()),
             ];

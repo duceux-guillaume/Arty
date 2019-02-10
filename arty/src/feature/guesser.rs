@@ -1,9 +1,12 @@
 use std::path::PathBuf;
-use std::rc::Rc;
-use language::Token;
+
 use super::shell::Context;
-use lexer::Lexer;
+
+use language::token::Token;
+use language::lexer::Lexer;
+
 use filesystem::SearchFor;
+
 use core::guesser::{Guess, Guesser, GuessRequest};
 
 pub struct PathGuesser {}

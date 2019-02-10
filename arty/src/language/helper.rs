@@ -6,10 +6,6 @@ pub fn is_blank(c: char) -> bool {
     return c == ' ' || c == '\n' || c == '\t';
 }
 
-pub fn is_letter(c: char) -> bool {
-    return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');
-}
-
 pub fn is_ctrlop(c: char) -> bool {
     return c == '|' || c == ';' || c == '&' || c == '>';
 }

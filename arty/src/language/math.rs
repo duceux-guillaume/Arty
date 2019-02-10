@@ -1,7 +1,7 @@
-use language::Token;
-use lexer::helper;
-use lexer::interface::ILexer;
-use lexer::interface::State;
+use language::interface::ILexer;
+use language::interface::State;
+use language::token::Token;
+use language::helper;
 
 pub struct MathOp {
     val: char,
@@ -33,7 +33,10 @@ impl ILexer for MathOp {
                     '%' => self.token = Token::Modulo,
                     '(' => self.token = Token::ParO,
                     ')' => self.token = Token::ParC,
-                    _ => {}
+                    '|' => self.token = Token::Pipe,
+                    '<' => self.token = Token::CheO,
+                    '>' => self.token = Token::CheC,
+                    _ => {},
                 }
                 if self.token == Token::Eof {
                     State::Rej
