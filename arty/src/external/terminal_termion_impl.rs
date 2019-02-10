@@ -58,6 +58,13 @@ impl Terminal for TermionTerminal {
         stdout.flush().unwrap();
     }
 
+    fn clear_guesses(&self) {
+        let mut stdout = stdout().into_raw_mode().unwrap();
+        write!(stdout, "\n\r{}", termion::clear::CurrentLine).unwrap();
+        write!(stdout, "{}\r", termion::cursor::Up(1)).unwrap();
+        stdout.flush().unwrap();
+    }
+
     fn write_new_line(&self) {
         let mut stdout = stdout().into_raw_mode().unwrap();
         write!(stdout, "{}", "\r\n").unwrap();

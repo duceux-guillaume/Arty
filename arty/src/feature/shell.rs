@@ -99,6 +99,7 @@ impl ShellController {
                 }
                 Key::Enter => {
                     self.buffer.push('\n');
+                    self.terminal.clear_guesses();
                     self.terminal.write_new_line();
                     return true;
                 }
