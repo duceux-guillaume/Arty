@@ -1,7 +1,5 @@
 use std::path::PathBuf;
 
-use super::shell::Context;
-
 use language::token::Token;
 use language::lexer::Lexer;
 
@@ -233,7 +231,7 @@ mod tests {
         let guesser = PathGuesser::new();
         let guess = guesser.guess_from_match(&"target/".to_string(), &"t".to_string());
         assert!(guess.is_some());
-        let missing_part: String = guess.unwrap().missing_part().iter().collect();
+        let missing_part: String = guess.unwrap().missing().clone();
         assert_eq!("arget/", missing_part);
     }
 

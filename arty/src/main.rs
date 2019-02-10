@@ -5,7 +5,7 @@ use arty::feature::guesser::PathGuesser;
 use arty::feature::guesser::FileGuesser;
 use arty::external::terminal_termion_impl::TermionKeyboard;
 use arty::external::terminal_termion_impl::TermionTerminal;
-use arty::feature::shell::{ShellController, Context};
+use arty::feature::shell::ShellController;
 use arty::feature::interpreter::Interpreter;
 
 fn main() {

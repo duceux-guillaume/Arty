@@ -5,13 +5,6 @@ enum MatchingPattern {
     Start(String),
 }
 impl MatchingPattern {
-    fn as_string(&self) -> &String {
-        return match *self {
-            MatchingPattern::Exact(ref string) => string,
-            MatchingPattern::Start(ref string) => string,
-        };
-    }
-
     fn match_with(&self, path: &String) -> bool {
         return match *self {
             MatchingPattern::Exact(ref string) => MatchingPattern::exact_match(string, path),

@@ -1,5 +1,3 @@
-use std::rc::Rc;
-
 use language::parser::Parser;
 use super::shell::Context;
 

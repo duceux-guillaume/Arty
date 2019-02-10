@@ -15,7 +15,7 @@ impl UserHistoryFile {
     }
 
     pub fn record(&mut self, input: &str) {
-        write!(self.file, "{}", input);
+        write!(self.file, "{}", input).unwrap();
     }
 
     pub fn iter(&self) -> UserHistoryIterator {

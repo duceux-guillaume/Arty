@@ -36,7 +36,6 @@ mod tests {
         for c in digits.chars() {
             assert_eq!(true, is_digit(c));
             assert_eq!(false, is_blank(c));
-            assert_eq!(false, is_letter(c));
             assert_eq!(false, is_ctrlop(c));
         }
     }
@@ -47,7 +46,6 @@ mod tests {
         for c in letters.chars() {
             assert_eq!(false, is_digit(c));
             assert_eq!(false, is_blank(c));
-            assert_eq!(true, is_letter(c));
             assert_eq!(false, is_ctrlop(c));
         }
     }
@@ -58,7 +56,6 @@ mod tests {
         for c in blancks.chars() {
             assert_eq!(false, is_digit(c));
             assert_eq!(true, is_blank(c));
-            assert_eq!(false, is_letter(c));
             assert_eq!(false, is_ctrlop(c));
         }
     }
@@ -69,7 +66,6 @@ mod tests {
         for c in blancks.chars() {
             assert_eq!(false, is_digit(c));
             assert_eq!(false, is_blank(c));
-            assert_eq!(false, is_letter(c));
             assert_eq!(true, is_ctrlop(c));
         }
     }

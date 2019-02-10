@@ -6,7 +6,6 @@ use core::terminal::Terminal;
 
 use std::io::{stdin, stdout, Write};
 
-use self::termion::color;
 use self::termion::event::Key as TermKey;
 use self::termion::input::TermRead;
 use self::termion::raw::IntoRawMode;
@@ -33,7 +32,7 @@ impl Terminal for TermionTerminal {
     fn write_line(&self, line: String) {
         let mut stdout = stdout().into_raw_mode().unwrap();
         write!(stdout, "\r{}", termion::clear::CurrentLine).unwrap();
-        write!(stdout, "{} ", self.prompt);
+        write!(stdout, "{} ", self.prompt).unwrap();
         write!(stdout, "{}", line).unwrap();
         let offset = line.len() - self.pos;
         if offset > 0 {
