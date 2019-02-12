@@ -2,6 +2,7 @@ use core::guesser::{GuessRequest, GuesserManager};
 use core::terminal::Key;
 use core::terminal::Keyboard;
 use core::terminal::Terminal;
+use core::user_history::UserSessionHistory;
 
 use feature::interpreter::Interpreter;
 
@@ -34,6 +35,8 @@ pub struct ShellController {
     interpreter: Interpreter,
     context: Context,
     in_guess_selection: bool,
+    session_history: UserSessionHistory,
+    session_index: usize,
 }
 impl ShellController {
     fn reset(&mut self) {
@@ -41,6 +44,7 @@ impl ShellController {
         self.insert_index = 0;
         self.guess();
         self.in_guess_selection = false;
+        self.session_index = 0;
     }
 
     pub fn run(&mut self) {
@@ -51,6 +55,7 @@ impl ShellController {
                 return;
             }
             self.interpreter.process(self.buffer.iter().collect(), &mut self.context);
+            self.session_history.record(self.buffer.iter().collect());
         }
     }
 
@@ -60,8 +65,9 @@ impl ShellController {
     }
 
     fn compute_prompt(&self) -> String {
-        return format!("@{}",
-                       self.context.current_directory().file_name().unwrap().to_str().unwrap())
+        return format!("{}@{}{}", "\x1B[38;5;1m",
+                       self.context.current_directory().file_name().unwrap().to_str().unwrap(),
+                       "\x1B[38;5;15m")
     }
 
     fn read_user_input(&mut self) -> bool {
@@ -129,6 +135,31 @@ impl ShellController {
                         }
                     }
                 }
+                Key::Up => {
+                    let history_size = self.session_history.entries().len();
+                    if history_size > 0 {
+                        self.session_index += 1;
+                        if self.session_index > history_size {
+                            self.session_index = 1;
+                        }
+                        let index = history_size - self.session_index;
+                        self.buffer = self.session_history.entries()[index].trim().chars().collect();
+                        self.insert_index = self.buffer.len();
+                    }
+                },
+                Key::Down => {
+                    let history_size = self.session_history.entries().len();
+                    if history_size > 0 {
+                        if self.session_index > 1 {
+                            self.session_index -= 1;
+                            let index = history_size - self.session_index;
+                            self.buffer = self.session_history.entries()[index].trim().chars().collect();
+                            self.insert_index = self.buffer.len();
+                        } else {
+                            self.reset();
+                        }
+                    }
+},
                 _ => {
                     return false;
                 }
@@ -151,6 +182,8 @@ impl ShellController {
             interpreter,
             context: Context::new(),
             in_guess_selection: false,
+            session_history: UserSessionHistory::new(),
+            session_index: 0,
         };
     }
 }

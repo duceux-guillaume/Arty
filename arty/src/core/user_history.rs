@@ -57,6 +57,25 @@ impl UserHistorySearch {
     }
 }
 
+pub struct UserSessionHistory {
+    entries: Vec<String>,
+}
+impl UserSessionHistory {
+    pub fn new() -> UserSessionHistory {
+        return UserSessionHistory {
+            entries: Vec::new()
+        };
+    }
+
+    pub fn record(&mut self, input: String) {
+        self.entries.push(input);
+    }
+
+    pub fn entries(&self) -> &Vec<String> {
+        return &self.entries
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
