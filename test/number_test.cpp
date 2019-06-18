@@ -82,6 +82,33 @@ TEST(WholeOp, Mult) {
     ASSERT_EQ(Whole(15) * Whole(4), Whole(4) * Whole(15));
 }
 
+TEST(WholeMath, Gcd) {
+    ASSERT_EQ(Whole::gcd(5, 4), 1);
+    ASSERT_EQ(Whole::gcd(8, 4), 4);
+    ASSERT_EQ(Whole::gcd(4, 4), 4);
+    ASSERT_EQ(Whole::gcd(3, 4), 1);
+    ASSERT_EQ(Whole::gcd(3, 0), 3);
+    ASSERT_EQ(Whole::gcd(0, 3), 3);
+}
+
+TEST(WholeMath, Div) {
+    ASSERT_EQ(Whole::div(5, 4), 1);
+    ASSERT_EQ(Whole::div(8, 4), 2);
+    ASSERT_EQ(Whole::div(4, 4), 1);
+    ASSERT_EQ(Whole::div(3, 4), 0);
+    //ASSERT_EQ(Whole::div(3, 0), Whole::Err);
+    ASSERT_EQ(Whole::div(0, 3), 0);
+}
+
+TEST(WholeMath, Mod) {
+    ASSERT_EQ(Whole::mod(5, 4), 1);
+    ASSERT_EQ(Whole::mod(8, 4), 0);
+    ASSERT_EQ(Whole::mod(4, 4), 0);
+    ASSERT_EQ(Whole::mod(3, 4), 3);
+    //ASSERT_EQ(Whole::div(3, 0), Whole::Err);
+    ASSERT_EQ(Whole::mod(0, 3), 0);
+}
+
 using arty::math::Integer;
 
 TEST(Integer, Neg) {
@@ -127,4 +154,10 @@ TEST(IntegerOp, Mult) {
     ASSERT_EQ(-Integer(1) * Integer(1), -1);
     ASSERT_EQ(Integer(10) * Integer(2), Integer(20));
     ASSERT_EQ(-Integer(1) * Integer(-1), 1);
+}
+
+using arty::math::Rational;
+
+TEST(Rational, Constructor) {
+    ASSERT_EQ(Rational(50, 40), Rational(5, 4));
 }

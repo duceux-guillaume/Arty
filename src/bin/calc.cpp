@@ -26,5 +26,6 @@ int main(int argc, char** argv) {
     std::cout << Integer(-123456) << std::endl;
     std::cout << Integer(123456) << std::endl;
 
+    std::cout << Rational(-5000, 100) << std::endl;
     return 0;
 }

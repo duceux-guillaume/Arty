@@ -28,6 +28,35 @@ void Whole::set_digit(size_t pos, Whole::digit_t digit) {
     }
 }
 
+Whole Whole::gcd(const Whole &l, const Whole &r) {
+    if (r == 0) {
+        return l;
+    }
+    if (l == r) {
+        return l;
+    }
+    if (l > r) {
+        return gcd(l - r, r);
+    }
+    return gcd(r, r - l);
+}
+
+Whole Whole::div(Whole l, const Whole &r) {
+    Whole res;
+    while (l >= r) {
+        l = l - r;
+        res = res + 1;
+    }
+    return res;
+}
+
+Whole Whole::mod(Whole l, const Whole &r) {
+    while (l >= r) {
+        l = l - r;
+    }
+    return l;
+}
+
 Whole operator*(const Whole &l, const Whole &r) {
     if (l.length() < r.length()) {
         return r * l;
@@ -237,6 +266,28 @@ Integer operator*(const Integer &l, const Integer &r) {
         return -Integer(Whole(l)*Whole(r));
     }
     return Whole(l)*Whole(r);
+}
+
+Rational::Rational(Integer num, Whole den): _num(num), _den(den) {
+    simplify();
+}
+
+void Rational::simplify() {
+    bool neg = _num.neg();
+    Whole tmp = Whole::gcd(_num, _den);
+    _num = Whole::div(_num, tmp);
+    if (neg) {
+        _num = -_num;
+    }
+    _den = Whole::div(_den, tmp);
+}
+
+std::ostream &operator<<(std::ostream &out, const Rational &i) {
+    return out << i.numerator() << "/" << i.denominator();
+}
+
+bool operator==(const Rational &l, const Rational &r) {
+    return l.numerator() == r.numerator() && l.denominator() == r.denominator();
 }
 
 }  // namespace math

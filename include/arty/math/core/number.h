@@ -26,6 +26,10 @@ public:
     storage_t::const_reverse_iterator rbegin() const { return _digits.rbegin(); }
     storage_t::const_reverse_iterator rend() const { return _digits.rend(); }
 
+    static Whole gcd(Whole const& l, Whole const& r);
+    static Whole div(Whole l, Whole const& r);
+    static Whole mod(Whole l, Whole const& r);
+
 protected:
     storage_t _digits;
     digit_t _base;
@@ -70,6 +74,23 @@ bool operator>(Integer const& l, Integer const& r);
 bool operator<(Integer const& l, Integer const& r);
 bool operator>=(Integer const& l, Integer const& r);
 bool operator<=(Integer const& l, Integer const& r);
+
+class Rational {
+public:
+    Rational(Integer num, Whole den);
+
+    Integer numerator() const { return _num; }
+    Whole denominator() const { return  _den; }
+private:
+    void simplify();
+
+    Integer _num;
+    Whole _den;
+};
+
+std::ostream& operator<<(std::ostream& out, Rational const& i);
+
+bool operator==(Rational const& l, Rational const& r);
 
 }
 }  // namespace arty
