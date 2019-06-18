@@ -1,4 +1,4 @@
-#include <arty/math/core/number.h>
+#include "number_impl.h"
 
 namespace arty {
 namespace math {
@@ -104,7 +104,7 @@ Whole operator+(const Whole &l, const Whole &r) {
         res.set_digit(i, mod);
     }
     if (carry > 0) {
-        res.set_digit(res.length(), carry);
+      res.set_digit(res.length(), carry);
     }
     return res;
 }
@@ -268,7 +268,7 @@ Integer operator*(const Integer &l, const Integer &r) {
     return Whole(l)*Whole(r);
 }
 
-Rational::Rational(Integer num, Whole den): _num(num), _den(den) {
+Rational::Rational(Integer const& num, Whole const& den): _num(num), _den(den) {
     simplify();
 }
 
@@ -288,6 +288,113 @@ std::ostream &operator<<(std::ostream &out, const Rational &i) {
 
 bool operator==(const Rational &l, const Rational &r) {
     return l.numerator() == r.numerator() && l.denominator() == r.denominator();
+}
+
+bool operator!=(const Rational &l, const Rational &r) {
+    return !(l == r);
+}
+
+bool operator>(const Rational &l, const Rational &r) {
+    return l.numerator()*Integer(r.denominator()) > Integer(l.denominator())*r.numerator();
+}
+
+bool operator<(const Rational &l, const Rational &r) {
+    return !(l > r) && (l != r);
+}
+
+bool operator>=(const Rational &l, const Rational &r) {
+    return (l > r) || (l == r);
+}
+
+bool operator<=(const Rational &l, const Rational &r) {
+    return (l < r) || (l == r);
+}
+
+Rational operator+(const Rational &l, const Rational &r) {
+    return Rational(l.numerator()*Integer(r.denominator()) + Integer(l.denominator())*r.numerator(),
+                    l.denominator()*r.denominator());
+}
+
+Rational operator*(const Rational &l, const Rational &r) {
+    return Rational(l.numerator()*r.numerator(),
+                    l.denominator()*r.denominator());
+}
+
+Rational operator/(const Rational &l, const Rational &r) {
+    Rational inv(r.denominator(), r.numerator());
+    if (r.numerator().neg()) {
+        inv = inv*Rational(-1, 1);
+    }
+    return l*inv;
+}
+
+Rational operator-(const Rational &l, const Rational &r) {
+    return Rational(l.numerator()*Integer(r.denominator()) - Integer(l.denominator())*r.numerator(),
+                    l.denominator()*r.denominator());
+}
+
+Rational operator-(const Rational &l) {
+    return Rational(-l.numerator(), l.denominator());
+}
+
+Number::Number(const Number::NumberImpl &impl): _impl( std::make_unique< Number::NumberImpl >(impl) ) {}
+
+Number::Number(): _impl( std::make_unique< Number::NumberImpl >() ) { }
+
+Number::Number(long i): _impl( std::make_unique< Number::NumberImpl >(i) ) { }
+
+Number::Number(long i, unsigned long j): _impl( std::make_unique< Number::NumberImpl >(i, j) ) { }
+
+Number::~Number() {}
+
+Number::NumberImpl::~NumberImpl() {}
+
+Number Number::operator+(const Number &r) {
+    return *_impl + *r._impl;
+}
+
+Number Number::operator*(const Number &r) {
+    return *_impl * *r._impl;
+}
+
+Number Number::operator/(const Number &r) {
+    return *_impl / *r._impl;
+}
+
+Number Number::operator-() {
+    return -*_impl;
+}
+
+Number Number::operator-(const Number &r) {
+    return *_impl - *r._impl;
+}
+
+std::ostream &operator<<(std::ostream &out, Number const& i) {
+    return out << i._impl->_num;
+}
+
+bool operator==(const Number &l, const Number &r) {
+    return *l._impl == *r._impl;
+}
+
+bool operator!=(const Number &l, const Number &r) {
+    return *l._impl != *r._impl;
+}
+
+bool operator>(const Number &l, const Number &r) {
+    return *l._impl > *r._impl;
+}
+
+bool operator<(const Number &l, const Number &r) {
+    return *l._impl < *r._impl;
+}
+
+bool operator>=(const Number &l, const Number &r) {
+    return *l._impl >= *r._impl;
+}
+
+bool operator<=(const Number &l, const Number &r) {
+    return *l._impl <= *r._impl;
 }
 
 }  // namespace math
