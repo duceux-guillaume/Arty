@@ -46,8 +46,8 @@ add_library(arty ${ARTY_MATH_FILES})
 
 include_directories(include)
 
-add_executable(calc src/bin/calc.cpp)
-target_link_libraries(calc arty)
+add_executable(artyshell src/bin/artyshell.cpp)
+target_link_libraries(artyshell arty)
 
 ###########
 ## TESTS ##

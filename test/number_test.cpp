@@ -1,4 +1,4 @@
-#include <arty/math/core/number.h>
+#include <arty/core/number.h>
 
 #include <gtest/gtest.h>
 

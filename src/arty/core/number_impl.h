@@ -1,7 +1,7 @@
 #ifndef NUMBER_IMPL_H
 #define NUMBER_IMPL_H
 
-#include <arty/math/core/number.h>
+#include <arty/core/number.h>
 #include <stdint.h>
 #include <vector>
 #include <utility>
