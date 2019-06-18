@@ -41,13 +41,13 @@ endif()
 ## ARTY ##
 ##########
 
-file(GLOB_RECURSE ARTY_MATH_FILES include/arty/math/* src/arty/math/*)
-add_library(arty_math ${ARTY_MATH_FILES})
+file(GLOB_RECURSE ARTY_MATH_FILES include/arty/* src/arty/*)
+add_library(arty ${ARTY_MATH_FILES})
 
 include_directories(include)
 
 add_executable(calc src/bin/calc.cpp)
-target_link_libraries(calc arty_math)
+target_link_libraries(calc arty)
 
 ###########
 ## TESTS ##
