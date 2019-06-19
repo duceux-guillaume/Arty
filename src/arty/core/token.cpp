@@ -7,7 +7,7 @@ std::ostream &operator<<(std::ostream &out, const Token &t) {
 }
 
 Token Token::Eof(std::size_t pos) {
-    return Token(TokenType::Eof, "\n", pos);
+    return Token(TokenType::Eof, "", pos);
 }
 
 Token Token::None(std::size_t pos) {

@@ -59,7 +59,9 @@ void Lexer::process() {
 
 void Lexer::reset() {
     _automatas.clear();
+    // !! Error needs to be first !!
     _automatas.emplace_back(std::make_unique<ErrorFsm>());
+    _automatas.emplace_back(std::make_unique<NumberFsm>());
     _automatas.emplace_back(std::make_unique<SingleCharFsm>('+', Plus));
     _automatas.emplace_back(std::make_unique<WordFsm>("calc", Calc));
 }
@@ -129,17 +131,19 @@ std::ostream &operator<<(std::ostream &out, const Lexer &l) {
     out << l._input << std::endl;
     for (Token const& t: l._tokens) {
         if (t.type != Error) {
-            out << " ";
-            if (t.length() > 2) {
-                for (std::size_t i=0; i<t.length() - 2; ++i) {
-                    out << " ";
+            out << "^";
+            if (t.length() > 1) {
+                for (std::size_t i=0; i<t.length() - 1; ++i) {
+                    out << ".";
                 }
             }
         }
         else {
             out << "|";
-            for (std::size_t i=0; i<t.length(); ++i) {
-                out << "-";
+            if (t.length() > 1) {
+                for (std::size_t i=0; i<t.length() - 1; ++i) {
+                    out << "-";
+                }
             }
             out << "| syntaxic error at: " << t.last_char_pos << " (" << t.symbol << ")";
             break;
@@ -147,10 +151,31 @@ std::ostream &operator<<(std::ostream &out, const Lexer &l) {
     }
     out << std::endl;
     for (Token const& t: l._tokens) {
-        out << t;
+        if (t.type != None) {
+            out << t;
+        }
     }
     out << std::endl;
     return out;
+}
+
+FsmState NumberFsm::eat(char c, std::size_t pos) {
+    BaseFsm::eat(c, pos);
+    if (_state == Ong) {
+        bool isdigit = std::isdigit(static_cast<unsigned char>(c)) != 0;
+        if (isdigit) {
+            _word.push_back(c);
+        } else if (_word.size() > 0 && !isdigit) {
+            _state = Acc;
+        } else {
+            _state = Rej;
+        }
+    }
+    return _state;
+}
+
+Token NumberFsm::token() {
+    return Token(Number, _word, _pos - _word.size());
 }
 
 }  // arty

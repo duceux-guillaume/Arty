@@ -58,6 +58,14 @@ public:
     Token token();
 };
 
+class NumberFsm: public BaseFsm {
+private:
+    std::string _word;
+public:
+    FsmState eat(char c, std::size_t pos);
+    Token token();
+};
+
 class Lexer {
 public:
     Lexer(std::string &input);
