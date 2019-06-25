@@ -2,7 +2,7 @@
 
 #include <gtest/gtest.h>
 
-using arty::math::Number;
+using arty::Number;
 
 TEST(Number, Greater) {
     ASSERT_TRUE(Number(1) > Number(0));

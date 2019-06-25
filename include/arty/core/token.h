@@ -10,11 +10,13 @@ enum TokenType {
     Eof,
     None,
     // Math
-    Number,
+    TkNumber,
     Plus,
     Minus,
     Times,
     Divide,
+    TkParL,
+    TkParR,
     // Shell
     Cmd,
     Opt,
@@ -22,8 +24,14 @@ enum TokenType {
     Semi,
     Amp,
     Pipe,
-    // BuiltIn
+    // BuiltIn Cmd
     Calc,
+    TkCd,
+    TkVar,
+    // Control flow
+    TkIf,
+    TkFor,
+    TkWhile,
 };
 
 struct Token {

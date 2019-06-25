@@ -1,7 +1,6 @@
 #include "number_impl.h"
 
 namespace arty {
-namespace math {
 
 Whole::Whole(unsigned long integer): _digits(), _base(10) {
     do {
@@ -341,6 +340,13 @@ Number::Number(const Number::NumberImpl &impl): _impl( std::make_unique< Number:
 
 Number::Number(): _impl( std::make_unique< Number::NumberImpl >() ) { }
 
+Number::Number(const Number &other): _impl(std::make_unique<NumberImpl>(*other._impl)) {}
+
+Number &Number::operator=(const Number &other) {
+    _impl = std::make_unique<NumberImpl>(*other._impl);
+    return *this;
+}
+
 Number::Number(long i): _impl( std::make_unique< Number::NumberImpl >(i) ) { }
 
 Number::Number(long i, unsigned long j): _impl( std::make_unique< Number::NumberImpl >(i, j) ) { }
@@ -397,5 +403,4 @@ bool operator<=(const Number &l, const Number &r) {
     return *l._impl <= *r._impl;
 }
 
-}  // namespace math
 }  // namespace arty

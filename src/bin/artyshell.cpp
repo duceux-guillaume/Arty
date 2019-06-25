@@ -2,26 +2,18 @@
 
 #include <arty/core/number.h>
 #include <arty/impl/lexer.h>
+#include <arty/impl/parser.h>
 
 using namespace arty;
 
 int main(int argc, char** argv) {
-    std::string input;
-    if (argc > 1) {
-        for (int i = 1; i < argc; ++i) {
-            input.append(argv[i]);
-            input.append(" ");
-        }
-    }
+  std::string input;
+  while (std::getline(std::cin, input)) {
+    Lexer::Ptr lex(std::make_shared<Lexer>(input));
+    Parser parser;
+    parser.parse(lex);
+    std::cout << *lex << std::endl;
+  }
 
-    std::cout << input << std::endl;
-
-    Lexer lex(input);
-    Token t;
-    do {
-        t = lex.next();
-    } while (t.type != Eof && t.type != Error);
-    std::cout << lex << std::endl;
-
-    return 0;
+  return 0;
 }

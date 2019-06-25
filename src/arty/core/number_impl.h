@@ -8,7 +8,6 @@
 #include <iostream>
 
 namespace arty {
-namespace math {
 
 class Whole {
 public:
@@ -153,7 +152,6 @@ struct Number::NumberImpl {
     }
 };
 
-}  // math
 }  // arty
 
 #endif // NUMBER_IMPL_H

@@ -68,6 +68,8 @@ public:
 
 class Lexer {
 public:
+    typedef std::shared_ptr<Lexer> Ptr;
+
     Lexer(std::string &input);
     Token next();
 

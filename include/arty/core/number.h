@@ -5,7 +5,6 @@
 #include <memory>
 
 namespace arty {
-namespace math {
 
 class Number {
 private:
@@ -15,10 +14,13 @@ private:
 
 public:
     Number();
+    Number(Number const& other);
+    Number(Number&&) = default;
+    Number& operator=(Number const& other);
+    Number& operator=(Number&&) = default;
     Number(long i);
     Number(long i, unsigned long j);
     ~Number();
-    Number(Number&& other) = default;
 
     Number operator+(Number const& r);
     Number operator*(Number const& r);
@@ -45,7 +47,6 @@ bool operator<=(Number const& l, Number const& r);
 
 std::ostream& operator<<(std::ostream& out, Number const& i);
 
-}  // math
 }  // namespace arty
 
 #endif // Number_H
