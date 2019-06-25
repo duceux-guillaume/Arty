@@ -46,7 +46,7 @@ const int right_priority[NumberOfOp] = {
 
 const int left_priority[NumberOfOp] = {
     10,  // +
-    10,  // -
+    11,  // -
     11,  // *
     11,  // /
     1,   // number

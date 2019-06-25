@@ -40,7 +40,7 @@ Expression Parser::unary_operator(Token t) {
     }
     case Minus: {
       Expression right = math_expression(left_precedence(t));
-      right.value.num -= right.value.num;
+      right.value.num = -right.value.num;
       return right;
     }
     case TkParL: {
