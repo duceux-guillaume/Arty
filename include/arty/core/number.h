@@ -35,6 +35,7 @@ class Whole {
 
  private:
   bool is_zero() const { return _digits.size() == 1 && _digits[0] == 0; }
+  bool is_one() const { return _digits.size() == 1 && _digits[0] == 1; }
 };
 
 inline const Whole operator+(Whole l, Whole const& r) {

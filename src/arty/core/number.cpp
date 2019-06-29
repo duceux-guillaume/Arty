@@ -83,6 +83,13 @@ Whole &Whole::operator*=(const Whole &r) {
     *this = Whole();
     return *this;
   }
+  if (is_one()) {
+    *this = r;
+    return *this;
+  }
+  if (r.is_one()) {
+    return *this;
+  }
 
   Whole res;
   const size_t right_size = r._digits.size();
