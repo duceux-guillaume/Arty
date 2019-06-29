@@ -35,12 +35,12 @@ Expression Parser::unary_operator(Token t) {
     case TkNumber: {
       Expression e;
       e.type = XpNumber;
-      e.value.num = std::stod(t.symbol);
+      e.as_num.reset(new Number(parse_number(t.symbol)));
       return e;
     }
     case Minus: {
       Expression right = math_expression(left_precedence(t));
-      right.value.num = -right.value.num;
+      *right.as_num = -(*right.as_num);
       return right;
     }
     case TkParL: {
@@ -56,31 +56,34 @@ Expression Parser::unary_operator(Token t) {
 }
 
 Expression Parser::binary_operator(Expression left, Token curr) {
-  std::cout << "binary_operator: " << left.value.num << " " << curr
-            << std::endl;
+  std::cout << "binary_operator: " << *left.as_num << " " << curr << std::endl;
   std::cout << "_curr_token: " << _curr_token << std::endl;
   Expression right = math_expression(right_precedence(curr));
   switch (curr.type) {
     case Plus: {
-      left.value.num += right.value.num;
+      *left.as_num = *left.as_num + *right.as_num;
       return left;
     }
     case Minus: {
-      left.value.num -= right.value.num;
+      *left.as_num = *left.as_num - *right.as_num;
       return left;
     }
     case Divide: {
-      left.value.num /= right.value.num;
+      *left.as_num = *left.as_num / *right.as_num;
       return left;
     }
     case Times: {
-      left.value.num *= right.value.num;
+      *left.as_num = *left.as_num * *right.as_num;
       return left;
     }
     default:
       break;
   }
   return left;
+}
+
+Number Parser::parse_number(const std::string &number) {
+  return Number(std::stoi(number));
 }
 
 int Parser::right_precedence(const Token &t) {
@@ -123,9 +126,38 @@ void Parser::parse(Lexer::Ptr const &lexer) {
   Expression xp = expression();
   switch (xp.type) {
     case XpNumber: {
-      std::cout << xp.value.num << std::endl;
+      std::cout << *xp.as_num << std::endl;
       break;
     }
+    default:
+      std::cout << "None" << std::endl;
+      break;
+  }
+}
+
+Expression::~Expression() {}
+
+Expression::Expression() : type(XpNone), as_num() {}
+
+Expression::Expression(const Expression &other) {
+  type = other.type;
+  switch (type) {
+    case XpNone:
+      break;
+    case XpNumber:
+      as_num.reset(new Number(*other.as_num));
+      break;
+  }
+}
+
+Expression::Expression(Expression &&other) {
+  type = std::move(other.type);
+  switch (type) {
+    case XpNone:
+      break;
+    case XpNumber:
+      as_num = std::move(other.as_num);
+      break;
   }
 }
 

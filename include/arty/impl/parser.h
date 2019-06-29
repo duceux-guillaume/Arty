@@ -10,18 +10,20 @@
 namespace arty {
 
 enum ExpressionType {
+  XpNone,
   XpNumber,
 };
 
-union ExpressionContent {
-  double num;
-  int symbol;
-};
-typedef std::shared_ptr<ExpressionContent> XpContentPtr;
-
 struct Expression {
+  ~Expression();
+  Expression();
+  Expression(Expression const& other);
+  Expression(Expression&& other);
+  Expression& operator=(Expression const& other);
+  Expression& operator=(Expression&&) = default;
+
   ExpressionType type;
-  ExpressionContent value;
+  std::unique_ptr<Number> as_num;
 };
 
 // Operator Precedence, don't change the order
@@ -73,6 +75,8 @@ struct Parser {
   Expression unary_operator(Token t);
 
   Expression binary_operator(Expression left, Token curr);
+
+  Number parse_number(std::string const& number);
 
   int right_precedence(Token const& t);
 
