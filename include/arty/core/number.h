@@ -9,8 +9,8 @@ namespace arty {
 
 class Whole {
  public:
-  typedef uint8_t digit_t;
-  typedef std::vector<digit_t> storage_t;
+  using digit_t = uint8_t;
+  using storage_t = std::vector<digit_t>;
 
   Whole(unsigned long integer);
   Whole() : Whole(0) {}
@@ -25,16 +25,30 @@ class Whole {
   storage_t::const_reverse_iterator rend() const { return _digits.rend(); }
 
   static Whole gcd(Whole const& l, Whole const& r);
-  static Whole div(Whole l, Whole const& r);
-  static Whole mod(Whole l, Whole const& r);
+
+  Whole& operator+=(Whole const& rhs);
+  Whole& operator*=(Whole const& rhs);
 
  protected:
-  storage_t _digits;
   digit_t _base;
+  storage_t _digits;
+
+ private:
+  bool is_zero() const { return _digits.size() == 1 && _digits[0] == 0; }
 };
 
-Whole operator+(Whole const& l, Whole const& r);
-Whole operator*(Whole const& l, Whole const& r);
+inline const Whole operator+(Whole l, Whole const& r) {
+  l += r;
+  return l;
+}
+inline const Whole operator*(Whole l, Whole const& r) {
+  l *= r;
+  return l;
+}
+
+Whole operator-(Whole const& l, Whole const& r);
+Whole operator/(Whole l, Whole const& r);
+Whole operator%(Whole l, Whole const& r);
 
 std::ostream& operator<<(std::ostream& out, Whole const& i);
 
@@ -48,7 +62,7 @@ bool operator<=(Whole const& l, Whole const& r);
 class Integer : public Whole {
  public:
   Integer() : Integer(0) {}
-  Integer(Whole number) : Whole(number), _neg(false) {}
+  Integer(Whole number) : Whole(std::move(number)), _neg(false) {}
   Integer(long integer);
 
   bool neg() const { return _neg; }
@@ -60,7 +74,6 @@ class Integer : public Whole {
 };
 
 Integer operator-(Integer const& l);
-Integer operator-(Whole const& l, Whole const& r);
 Integer operator-(Integer const& l, Integer const& r);
 Integer operator+(Integer const& l, Integer const& r);
 Integer operator*(Integer const& l, Integer const& r);
@@ -77,7 +90,7 @@ bool operator<=(Integer const& l, Integer const& r);
 class Rational {
  public:
   Rational(Integer const& num, Whole const& den);
-  Rational() : _num(), _den(1) {}
+  Rational() : _den(1) {}
   explicit Rational(Integer const& num) : Rational(num, Whole(1)) {}
   explicit Rational(Whole const& num) : Rational(Integer(num), Whole(1)) {}
 
@@ -129,14 +142,17 @@ class Number {
 
   Number();
   Number(Number const& other);
+  Number(Number&& other);
 
   Number& operator=(Number const& other);
+  Number& operator=(Number&& other);
 
-  Number operator+(Number const& r);
-  Number operator*(Number const& r);
-  Number operator/(Number const& r);
-  Number operator-(Number const& r);
+  Number operator/(Number const& r) const;
+  Number operator-(Number const& r) const;
   Number operator-();
+
+  Number& operator+=(Number const& rhs);
+  Number& operator*=(Number const& rhs);
 
   friend bool operator==(Number const& l, Number const& r);
   friend bool operator!=(Number const& l, Number const& r);
@@ -145,8 +161,17 @@ class Number {
   friend bool operator>=(Number const& l, Number const& r);
   friend bool operator<=(Number const& l, Number const& r);
 
-  friend std::ostream& operator<<(std::ostream& out, Number const& i);
+  friend std::ostream& operator<<(std::ostream& out, Number const& number);
 };
+
+inline const Number operator+(Number l, Number const& r) {
+  l += r;
+  return l;
+}
+inline const Number operator*(Number l, Number const& r) {
+  l *= r;
+  return l;
+}
 
 bool operator==(Number const& l, Number const& r);
 bool operator!=(Number const& l, Number const& r);

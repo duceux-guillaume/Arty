@@ -1,8 +1,12 @@
 #include <arty/core/number.h>
 
+#include <cassert>
+
 namespace arty {
 
-Whole::Whole(unsigned long integer) : _digits(), _base(10) {
+const Whole::digit_t DEFAULT_BASE = 10;
+
+Whole::Whole(unsigned long integer) : _base(DEFAULT_BASE), _digits() {
   do {
     _digits.emplace_back(static_cast<uint8_t>(integer % _base));
     integer /= _base;
@@ -40,39 +44,65 @@ Whole Whole::gcd(const Whole &l, const Whole &r) {
   return gcd(r, r - l);
 }
 
-Whole Whole::div(Whole l, const Whole &r) {
-  Whole res;
-  while (l >= r) {
-    l = l - r;
-    res = res + 1;
+Whole &Whole::operator+=(Whole const &rhs) {
+  // early out
+  if (is_zero()) {
+    *this = rhs;
+    return *this;
   }
-  return res;
+  if (rhs.is_zero()) {
+    return *this;
+  }
+
+  digit_t carry = 0;
+  size_t max_length = std::max(_digits.size(), rhs._digits.size());
+  for (size_t i = 0; i < max_length; ++i) {
+    digit_t tmp = (i < _digits.size()) ? _digits[i] : 0;
+    if (i < rhs._digits.size()) {
+      tmp += rhs._digits[i] + carry;
+    } else {
+      tmp += carry;
+    }
+    digit_t mod = tmp % _base;
+    carry = tmp / _base;
+    if (i < _digits.size()) {
+      _digits[i] = mod;
+    } else {
+      _digits.emplace_back(mod);
+    }
+  }
+  if (carry > 0) {
+    _digits.emplace_back(carry);
+  }
+  return *this;
 }
 
-Whole Whole::mod(Whole l, const Whole &r) {
-  while (l >= r) {
-    l = l - r;
+Whole &Whole::operator*=(const Whole &r) {
+  // early out
+  if (is_zero() || r.is_zero()) {
+    *this = Whole();
+    return *this;
   }
-  return l;
-}
 
-Whole operator*(const Whole &l, const Whole &r) {
-  if (l.length() < r.length()) {
-    return r * l;
-  }
   Whole res;
-  for (std::size_t i = 0; i < r.length(); ++i) {
+  const size_t right_size = r._digits.size();
+  for (std::size_t i = 0; i < right_size; ++i) {
     Whole tmp;
     uint8_t carry = 0;
-    for (std::size_t j = 0; j < l.length(); ++j) {
-      Whole::digit_t dig = r.digit(i) * l.digit(j) + carry;
-      carry = dig / tmp.base();
-      dig = dig % tmp.base();
+    const size_t left_size = _digits.size();
+    for (std::size_t j = 0; j < left_size; ++j) {
+      Whole::digit_t dig = r._digits[i] * _digits[j] + carry;
+      carry = dig / _base;
+      dig = dig % _base;
       tmp.set_digit(j + i, dig);
+    }
+    if (carry > 0) {
+      tmp.set_digit(left_size + i, carry);
     }
     res = res + tmp;
   }
-  return res;
+  *this = std::move(res);
+  return *this;
 }
 
 std::ostream &operator<<(std::ostream &out, const Whole &i) {
@@ -85,34 +115,11 @@ std::ostream &operator<<(std::ostream &out, const Whole &i) {
   return out;
 }
 
-Whole operator+(const Whole &l, const Whole &r) {
-  if (l.length() < r.length()) {
-    return r + l;
+Whole operator-(const Whole &l, const Whole &r) {
+  if (l < r) {
+    return Whole();
   }
   Whole res;
-  uint8_t carry = 0;
-  for (std::size_t i = 0; i < l.length(); ++i) {
-    uint8_t tmp = l.digit(i);
-    if (i < r.length()) {
-      tmp += r.digit(i) + carry;
-    } else {
-      tmp = tmp + carry;
-    }
-    uint8_t mod = static_cast<uint8_t>(tmp % res.base());
-    carry = tmp / res.base();
-    res.set_digit(i, mod);
-  }
-  if (carry > 0) {
-    res.set_digit(res.length(), carry);
-  }
-  return res;
-}
-
-Integer operator-(const Whole &l, const Whole &r) {
-  if (l < r) {
-    return -(r - l);
-  }
-  Integer res;
   uint8_t carry = 0;
   for (std::size_t i = 0; i < l.length(); ++i) {
     uint8_t ld = l.digit(i);
@@ -262,11 +269,11 @@ Rational::Rational(Integer const &num, Whole const &den)
 void Rational::simplify() {
   bool neg = _num.neg();
   Whole tmp = Whole::gcd(_num, _den);
-  _num = Whole::div(_num, tmp);
+  _num = _num / tmp;
   if (neg) {
     _num = -_num;
   }
-  _den = Whole::div(_den, tmp);
+  _den = _den / tmp;
 }
 
 std::ostream &operator<<(std::ostream &out, const Rational &i) {
@@ -329,11 +336,11 @@ void Number::upgrade_type() {
   switch (_type) {
     case WHOLE:
       _type = INTEGER;
-      _as_integer.reset(new Integer(*_as_whole));
+      _as_integer = std::make_unique<Integer>(*_as_whole);
       break;
     case INTEGER:
       _type = RATIONAL;
-      _as_rational.reset(new Rational(*_as_integer));
+      _as_rational = std::make_unique<Rational>(*_as_integer);
       break;
     case RATIONAL:
       break;
@@ -380,97 +387,86 @@ Number::Number()
       _as_integer(),
       _as_rational() {}
 
-Number::Number(const Number &other) {
+Number::Number(const Number &other) : Number() {
   _type = other._type;
   switch (_type) {
     case WHOLE:
-      _as_whole.reset(new Whole(*other._as_whole));
+      _as_whole = std::make_unique<Whole>(*other._as_whole);
       break;
     case INTEGER:
-      _as_integer.reset(new Integer(*other._as_integer));
+      _as_integer = std::make_unique<Integer>(*other._as_integer);
       break;
     case RATIONAL:
-      _as_rational.reset(new Rational(*other._as_rational));
+      _as_rational = std::make_unique<Rational>(*other._as_rational);
+      break;
+  }
+}
+
+Number::Number(Number &&other) {
+  _type = std::move(other._type);
+  switch (_type) {
+    case WHOLE:
+      _as_whole = std::move(other._as_whole);
+      break;
+    case INTEGER:
+      _as_integer = std::move(other._as_integer);
+      break;
+    case RATIONAL:
+      _as_rational = std::move(other._as_rational);
       break;
   }
 }
 
 Number &Number::operator=(Number const &other) {
-  if (this != &other) {
-    switch (other._type) {
-      case WHOLE:
-        _as_whole.reset(new Whole(*other._as_whole));
-        break;
-      case INTEGER:
-        _as_integer.reset(new Integer(*other._as_integer));
-        break;
-      case RATIONAL:
-        _as_rational.reset(new Rational(*other._as_rational));
-        break;
-    }
-    _type = other._type;
+  _type = other._type;
+  switch (_type) {
+    case WHOLE:
+      _as_whole = std::make_unique<Whole>(*other._as_whole);
+      break;
+    case INTEGER:
+      _as_integer = std::make_unique<Integer>(*other._as_integer);
+      break;
+    case RATIONAL:
+      _as_rational = std::make_unique<Rational>(*other._as_rational);
+      break;
   }
   return *this;
 }
 
-Number Number::operator+(const Number &other) {
-  if (_type != other._type) {
-    Number real_other(other);
-    convert_to_greater_type(*this, real_other);
-    return *this + real_other;
-  }
-  Number result(*this);
+Number &Number::operator=(Number &&other) {
+  _type = std::move(other._type);
   switch (_type) {
     case WHOLE:
-      *result._as_whole = *_as_whole + *other._as_whole;
+      _as_whole = std::move(other._as_whole);
       break;
     case INTEGER:
-      *result._as_integer = *_as_integer + *other._as_integer;
+      _as_integer = std::move(other._as_integer);
       break;
     case RATIONAL:
-      *result._as_rational = *_as_rational + *other._as_rational;
+      _as_rational = std::move(other._as_rational);
       break;
   }
-  return result;
+  return *this;
 }
 
-Number Number::operator*(const Number &other) {
-  if (_type != other._type) {
-    Number real_other(other);
-    convert_to_greater_type(*this, real_other);
-    return *this * real_other;
-  }
-  Number result(*this);
-  switch (_type) {
-    case WHOLE:
-      *result._as_whole = *_as_whole * *other._as_whole;
-      break;
-    case INTEGER:
-      *result._as_integer = *_as_integer * *other._as_integer;
-      break;
-    case RATIONAL:
-      *result._as_rational = *_as_rational * *other._as_rational;
-      break;
-  }
-  return result;
-}
-
-Number Number::operator/(const Number &other) {
+Number Number::operator/(const Number &other) const {
   if (_type != other._type || _type < RATIONAL) {
     Number real_other(other);
-    convert_to_minimal_type(*this, real_other, RATIONAL);
-    return *this / real_other;
+    Number real_this(*this);
+    convert_to_minimal_type(real_this, real_other, RATIONAL);
+    return real_this / real_other;
   }
   Number result(*this);
   *result._as_rational = *_as_rational / *other._as_rational;
   return result;
 }
 
-Number Number::operator-(const Number &other) {
+Number Number::operator-(const Number &other) const {
   if (_type != other._type || _type < INTEGER) {
     Number real_other(other);
-    convert_to_minimal_type(*this, real_other, INTEGER);
-    return *this - real_other;
+    Number real_this(*this);
+    convert_to_minimal_type(real_this, real_other, INTEGER);
+    return real_this - real_other;
   }
   Number result(*this);
   switch (_type) {
@@ -500,6 +496,44 @@ Number Number::operator-() {
       break;
   }
   return other;
+}
+
+Number &Number::operator+=(const Number &other) {
+  Number real_other(other);
+  if (_type != other._type) {
+    convert_to_greater_type(*this, real_other);
+  }
+  switch (_type) {
+    case WHOLE:
+      *_as_whole += *real_other._as_whole;
+      break;
+    case INTEGER:
+      *_as_integer = *_as_integer + *real_other._as_integer;
+      break;
+    case RATIONAL:
+      *_as_rational = *_as_rational + *real_other._as_rational;
+      break;
+  }
+  return *this;
+}
+
+Number &Number::operator*=(const Number &other) {
+  Number real_other(other);
+  if (_type != other._type) {
+    convert_to_greater_type(*this, real_other);
+  }
+  switch (_type) {
+    case WHOLE:
+      *_as_whole *= *real_other._as_whole;
+      break;
+    case INTEGER:
+      *_as_integer = *_as_integer * *real_other._as_integer;
+      break;
+    case RATIONAL:
+      *_as_rational = *_as_rational * *real_other._as_rational;
+      break;
+  }
+  return *this;
 }
 
 std::ostream &operator<<(std::ostream &out, const Number &number) {
@@ -535,5 +569,21 @@ bool operator==(const Number &l, const Number &r) { return !(l != r); }
 bool operator>=(const Number &l, const Number &r) { return l > r || l == r; }
 bool operator<(const Number &l, const Number &r) { return r > l; }
 bool operator<=(const Number &l, const Number &r) { return r >= l; }
+
+Whole operator/(Whole l, const Whole &r) {
+  Whole res;
+  while (l >= r) {
+    l = l - r;
+    res = res + 1;
+  }
+  return res;
+}
+
+Whole operator%(Whole l, const Whole &r) {
+  while (l >= r) {
+    l = l - r;
+  }
+  return l;
+}
 
 }  // namespace arty
