@@ -133,13 +133,7 @@ enum NumberType {
 class Number {
  private:
   NumberType _type;
-  std::unique_ptr<Whole> _as_whole;
-  std::unique_ptr<Integer> _as_integer;
   std::unique_ptr<Rational> _as_rational;
-
-  void upgrade_type();
-  static void convert_to_greater_type(Number& l, Number& r);
-  static void convert_to_minimal_type(Number& l, Number& r, NumberType type);
 
  public:
   Number(long integer);

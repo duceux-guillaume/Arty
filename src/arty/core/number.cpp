@@ -335,236 +335,73 @@ Rational operator-(const Rational &l) {
   return Rational(-l.numerator(), l.denominator());
 }
 
-void Number::upgrade_type() {
-  switch (_type) {
-    case WHOLE:
-      _type = INTEGER;
-      _as_integer = std::make_unique<Integer>(*_as_whole);
-      break;
-    case INTEGER:
-      _type = RATIONAL;
-      _as_rational = std::make_unique<Rational>(*_as_integer);
-      break;
-    case RATIONAL:
-      break;
-  }
-}
+Number::Number(long nominator, unsigned long denominator)
+    : _type(RATIONAL),
+      _as_rational(std::make_unique<Rational>(nominator, denominator)) {}
 
-void Number::convert_to_greater_type(Number &l, Number &r) {
-  while (l._type < r._type) {
-    l.upgrade_type();
-  }
-  while (r._type < l._type) {
-    r.upgrade_type();
-  }
-}
-
-void Number::convert_to_minimal_type(Number &l, Number &r, NumberType type) {
-  while (l._type < type) {
-    l.upgrade_type();
-  }
-  while (r._type < type) {
-    r.upgrade_type();
-  }
-  convert_to_greater_type(l, r);
-}
-
-Number::Number(long nominator, unsigned long denominator) {
-  _type = RATIONAL;
-  _as_rational.reset(new Rational(nominator, denominator));
-}
-
-Number::Number(long integer) {
-  if (integer >= 0) {
-    _type = WHOLE;
-    _as_whole.reset(new Whole(static_cast<unsigned long>(integer)));
-  } else {
-    _type = INTEGER;
-    _as_integer.reset(new Integer(static_cast<long>(integer)));
-  }
-}
+Number::Number(long integer)
+    : _type(RATIONAL),
+      _as_rational(std::make_unique<Rational>(Integer(integer))) {}
 
 Number::Number()
-    : _type(WHOLE),
-      _as_whole(std::make_unique<Whole>()),
-      _as_integer(),
-      _as_rational() {}
+    : _type(RATIONAL), _as_rational(std::make_unique<Rational>()) {}
 
 Number::Number(const Number &other) : Number() {
   _type = other._type;
-  switch (_type) {
-    case WHOLE:
-      _as_whole = std::make_unique<Whole>(*other._as_whole);
-      break;
-    case INTEGER:
-      _as_integer = std::make_unique<Integer>(*other._as_integer);
-      break;
-    case RATIONAL:
-      _as_rational = std::make_unique<Rational>(*other._as_rational);
-      break;
-  }
+  _as_rational = std::make_unique<Rational>(*other._as_rational);
 }
 
 Number::Number(Number &&other) {
   _type = std::move(other._type);
-  switch (_type) {
-    case WHOLE:
-      _as_whole = std::move(other._as_whole);
-      break;
-    case INTEGER:
-      _as_integer = std::move(other._as_integer);
-      break;
-    case RATIONAL:
-      _as_rational = std::move(other._as_rational);
-      break;
-  }
+  _as_rational = std::move(other._as_rational);
 }
 
 Number &Number::operator=(Number const &other) {
   _type = other._type;
-  switch (_type) {
-    case WHOLE:
-      _as_whole = std::make_unique<Whole>(*other._as_whole);
-      break;
-    case INTEGER:
-      _as_integer = std::make_unique<Integer>(*other._as_integer);
-      break;
-    case RATIONAL:
-      _as_rational = std::make_unique<Rational>(*other._as_rational);
-      break;
-  }
+  _as_rational = std::make_unique<Rational>(*other._as_rational);
   return *this;
 }
 
 Number &Number::operator=(Number &&other) {
   _type = std::move(other._type);
-  switch (_type) {
-    case WHOLE:
-      _as_whole = std::move(other._as_whole);
-      break;
-    case INTEGER:
-      _as_integer = std::move(other._as_integer);
-      break;
-    case RATIONAL:
-      _as_rational = std::move(other._as_rational);
-      break;
-  }
+  _as_rational = std::move(other._as_rational);
   return *this;
 }
 
 Number Number::operator/(const Number &other) const {
-  if (_type != other._type || _type < RATIONAL) {
-    Number real_other(other);
-    Number real_this(*this);
-    convert_to_minimal_type(real_this, real_other, RATIONAL);
-    return real_this / real_other;
-  }
   Number result(*this);
   *result._as_rational = *_as_rational / *other._as_rational;
   return result;
 }
 
 Number Number::operator-(const Number &other) const {
-  if (_type != other._type || _type < INTEGER) {
-    Number real_other(other);
-    Number real_this(*this);
-    convert_to_minimal_type(real_this, real_other, INTEGER);
-    return real_this - real_other;
-  }
   Number result(*this);
-  switch (_type) {
-    default:
-    case INTEGER:
-      *result._as_integer = *_as_integer - *other._as_integer;
-      break;
-    case RATIONAL:
-      *result._as_rational = *_as_rational - *other._as_rational;
-      break;
-  }
+  *result._as_rational = *_as_rational - *other._as_rational;
   return result;
 }
 
 Number Number::operator-() {
   Number other(*this);
-  if (other._type < INTEGER) {
-    other.upgrade_type();
-  }
-  switch (other._type) {
-    default:
-    case INTEGER:
-      *other._as_integer = -*other._as_integer;
-      break;
-    case RATIONAL:
-      *other._as_rational = -*other._as_rational;
-      break;
-  }
+  *other._as_rational = -*other._as_rational;
   return other;
 }
 
 Number &Number::operator+=(const Number &other) {
-  Number real_other(other);
-  if (_type != other._type) {
-    convert_to_greater_type(*this, real_other);
-  }
-  switch (_type) {
-    case WHOLE:
-      *_as_whole += *real_other._as_whole;
-      break;
-    case INTEGER:
-      *_as_integer = *_as_integer + *real_other._as_integer;
-      break;
-    case RATIONAL:
-      *_as_rational = *_as_rational + *real_other._as_rational;
-      break;
-  }
+  *_as_rational = *_as_rational + *other._as_rational;
   return *this;
 }
 
 Number &Number::operator*=(const Number &other) {
-  Number real_other(other);
-  if (_type != other._type) {
-    convert_to_greater_type(*this, real_other);
-  }
-  switch (_type) {
-    case WHOLE:
-      *_as_whole *= *real_other._as_whole;
-      break;
-    case INTEGER:
-      *_as_integer = *_as_integer * *real_other._as_integer;
-      break;
-    case RATIONAL:
-      *_as_rational = *_as_rational * *real_other._as_rational;
-      break;
-  }
+  *_as_rational = *_as_rational * *other._as_rational;
   return *this;
 }
 
 std::ostream &operator<<(std::ostream &out, const Number &number) {
-  switch (number._type) {
-    case WHOLE:
-      return out << *number._as_whole;
-    case INTEGER:
-      return out << *number._as_integer;
-    case RATIONAL:
-      return out << *number._as_rational;
-  }
+  return out << *number._as_rational;
 }
 
 bool operator>(const Number &l, const Number &r) {
-  if (l._type != r._type) {
-    Number real_r(r);
-    Number real_l(l);
-    Number::convert_to_greater_type(real_l, real_r);
-    return real_l > real_r;
-  }
-  switch (l._type) {
-    case WHOLE:
-      return *l._as_whole > *r._as_whole;
-    case INTEGER:
-      return *l._as_integer > *r._as_integer;
-    case RATIONAL:
-      return *l._as_rational > *r._as_rational;
-  }
+  return *l._as_rational > *r._as_rational;
 }
 
 bool operator!=(const Number &l, const Number &r) { return l > r || r > l; }
