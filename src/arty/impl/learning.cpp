@@ -9,12 +9,8 @@ Perceptron::Perceptron(const size_t &input_size, const size_t &output_size)
 
 Matrix Perceptron::predict(const Matrix &input) {
   Matrix h = _weights * input + _bias;
-  for (size_t i = 0; i < h.dim().rows(); ++i) {
-    if (h(i, 0) > 0) {
-      h(i, 0) = 1;
-    } else {
-      h(i, 0) = 0;
-    }
+  for (auto &number : h.values()) {
+    number = (number > 0) ? 1 : 0;
   }
   return h;
 }
@@ -26,7 +22,7 @@ void Perceptron::learn(const Matrix &input, const Matrix &target) {
   assert(error.dim().rows() > 0);
   for (size_t i = 0; i < _weights.dim().rows(); ++i) {
     for (size_t j = 0; j < _weights.dim().cols(); ++j) {
-      _weights(i, j) = _weights(i, j) + error(i, 0) * input(i, 0) * _lrate;
+      _weights(i, j) = _weights(i, j) + error(j, 0) * input(i, 0) * _lrate;
     }
   }
   _bias += error * _lrate;

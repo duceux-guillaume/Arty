@@ -32,8 +32,15 @@ Matrix &Matrix::operator*=(const Number &other) {
   return *this;
 }
 
+Matrix &Matrix::operator+=(const Number &other) {
+  for (auto &nb : _values) {
+    nb += other;
+  }
+  return *this;
+}
+
 Matrix &Matrix::operator+=(const Matrix &rhs) {
-  assert(_dim == other._dim);
+  assert(_dim == rhs._dim);
   auto this_it = _values.begin();
   const auto this_end = _values.end();
   auto other_it = rhs._values.begin();
@@ -43,13 +50,18 @@ Matrix &Matrix::operator+=(const Matrix &rhs) {
   return *this;
 }
 
-Matrix Matrix::operator*(const Matrix &other) const {
-  assert(_dim.cols() == other._dim.rows());
-  Matrix res(_dim.rows(), other._dim.cols());
-  for (size_t i = 0; i < res._dim.rows(); ++i) {
-    for (size_t j = 0; j < res._dim.cols(); ++j) {
-      for (size_t step = 0; step < res._dim.rows(); ++step) {
-        res(i, j) = res(i, j) + (*this)(i, step) * other(step, j);
+Matrix Matrix::operator*(const Matrix &rhs) const {
+  assert(_dim.cols() == rhs._dim.rows());
+  Matrix other = rhs.transposed();
+  const size_t rows = _dim.rows();
+  const size_t this_cols = _dim.cols();
+  const size_t cols = rhs._dim.cols();
+  Matrix res(rows, cols);
+  for (size_t i = 0; i < rows; ++i) {
+    for (size_t j = 0; j < cols; ++j) {
+      for (size_t step = 0; step < this_cols; ++step) {
+        res(i, j) +=
+            _values[i * this_cols + step] * other._values[j * this_cols + step];
       }
     }
   }
@@ -62,6 +74,16 @@ Matrix Matrix::operator-(const Matrix &other) const {
   for (std::size_t i = 0; i < _dim.rows(); ++i) {
     for (std::size_t j = 0; j < _dim.cols(); ++j) {
       res(i, j) = (*this)(i, j) - other(i, j);
+    }
+  }
+  return res;
+}
+
+Matrix Matrix::transposed() const {
+  Matrix res(_dim.cols(), _dim.rows());
+  for (std::size_t i = 0; i < _dim.rows(); ++i) {
+    for (std::size_t j = 0; j < _dim.cols(); ++j) {
+      res(j, i) = (*this)(i, j);
     }
   }
   return res;

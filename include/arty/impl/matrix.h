@@ -23,12 +23,16 @@ class Dimension {
 };
 
 class Matrix {
+ public:
+  using number_t = Number;
+  using storage_t = std::vector<Number>;
+
  private:
   Dimension _dim;
-  std::vector<Number> _values;
+  storage_t _values;
 
  public:
-  Matrix(size_t const& row);
+  explicit Matrix(size_t const& row);
   Matrix(size_t const& row, size_t const& col);
   Matrix(Dimension const& dim);
 
@@ -36,6 +40,7 @@ class Matrix {
   Number& operator()(size_t const& row, size_t const& col);
 
   Matrix& operator*=(Number const& other);
+  Matrix& operator+=(Number const& other);
 
   Matrix& operator+=(Matrix const& rhs);
 
@@ -43,6 +48,11 @@ class Matrix {
   Matrix operator-(Matrix const& other) const;
 
   Dimension const& dim() const { return _dim; }
+
+  storage_t const& values() const { return _values; }
+  storage_t& values() { return _values; }
+
+  Matrix transposed() const;
 };
 
 inline const Matrix operator*(Matrix l, Number const& r) {
