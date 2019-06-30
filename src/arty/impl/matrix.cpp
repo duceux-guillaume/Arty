@@ -24,6 +24,24 @@ Number &Matrix::operator()(const size_t &row, const size_t &col) {
   return _values[row * _dim.cols() + col];
 }
 
+Matrix &Matrix::operator*=(const Number &other) {
+  const auto it_end = _values.end();
+  for (auto it = _values.begin(); it != it_end; ++it) {
+    *it *= other;
+  }
+  return *this;
+}
+
+Matrix &Matrix::operator+=(const Matrix &rhs) {
+  assert(_dim == other._dim);
+  for (std::size_t i = 0; i < _dim.rows(); ++i) {
+    for (std::size_t j = 0; j < _dim.cols(); ++j) {
+      (*this)(i, j) += rhs(i, j);
+    }
+  }
+  return *this;
+}
+
 Matrix Matrix::operator*(const Matrix &other) const {
   assert(_dim.cols() == other._dim.rows());
   Matrix res(_dim.rows(), other._dim.cols());
@@ -32,17 +50,6 @@ Matrix Matrix::operator*(const Matrix &other) const {
       for (size_t step = 0; step < res._dim.rows(); ++step) {
         res(i, j) = res(i, j) + (*this)(i, step) * other(step, j);
       }
-    }
-  }
-  return res;
-}
-
-Matrix Matrix::operator+(const Matrix &other) const {
-  assert(_dim == other._dim);
-  Matrix res(_dim);
-  for (std::size_t i = 0; i < _dim.rows(); ++i) {
-    for (std::size_t j = 0; j < _dim.cols(); ++j) {
-      res(i, j) = (*this)(i, j) + other(i, j);
     }
   }
   return res;

@@ -29,9 +29,7 @@ void Perceptron::learn(const Matrix &input, const Matrix &target) {
       _weights(i, j) = _weights(i, j) + error(i, 0) * input(i, 0) * _lrate;
     }
   }
-  for (size_t i = 0; i < _bias.dim().rows(); ++i) {
-    _bias(i, 0) = _bias(i, 0) + error(i, 0) * _lrate;
-  }
+  _bias += error * _lrate;
 }
 
 Matrix char_to_matrix(char c) {
