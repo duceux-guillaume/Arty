@@ -32,8 +32,11 @@ void Whole::set_digit(size_t pos, Whole::digit_t digit) {
 }
 
 Whole Whole::gcd(const Whole &l, const Whole &r) {
-  if (r == 0) {
+  if (r.is_zero()) {
     return l;
+  }
+  if (r.is_one()) {
+    return r;
   }
   if (l == r) {
     return l;
@@ -269,13 +272,26 @@ Rational::Rational(Integer const &num, Whole const &den)
   simplify();
 }
 
+Rational &Rational::operator+=(const Rational &rhs) {
+  _num = _num * rhs._den + rhs._num * _den;
+  _den *= rhs._den;
+  simplify();
+  return *this;
+}
+
+Rational &Rational::operator*=(const Rational &rhs) {
+  _num = _num * rhs._num;
+  _den *= rhs._den;
+  simplify();
+  return *this;
+}
+
 void Rational::simplify() {
-  bool neg = _num.neg();
-  Whole tmp = Whole::gcd(_num.val(), _den);
-  _num = _num.val() / tmp;
-  if (neg) {
-    _num = -_num;
+  if (is_integer()) {
+    return;
   }
+  Whole tmp = Whole::gcd(_num.val(), _den);
+  _num.val() = _num.val() / tmp;
   _den = _den / tmp;
 }
 
@@ -306,17 +322,6 @@ bool operator<=(const Rational &l, const Rational &r) {
   return (l < r) || (l == r);
 }
 
-Rational operator+(const Rational &l, const Rational &r) {
-  return Rational(l.numerator() * Integer(r.denominator()) +
-                      Integer(l.denominator()) * r.numerator(),
-                  l.denominator() * r.denominator());
-}
-
-Rational operator*(const Rational &l, const Rational &r) {
-  return Rational(l.numerator() * r.numerator(),
-                  l.denominator() * r.denominator());
-}
-
 Rational operator/(const Rational &l, const Rational &r) {
   Rational inv(r.denominator(), r.numerator().val());
   if (r.numerator().neg()) {
@@ -336,73 +341,59 @@ Rational operator-(const Rational &l) {
 }
 
 Number::Number(long nominator, unsigned long denominator)
-    : _type(RATIONAL),
-      _as_rational(std::make_unique<Rational>(nominator, denominator)) {}
+    : _num(nominator, denominator) {}
 
-Number::Number(long integer)
-    : _type(RATIONAL),
-      _as_rational(std::make_unique<Rational>(Integer(integer))) {}
+Number::Number(long integer) : _num(Integer(integer)) {}
 
-Number::Number()
-    : _type(RATIONAL), _as_rational(std::make_unique<Rational>()) {}
+Number::Number() : _num() {}
 
-Number::Number(const Number &other) : Number() {
-  _type = other._type;
-  _as_rational = std::make_unique<Rational>(*other._as_rational);
-}
+Number::Number(const Number &other) : _num(other._num) {}
 
-Number::Number(Number &&other) {
-  _type = std::move(other._type);
-  _as_rational = std::move(other._as_rational);
-}
+Number::Number(Number &&other) : _num(std::move(other._num)) {}
 
 Number &Number::operator=(Number const &other) {
-  _type = other._type;
-  _as_rational = std::make_unique<Rational>(*other._as_rational);
+  _num = other._num;
   return *this;
 }
 
 Number &Number::operator=(Number &&other) {
-  _type = std::move(other._type);
-  _as_rational = std::move(other._as_rational);
+  _num = std::move(other._num);
   return *this;
 }
 
 Number Number::operator/(const Number &other) const {
   Number result(*this);
-  *result._as_rational = *_as_rational / *other._as_rational;
+  result._num = _num / other._num;
   return result;
 }
 
 Number Number::operator-(const Number &other) const {
   Number result(*this);
-  *result._as_rational = *_as_rational - *other._as_rational;
+  result._num = _num - other._num;
   return result;
 }
 
 Number Number::operator-() {
   Number other(*this);
-  *other._as_rational = -*other._as_rational;
+  other._num = -other._num;
   return other;
 }
 
 Number &Number::operator+=(const Number &other) {
-  *_as_rational = *_as_rational + *other._as_rational;
+  _num += other._num;
   return *this;
 }
 
 Number &Number::operator*=(const Number &other) {
-  *_as_rational = *_as_rational * *other._as_rational;
+  _num *= other._num;
   return *this;
 }
 
 std::ostream &operator<<(std::ostream &out, const Number &number) {
-  return out << *number._as_rational;
+  return out << number._num;
 }
 
-bool operator>(const Number &l, const Number &r) {
-  return *l._as_rational > *r._as_rational;
-}
+bool operator>(const Number &l, const Number &r) { return l._num > r._num; }
 
 bool operator!=(const Number &l, const Number &r) { return l > r || r > l; }
 bool operator==(const Number &l, const Number &r) { return !(l != r); }

@@ -29,13 +29,12 @@ class Whole {
   Whole& operator+=(Whole const& rhs);
   Whole& operator*=(Whole const& rhs);
 
+  bool is_zero() const { return _digits.size() == 1 && _digits[0] == 0; }
+  bool is_one() const { return _digits.size() == 1 && _digits[0] == 1; }
+
  protected:
   digit_t _base;
   storage_t _digits;
-
- private:
-  bool is_zero() const { return _digits.size() == 1 && _digits[0] == 0; }
-  bool is_one() const { return _digits.size() == 1 && _digits[0] == 1; }
 };
 
 inline const Whole operator+(Whole l, Whole const& r) {
@@ -69,6 +68,7 @@ class Integer {
 
   bool neg() const { return _neg; }
   Whole const& val() const { return _val; }
+  Whole& val() { return _val; }
 
   friend Integer operator-(Integer const& l);
   friend Integer operator-(const Integer& l, const Integer& r);
@@ -102,6 +102,11 @@ class Rational {
   Integer numerator() const { return _num; }
   Whole denominator() const { return _den; }
 
+  Rational& operator+=(Rational const& rhs);
+  Rational& operator*=(Rational const& rhs);
+
+  bool is_integer() const { return _den.is_one(); }
+
  private:
   void simplify();
 
@@ -118,8 +123,14 @@ bool operator<(Rational const& l, Rational const& r);
 bool operator>=(Rational const& l, Rational const& r);
 bool operator<=(Rational const& l, Rational const& r);
 
-Rational operator+(Rational const& l, Rational const& r);
-Rational operator*(Rational const& l, Rational const& r);
+inline const Rational operator+(Rational l, Rational const& r) {
+  l += r;
+  return l;
+}
+inline const Rational operator*(Rational l, Rational const& r) {
+  l *= r;
+  return l;
+}
 Rational operator/(Rational const& l, Rational const& r);
 Rational operator-(Rational const& l, Rational const& r);
 Rational operator-(Rational const& l);
@@ -128,12 +139,12 @@ enum NumberType {
   WHOLE,
   INTEGER,
   RATIONAL,
+  IRRATIONAL,
 };
 
 class Number {
  private:
-  NumberType _type;
-  std::unique_ptr<Rational> _as_rational;
+  Rational _num;
 
  public:
   Number(long integer);
