@@ -60,18 +60,22 @@ bool operator==(Whole const& l, Whole const& r);
 bool operator>=(Whole const& l, Whole const& r);
 bool operator<=(Whole const& l, Whole const& r);
 
-class Integer : public Whole {
+class Integer {
  public:
   Integer() : Integer(0) {}
-  Integer(Whole number) : Whole(std::move(number)), _neg(false) {}
+  Integer(Whole number) : Integer(false, std::move(number)) {}
+  Integer(bool neg, Whole number) : _neg(neg), _val(std::move(number)) {}
   Integer(long integer);
 
   bool neg() const { return _neg; }
+  Whole const& val() const { return _val; }
 
   friend Integer operator-(Integer const& l);
+  friend Integer operator-(const Integer& l, const Integer& r);
 
  protected:
   bool _neg;
+  Whole _val;
 };
 
 Integer operator-(Integer const& l);

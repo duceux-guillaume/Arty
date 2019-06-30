@@ -144,22 +144,22 @@ Whole operator-(const Whole &l, const Whole &r) {
 Integer operator-(const Integer &l, const Integer &r) {
   // l >= r >= 0
   if (!r.neg() && l >= r) {
-    return Whole(l) - Whole(r);
+    return Integer(false, l._val - r._val);
   }
   // r >= l >= 0
   if (!l.neg() && r >= l) {
-    return -(Whole(r) - Whole(l));
+    return Integer(true, r._val - l._val);
   }
   // l < 0 <= r
   if (l.neg() && !r.neg()) {
-    return -(Whole(l) + Whole(r));
+    return Integer(true, r._val + l._val);
   }
   // l >= 0 > r
   if (r.neg() && !l.neg()) {
-    return Whole(l) + Whole(r);
+    return Integer(false, l._val + r._val);
   }
   // l < 0 && r < 0
-  return -Integer(Whole(l) + Whole(r));
+  return Integer(true, r._val + l._val);
 }
 
 bool operator>(const Whole &l, const Whole &r) {
@@ -184,7 +184,7 @@ std::ostream &operator<<(std::ostream &out, const Integer &i) {
   if (i.neg()) {
     out << "-";
   }
-  return out << Whole(i);
+  return out << i.val();
 }
 
 bool operator!=(const Whole &l, const Whole &r) { return (l > r) || (r > l); }
@@ -204,20 +204,20 @@ Integer operator-(const Integer &l) {
 }
 
 bool operator==(const Integer &l, const Integer &r) {
-  return (l.neg() == r.neg()) && (Whole(l) == Whole(r));
+  return (l.neg() == r.neg()) && l.val() == r.val();
 }
 
 bool operator!=(const Integer &l, const Integer &r) { return !(l == r); }
 
 Integer operator+(const Integer &l, const Integer &r) {
   if (!l.neg() && !r.neg()) {
-    return Whole(l) + Whole(r);
+    return Integer(false, l.val() + r.val());
   }
   if (l.neg() && !r.neg()) {
     return r + l;
   }
   if (l.neg() && r.neg()) {
-    return -(l + r);
+    return -l - r;
   }
   // l >= 0 && r < 0 => l + (-r) == l - r
   return l - (-r);
@@ -225,7 +225,7 @@ Integer operator+(const Integer &l, const Integer &r) {
 
 bool operator>(const Integer &l, const Integer &r) {
   if (l.neg() && r.neg()) {
-    return Whole(r) > Whole(l);
+    return r.val() > l.val();
   }
   if (l.neg() && !r.neg()) {
     return false;
@@ -234,7 +234,7 @@ bool operator>(const Integer &l, const Integer &r) {
     return true;
   }
   // if (!l.neg() && !r.neg())
-  return Whole(l) > Whole(r);
+  return l.val() > r.val();
 }
 
 bool operator<(const Integer &l, const Integer &r) {
@@ -249,23 +249,19 @@ bool operator<=(const Integer &l, const Integer &r) {
   return (l < r) || (l == r);
 }
 
-Integer::Integer(long integer) : Whole(), _neg(false) {
+Integer::Integer(long integer) : _neg(false), _val() {
   if (integer < 0) {
     _neg = true;
     integer = -integer;
   }
-  _digits.clear();
-  do {
-    _digits.emplace_back(static_cast<uint8_t>(integer % _base));
-    integer /= _base;
-  } while (integer != 0);
+  _val = Whole(static_cast<unsigned long>(integer));
 }
 
 Integer operator*(const Integer &l, const Integer &r) {
   if (l.neg() ^ r.neg()) {
-    return -Integer(Whole(l) * Whole(r));
+    return Integer(true, l.val() * r.val());
   }
-  return Whole(l) * Whole(r);
+  return Integer(false, l.val() * r.val());
 }
 
 Rational::Rational(Integer const &num, Whole const &den)
@@ -275,8 +271,8 @@ Rational::Rational(Integer const &num, Whole const &den)
 
 void Rational::simplify() {
   bool neg = _num.neg();
-  Whole tmp = Whole::gcd(_num, _den);
-  _num = _num / tmp;
+  Whole tmp = Whole::gcd(_num.val(), _den);
+  _num = _num.val() / tmp;
   if (neg) {
     _num = -_num;
   }
@@ -322,7 +318,7 @@ Rational operator*(const Rational &l, const Rational &r) {
 }
 
 Rational operator/(const Rational &l, const Rational &r) {
-  Rational inv(r.denominator(), r.numerator());
+  Rational inv(r.denominator(), r.numerator().val());
   if (r.numerator().neg()) {
     inv = inv * Rational(-1, 1);
   }
