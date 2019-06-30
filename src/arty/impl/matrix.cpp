@@ -34,10 +34,11 @@ Matrix &Matrix::operator*=(const Number &other) {
 
 Matrix &Matrix::operator+=(const Matrix &rhs) {
   assert(_dim == other._dim);
-  for (std::size_t i = 0; i < _dim.rows(); ++i) {
-    for (std::size_t j = 0; j < _dim.cols(); ++j) {
-      (*this)(i, j) += rhs(i, j);
-    }
+  auto this_it = _values.begin();
+  const auto this_end = _values.end();
+  auto other_it = rhs._values.begin();
+  for (; this_it != this_end; ++this_it, ++other_it) {
+    *this_it += *other_it;
   }
   return *this;
 }
