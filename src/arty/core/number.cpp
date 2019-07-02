@@ -31,20 +31,17 @@ void Whole::set_digit(size_t pos, Whole::digit_t digit) {
   }
 }
 
-Whole Whole::gcd(const Whole &l, const Whole &r) {
-  if (r.is_zero()) {
-    return l;
+Whole Whole::gcd(Whole const &a, const Whole &b) {
+  assert(!b.is_zero());
+  Whole r(b);
+  Whole old_r(a);
+  Whole prov;
+  while (!r.is_zero()) {
+    prov = r;
+    r = old_r % r;
+    old_r = prov;
   }
-  if (r.is_one()) {
-    return r;
-  }
-  if (l == r) {
-    return l;
-  }
-  if (l > r) {
-    return gcd(l - r, r);
-  }
-  return gcd(r, r - l);
+  return old_r;
 }
 
 Whole &Whole::operator+=(Whole const &rhs) {
@@ -83,7 +80,8 @@ Whole &Whole::operator+=(Whole const &rhs) {
 Whole &Whole::operator*=(const Whole &r) {
   // early out
   if (is_zero() || r.is_zero()) {
-    *this = Whole();
+    _digits.clear();
+    _digits.emplace_back(0);
     return *this;
   }
   if (is_one()) {
@@ -95,11 +93,12 @@ Whole &Whole::operator*=(const Whole &r) {
   }
 
   Whole res;
+  Whole tmp;
   const size_t right_size = r._digits.size();
+  const size_t left_size = _digits.size();
   for (std::size_t i = 0; i < right_size; ++i) {
-    Whole tmp;
+    tmp.set_to(0);
     uint8_t carry = 0;
-    const size_t left_size = _digits.size();
     for (std::size_t j = 0; j < left_size; ++j) {
       Whole::digit_t dig = r._digits[i] * _digits[j] + carry;
       carry = dig / _base;
@@ -115,6 +114,49 @@ Whole &Whole::operator*=(const Whole &r) {
   return *this;
 }
 
+Whole &Whole::operator/=(const Whole &rhs) {
+  Whole cpy(*this);
+  _digits.clear();
+  _digits.push_back(0);
+  while (cpy >= rhs) {
+    cpy -= rhs;
+    *this += 1;
+  }
+  return *this;
+}
+
+Whole &Whole::operator-=(const Whole &rhs) {
+  if (*this <= rhs) {
+    _digits.clear();
+    _digits.push_back(0);
+    return *this;
+  }
+  digit_t carry = 0;
+  for (std::size_t i = 0; i < _digits.size(); ++i) {
+    digit_t ld = _digits[i];
+    digit_t rd = carry;
+    if (i < rhs._digits.size()) {
+      rd += rhs._digits[i];
+    } else if (rd == 0) {
+      // operation is over, we have exhausted all digit and carry to substract
+      break;
+    }
+    if (ld < rd) {
+      ld += _base;
+      carry = 1;
+    } else {
+      carry = 0;
+    }
+    digit_t mod = ld - rd;
+    _digits[i] = mod;
+  }
+  // clean up in case we are left with a bunch of trailing zeros
+  while (_digits.size() > 0 && _digits.back() == 0) {
+    _digits.pop_back();
+  }
+  return *this;
+}
+
 std::ostream &operator<<(std::ostream &out, const Whole &i) {
   if (i.length() == 0) {
     return out << '0';
@@ -125,64 +167,6 @@ std::ostream &operator<<(std::ostream &out, const Whole &i) {
   return out;
 }
 
-Whole operator-(const Whole &l, const Whole &r) {
-  if (l < r) {
-    return Whole();
-  }
-  Whole res;
-  uint8_t carry = 0;
-  for (std::size_t i = 0; i < l.length(); ++i) {
-    uint8_t ld = l.digit(i);
-    uint8_t rd = r.digit(i) + carry;
-    if (ld < rd) {
-      ld += res.base();
-      carry = 1;
-    }
-    uint8_t mod = ld - rd;
-    res.set_digit(i, mod);
-  }
-  return res;
-}
-
-Integer operator-(const Integer &l, const Integer &r) {
-  // l >= r >= 0
-  if (!r.neg() && l >= r) {
-    return Integer(false, l._val - r._val);
-  }
-  // r >= l >= 0
-  if (!l.neg() && r >= l) {
-    return Integer(true, r._val - l._val);
-  }
-  // l < 0 <= r
-  if (l.neg() && !r.neg()) {
-    return Integer(true, r._val + l._val);
-  }
-  // l >= 0 > r
-  if (r.neg() && !l.neg()) {
-    return Integer(false, l._val + r._val);
-  }
-  // l < 0 && r < 0
-  return Integer(true, r._val + l._val);
-}
-
-bool operator>(const Whole &l, const Whole &r) {
-  if (l.length() > r.length()) {
-    return true;
-  }
-  if (l.length() < r.length()) {
-    return false;
-  }
-  for (auto it = l.rbegin(), it2 = r.rbegin(); it != l.rend(); ++it, ++it2) {
-    if (*it > *it2) {
-      return true;
-    }
-    if (*it < *it2) {
-      return false;
-    }
-  }
-  return false;
-}
-
 std::ostream &operator<<(std::ostream &out, const Integer &i) {
   if (i.neg()) {
     out << "-";
@@ -190,41 +174,31 @@ std::ostream &operator<<(std::ostream &out, const Integer &i) {
   return out << i.val();
 }
 
-bool operator!=(const Whole &l, const Whole &r) { return (l > r) || (r > l); }
+bool operator!=(const Whole &l, const Whole &r) { return !(l == r); }
 
 bool operator<(const Whole &l, const Whole &r) { return !(l > r) && (l != r); }
 
-bool operator==(const Whole &l, const Whole &r) { return !(l != r); }
+bool operator==(const Whole &l, const Whole &r) {
+  if (l.length() != r.length()) {
+    return false;
+  }
+  for (auto it = l.rbegin(), it2 = r.rbegin(); it != l.rend(); ++it, ++it2) {
+    if (*it != *it2) {
+      return false;
+    }
+  }
+  return true;
+}
 
 bool operator>=(const Whole &l, const Whole &r) { return (l > r) || (l == r); }
 
 bool operator<=(const Whole &l, const Whole &r) { return (l < r) || (l == r); }
-
-Integer operator-(const Integer &l) {
-  Integer r = l;
-  r._neg = !r._neg;
-  return r;
-}
 
 bool operator==(const Integer &l, const Integer &r) {
   return (l.neg() == r.neg()) && l.val() == r.val();
 }
 
 bool operator!=(const Integer &l, const Integer &r) { return !(l == r); }
-
-Integer operator+(const Integer &l, const Integer &r) {
-  if (!l.neg() && !r.neg()) {
-    return Integer(false, l.val() + r.val());
-  }
-  if (l.neg() && !r.neg()) {
-    return r + l;
-  }
-  if (l.neg() && r.neg()) {
-    return -l - r;
-  }
-  // l >= 0 && r < 0 => l + (-r) == l - r
-  return l - (-r);
-}
 
 bool operator>(const Integer &l, const Integer &r) {
   if (l.neg() && r.neg()) {
@@ -260,11 +234,94 @@ Integer::Integer(long integer) : _neg(false), _val() {
   _val = Whole(static_cast<unsigned long>(integer));
 }
 
-Integer operator*(const Integer &l, const Integer &r) {
-  if (l.neg() ^ r.neg()) {
-    return Integer(true, l.val() * r.val());
+Integer &Integer::operator*=(const Integer &r) {
+  _neg ^= r._neg;
+  _val *= r._val;
+  return *this;
+}
+
+Integer &Integer::operator+=(const Integer &rhs) {
+  if (!_neg && !rhs._neg) {
+    _val += rhs._val;
+    return *this;
   }
-  return Integer(false, l.val() * r.val());
+  if (_neg && !rhs._neg) {
+    if (rhs._val >= _val) {
+      _neg = false;
+      _val = rhs._val - _val;
+    } else {
+      _val -= rhs._val;
+    }
+    return *this;
+  }
+  if (_neg && rhs._neg) {
+    _val += rhs._neg;
+    return *this;
+  }
+  // l >= 0 && r < 0 => l + (-r) == l - r
+  if (_val >= rhs._val) {
+    _val -= rhs._val;
+  } else {
+    _neg = true;
+    _val = rhs._val - _val;
+  }
+  return *this;
+}
+
+Integer &Integer::operator-=(const Integer &r) {
+  // l >= r >= 0
+  if (!r._neg && *this >= r) {
+    _val -= r._val;
+    return *this;
+  }
+  // r > l >= 0
+  if (!_neg && r > *this) {
+    _val = r._val - _val;
+    _neg = true;
+    return *this;
+  }
+  // l < 0 <= r
+  if (_neg && !r._neg) {
+    _val += r._val;
+    return *this;
+  }
+  // l >= 0 > r
+  if (r._neg && !_neg) {
+    _val += r._val;
+    return *this;
+  }
+  // l < r < 0
+  if (r > *this && r._neg) {
+    _val -= r._val;
+    return *this;
+  }
+  // r <= l < 0
+  _neg = false;
+  _val = r._val - _val;
+  return *this;
+}
+
+bool operator>(const Whole &l, const Whole &r) {
+  if (l.length() > r.length()) {
+    return true;
+  }
+  if (l.length() < r.length()) {
+    return false;
+  }
+  for (auto it = l.rbegin(), it2 = r.rbegin(); it != l.rend(); ++it, ++it2) {
+    if (*it > *it2) {
+      return true;
+    }
+    if (*it < *it2) {
+      return false;
+    }
+  }
+  return false;
+}
+
+Integer &Integer::operator-() {
+  _neg = !_neg;
+  return *this;
 }
 
 Rational::Rational(Integer const &num, Whole const &den)
@@ -273,9 +330,13 @@ Rational::Rational(Integer const &num, Whole const &den)
 }
 
 Rational &Rational::operator+=(const Rational &rhs) {
-  _num = _num * rhs._den + rhs._num * _den;
-  _den *= rhs._den;
-  simplify();
+  if (_den != rhs._den) {
+    _num = _num * rhs._den + rhs._num * _den;
+    _den *= rhs._den;
+    simplify();
+  } else {
+    _num += rhs._num;
+  }
   return *this;
 }
 
@@ -287,12 +348,21 @@ Rational &Rational::operator*=(const Rational &rhs) {
 }
 
 void Rational::simplify() {
+  if (is_zero()) {
+    if (!_den.is_one()) {
+      _den.set_to(1);
+    }
+    return;
+  }
   if (is_integer()) {
     return;
   }
   Whole tmp = Whole::gcd(_num.val(), _den);
-  _num.val() = _num.val() / tmp;
-  _den = _den / tmp;
+  if (tmp.is_one()) {
+    return;
+  }
+  _num.val() /= tmp;
+  _den /= tmp;
 }
 
 std::ostream &operator<<(std::ostream &out, const Rational &i) {
@@ -322,22 +392,27 @@ bool operator<=(const Rational &l, const Rational &r) {
   return (l < r) || (l == r);
 }
 
-Rational operator/(const Rational &l, const Rational &r) {
-  Rational inv(r.denominator(), r.numerator().val());
-  if (r.numerator().neg()) {
-    inv = inv * Rational(-1, 1);
+Rational &Rational::operator/=(Rational const &r) {
+  assert(!r.is_zero());
+  _num *= r._den;
+  _den *= r._num.val();
+  return *this;
+}
+
+Rational &Rational::operator-=(const Rational &rhs) {
+  if (_den == rhs._den) {
+    _num -= rhs._num;
+  } else {
+    _num = _num * rhs._den - rhs._num * _den;
+    _den *= rhs._den;
+    simplify();
   }
-  return l * inv;
+  return *this;
 }
 
-Rational operator-(const Rational &l, const Rational &r) {
-  return Rational(l.numerator() * Integer(r.denominator()) -
-                      Integer(l.denominator()) * r.numerator(),
-                  l.denominator() * r.denominator());
-}
-
-Rational operator-(const Rational &l) {
-  return Rational(-l.numerator(), l.denominator());
+Rational &Rational::operator-() {
+  _num = -_num;
+  return *this;
 }
 
 Number::Number(long nominator, unsigned long denominator)
@@ -373,10 +448,9 @@ Number Number::operator-(const Number &other) const {
   return result;
 }
 
-Number Number::operator-() {
-  Number other(*this);
-  other._num = -other._num;
-  return other;
+Number &Number::operator-() {
+  _num = -_num;
+  return *this;
 }
 
 Number &Number::operator+=(const Number &other) {
@@ -401,20 +475,11 @@ bool operator>=(const Number &l, const Number &r) { return l > r || l == r; }
 bool operator<(const Number &l, const Number &r) { return r > l; }
 bool operator<=(const Number &l, const Number &r) { return r >= l; }
 
-Whole operator/(Whole l, const Whole &r) {
-  Whole res;
-  while (l >= r) {
-    l = l - r;
-    res = res + 1;
+Whole &Whole::operator%=(const Whole &r) {
+  while (*this >= r) {
+    *this -= r;
   }
-  return res;
-}
-
-Whole operator%(Whole l, const Whole &r) {
-  while (l >= r) {
-    l = l - r;
-  }
-  return l;
+  return *this;
 }
 
 }  // namespace arty

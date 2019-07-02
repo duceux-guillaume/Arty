@@ -110,13 +110,13 @@ TEST(Number, Sub) {
   ASSERT_EQ(-Number(1) - Number(1), -2);
   ASSERT_EQ(Number(10) - Number(1), 9);
   ASSERT_EQ(Number(1) - Number(10), -9);
+  ASSERT_EQ(Number(3000) - Number(300), 2700);
 }
 
 TEST(Number, Constructor) {
   ASSERT_EQ(Number(50, 40), Number(5, 4));
   ASSERT_EQ(Number(-10, 5), Number(-2, 1));
   ASSERT_EQ(Number(3000, 100), Number(30, 1));
-  std::cout << Number(3000, 100) << std::endl;
 }
 
 TEST(Number, Div) {
@@ -128,7 +128,7 @@ TEST(Number, Div) {
 
 TEST(Number, BenchAddition) {
   Number toto(1, 10);
-  for (int i = 0; i <= 10000; ++i) {
+  for (int i = 0; i <= 1000; ++i) {
     toto += Number(i);
   }
   std::cout << toto << std::endl;
@@ -136,7 +136,7 @@ TEST(Number, BenchAddition) {
 
 TEST(GroundTruth, BenchAddition) {
   double toto = 0.1;
-  for (int i = 0; i <= 10000; ++i) {
+  for (int i = 0; i <= 1000; ++i) {
     toto += i;
   }
   std::cout << toto << std::endl;

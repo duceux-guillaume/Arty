@@ -28,9 +28,17 @@ class Whole {
 
   Whole& operator+=(Whole const& rhs);
   Whole& operator*=(Whole const& rhs);
+  Whole& operator/=(Whole const& rhs);
+  Whole& operator-=(Whole const& rhs);
+  Whole& operator%=(const Whole& r);
 
   bool is_zero() const { return _digits.size() == 1 && _digits[0] == 0; }
   bool is_one() const { return _digits.size() == 1 && _digits[0] == 1; }
+
+  void set_to(digit_t d) {
+    _digits.clear();
+    _digits.emplace_back(d);
+  }
 
  protected:
   digit_t _base;
@@ -45,10 +53,18 @@ inline const Whole operator*(Whole l, Whole const& r) {
   l *= r;
   return l;
 }
-
-Whole operator-(Whole const& l, Whole const& r);
-Whole operator/(Whole l, Whole const& r);
-Whole operator%(Whole l, Whole const& r);
+inline const Whole operator/(Whole l, Whole const& r) {
+  l /= r;
+  return l;
+}
+inline const Whole operator-(Whole l, Whole const& r) {
+  l -= r;
+  return l;
+}
+inline const Whole operator%(Whole l, Whole const& r) {
+  l %= r;
+  return l;
+}
 
 std::ostream& operator<<(std::ostream& out, Whole const& i);
 
@@ -70,19 +86,28 @@ class Integer {
   Whole const& val() const { return _val; }
   Whole& val() { return _val; }
 
-  friend Integer operator-(Integer const& l);
-  friend Integer operator-(const Integer& l, const Integer& r);
+  Integer& operator*=(Integer const& rhs);
+  Integer& operator+=(Integer const& rhs);
+  Integer& operator-=(Integer const& rhs);
+  Integer& operator-();
 
  protected:
   bool _neg;
   Whole _val;
 };
 
-Integer operator-(Integer const& l);
-Integer operator-(Integer const& l, Integer const& r);
-Integer operator+(Integer const& l, Integer const& r);
-Integer operator*(Integer const& l, Integer const& r);
-
+inline const Integer operator-(Integer l, Integer const& r) {
+  l -= r;
+  return l;
+}
+inline const Integer operator+(Integer l, Integer const& r) {
+  l += r;
+  return l;
+}
+inline const Integer operator*(Integer l, Integer const& r) {
+  l *= r;
+  return l;
+}
 std::ostream& operator<<(std::ostream& out, Integer const& i);
 
 bool operator==(Integer const& l, Integer const& r);
@@ -104,8 +129,12 @@ class Rational {
 
   Rational& operator+=(Rational const& rhs);
   Rational& operator*=(Rational const& rhs);
+  Rational& operator-=(const Rational& rhs);
+  Rational& operator/=(const Rational& r);
+  Rational& operator-();
 
   bool is_integer() const { return _den.is_one(); }
+  bool is_zero() const { return _num.val().is_zero(); }
 
  private:
   void simplify();
@@ -131,9 +160,14 @@ inline const Rational operator*(Rational l, Rational const& r) {
   l *= r;
   return l;
 }
-Rational operator/(Rational const& l, Rational const& r);
-Rational operator-(Rational const& l, Rational const& r);
-Rational operator-(Rational const& l);
+inline const Rational operator-(Rational l, Rational const& r) {
+  l -= r;
+  return l;
+}
+inline const Rational operator/(Rational l, Rational const& r) {
+  l /= r;
+  return l;
+}
 
 enum NumberType {
   WHOLE,
@@ -159,7 +193,7 @@ class Number {
 
   Number operator/(Number const& r) const;
   Number operator-(Number const& r) const;
-  Number operator-();
+  Number& operator-();
 
   Number& operator+=(Number const& rhs);
   Number& operator*=(Number const& rhs);
