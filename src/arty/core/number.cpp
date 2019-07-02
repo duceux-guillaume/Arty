@@ -120,7 +120,7 @@ Whole &Whole::operator/=(const Whole &rhs) {
   _digits.push_back(0);
   while (cpy >= rhs) {
     cpy -= rhs;
-    *this += 1;
+    ++*this;
   }
   return *this;
 }
@@ -480,6 +480,19 @@ Whole &Whole::operator%=(const Whole &r) {
     *this -= r;
   }
   return *this;
+}
+
+void Whole::incr_digit(size_t index) {
+  assert(index <= _digits.size());
+  if (index == _digits.size()) {
+    _digits.emplace_back(1);
+    return;
+  }
+  ++_digits[index];
+  if (_digits[index] >= _base) {
+    _digits[index] = 0;
+    incr_digit(index + 1);
+  }
 }
 
 }  // namespace arty

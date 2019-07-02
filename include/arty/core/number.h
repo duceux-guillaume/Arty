@@ -32,6 +32,11 @@ class Whole {
   Whole& operator-=(Whole const& rhs);
   Whole& operator%=(const Whole& r);
 
+  Whole& operator++() {
+    incr_digit(0);
+    return *this;
+  }
+
   bool is_zero() const { return _digits.size() == 1 && _digits[0] == 0; }
   bool is_one() const { return _digits.size() == 1 && _digits[0] == 1; }
 
@@ -39,6 +44,8 @@ class Whole {
     _digits.clear();
     _digits.emplace_back(d);
   }
+
+  void incr_digit(size_t index);
 
  protected:
   digit_t _base;
