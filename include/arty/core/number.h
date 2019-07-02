@@ -198,12 +198,11 @@ class Number {
   Number& operator=(Number const& other);
   Number& operator=(Number&& other);
 
-  Number operator/(Number const& r) const;
-  Number operator-(Number const& r) const;
-  Number& operator-();
-
+  Number& operator/=(Number const& rhs);
+  Number& operator-=(Number const& rhs);
   Number& operator+=(Number const& rhs);
   Number& operator*=(Number const& rhs);
+  Number& operator-();
 
   friend bool operator==(Number const& l, Number const& r);
   friend bool operator!=(Number const& l, Number const& r);
@@ -221,6 +220,14 @@ inline const Number operator+(Number l, Number const& r) {
 }
 inline const Number operator*(Number l, Number const& r) {
   l *= r;
+  return l;
+}
+inline const Number operator-(Number l, Number const& r) {
+  l -= r;
+  return l;
+}
+inline const Number operator/(Number l, Number const& r) {
+  l /= r;
   return l;
 }
 

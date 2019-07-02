@@ -333,15 +333,15 @@ Rational &Rational::operator+=(const Rational &rhs) {
   if (_den != rhs._den) {
     _num = _num * rhs._den + rhs._num * _den;
     _den *= rhs._den;
-    simplify();
   } else {
     _num += rhs._num;
   }
+  simplify();
   return *this;
 }
 
 Rational &Rational::operator*=(const Rational &rhs) {
-  _num = _num * rhs._num;
+  _num *= rhs._num;
   _den *= rhs._den;
   simplify();
   return *this;
@@ -396,6 +396,7 @@ Rational &Rational::operator/=(Rational const &r) {
   assert(!r.is_zero());
   _num *= r._den;
   _den *= r._num.val();
+  simplify();
   return *this;
 }
 
@@ -405,8 +406,8 @@ Rational &Rational::operator-=(const Rational &rhs) {
   } else {
     _num = _num * rhs._den - rhs._num * _den;
     _den *= rhs._den;
-    simplify();
   }
+  simplify();
   return *this;
 }
 
@@ -436,16 +437,14 @@ Number &Number::operator=(Number &&other) {
   return *this;
 }
 
-Number Number::operator/(const Number &other) const {
-  Number result(*this);
-  result._num = _num / other._num;
-  return result;
+Number &Number::operator/=(const Number &rhs) {
+  _num /= rhs._num;
+  return *this;
 }
 
-Number Number::operator-(const Number &other) const {
-  Number result(*this);
-  result._num = _num - other._num;
-  return result;
+Number &Number::operator-=(const Number &rhs) {
+  _num -= rhs._num;
+  return *this;
 }
 
 Number &Number::operator-() {
@@ -468,7 +467,6 @@ std::ostream &operator<<(std::ostream &out, const Number &number) {
 }
 
 bool operator>(const Number &l, const Number &r) { return l._num > r._num; }
-
 bool operator!=(const Number &l, const Number &r) { return l > r || r > l; }
 bool operator==(const Number &l, const Number &r) { return !(l != r); }
 bool operator>=(const Number &l, const Number &r) { return l > r || l == r; }
