@@ -11,6 +11,9 @@
 
 namespace arty {
 
+template <typename T>
+using Ptr = std::shared_ptr<T>;
+
 class Entity {
  public:
   using id_t = uint64_t;
@@ -82,58 +85,6 @@ class System {
   virtual Result process(Blackboard::Ptr const &board) = 0;
 
  private:
-};
-
-class Engine {
- public:
-  Engine() : _systems(), _blackboard(new Blackboard) {}
-
-  Result step() {
-    Result r;
-    for (auto const &system : _systems) {
-      r = system->process(_blackboard);
-      if (!r) {
-        return r;
-      }
-    }
-    return r;
-  }
-
-  template <typename T>
-  Result attach_component(Entity::id_t const &id,
-                          ComponentStorage::type_t const &type, T const &value,
-                          bool create) {
-    if (!_blackboard->exist(id)) {
-      if (create) {
-        _blackboard->create(id);
-      } else {
-        return Result("Entity doesn't exist");
-      }
-    }
-
-    auto storage = _blackboard->get(type);
-    if (storage) {
-      storage->set(id, value);
-    }
-    return Result();
-  }
-
-  template <typename T>
-  Result get(Entity const &id, ComponentStorage::type_t const &type,
-             T *output) {
-    if (!output) {
-      return Result("null pointer givent");
-    }
-    auto storage = _blackboard->get(type);
-    if (!storage) {
-      return Result("unknown component type");
-    }
-    return storage->get(id, output);
-  }
-
- private:
-  std::vector<System::Ptr> _systems;
-  Blackboard::Ptr _blackboard;
 };
 
 class StringComponent {
