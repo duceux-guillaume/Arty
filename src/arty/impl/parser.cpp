@@ -7,16 +7,18 @@ Expression Parser::expression() {
     case Calc:
       _curr_token = _lexer->next();
       return math_expression(0);
+    case TkCmd:
+      std::cout << "got a cmd: " << _curr_token << std::endl;
+      return cmd_expression();
     default:
-      std::cout << "Parsing error" << std::endl;
+      std::cout << "Parsing error at: " << _curr_token << ": "
+                << _curr_token.last_char_pos << std::endl;
       break;
   }
   return Expression();
 }
 
 Expression Parser::math_expression(int rbp) {
-  std::cout << "math_expression: " << rbp << std::endl;
-  std::cout << "_curr_token: " << _curr_token << std::endl;
   Token last = _curr_token;
   _curr_token = _lexer->next();
   Expression left = unary_operator(last);
@@ -28,9 +30,15 @@ Expression Parser::math_expression(int rbp) {
   return left;
 }
 
+Expression Parser::cmd_expression() {
+  Expression ex;
+  ex.type = XpCmd;
+  ex.as_cmd = std::make_unique<Command>();
+  ex.as_cmd->bin(_curr_token.symbol);
+  return ex;
+}
+
 Expression Parser::unary_operator(Token t) {
-  std::cout << "unary_operator: " << t << std::endl;
-  std::cout << "_curr_token: " << _curr_token << std::endl;
   switch (t.type) {
     case TkNumber: {
       Expression e;
@@ -56,8 +64,6 @@ Expression Parser::unary_operator(Token t) {
 }
 
 Expression Parser::binary_operator(Expression left, Token curr) {
-  std::cout << "binary_operator: " << *left.as_num << " " << curr << std::endl;
-  std::cout << "_curr_token: " << _curr_token << std::endl;
   Expression right = math_expression(right_precedence(curr));
   switch (curr.type) {
     case Plus: {
@@ -129,6 +135,10 @@ void Parser::parse(Lexer::Ptr const &lexer) {
       std::cout << *xp.as_num << std::endl;
       break;
     }
+    case XpCmd: {
+      std::cout << xp.as_cmd->execute() << std::endl;
+      break;
+    }
     default:
       std::cout << "None" << std::endl;
       break;
@@ -147,6 +157,9 @@ Expression::Expression(const Expression &other) {
     case XpNumber:
       as_num.reset(new Number(*other.as_num));
       break;
+    case XpCmd:
+      as_cmd = std::make_unique<Command>(*other.as_cmd);
+      break;
   }
 }
 
@@ -157,6 +170,9 @@ Expression::Expression(Expression &&other) {
       break;
     case XpNumber:
       as_num = std::move(other.as_num);
+      break;
+    case XpCmd:
+      as_cmd = std::move(other.as_cmd);
       break;
   }
 }

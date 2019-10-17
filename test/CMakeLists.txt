@@ -9,3 +9,7 @@ add_test(NAME matrix_test COMMAND matrix_test)
 add_executable(perceptron_test perceptron_test.cpp)
 target_link_libraries(perceptron_test gtest_main arty)
 add_test(NAME perceptron_test COMMAND perceptron_test)
+
+add_executable(ecs_test ecs_test.cpp)
+target_link_libraries(ecs_test gtest_main arty)
+add_test(NAME ecs_test COMMAND ecs_test)

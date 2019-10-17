@@ -18,7 +18,7 @@ enum TokenType {
   TkParL,
   TkParR,
   // Shell
-  Cmd,
+  TkCmd,
   Opt,
   // Marks
   Semi,

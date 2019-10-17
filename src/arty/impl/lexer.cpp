@@ -14,9 +14,7 @@ Token Lexer::next() {
   do {
     process();
     t = _tokens.back();
-    std::cout << "candidate: " << t << std::endl;
   } while (t.type == None);
-  std::cout << "next: " << t << std::endl;
   return t;
 }
 
@@ -74,7 +72,13 @@ void Lexer::reset() {
   _automatas.emplace_back(std::make_unique<SingleCharFsm>('/', Divide));
   _automatas.emplace_back(std::make_unique<SingleCharFsm>('(', TkParL));
   _automatas.emplace_back(std::make_unique<SingleCharFsm>(')', TkParR));
+  _automatas.emplace_back(std::make_unique<CmdFsm>());
   _automatas.emplace_back(std::make_unique<WordFsm>("calc", Calc));
+  _automatas.emplace_back(std::make_unique<WordFsm>("cd", TkCd));
+  _automatas.emplace_back(std::make_unique<WordFsm>("if", TkIf));
+  _automatas.emplace_back(std::make_unique<WordFsm>("for", TkFor));
+  _automatas.emplace_back(std::make_unique<WordFsm>("var", TkVar));
+  _automatas.emplace_back(std::make_unique<WordFsm>("while", TkWhile));
 }
 
 BaseFsm::BaseFsm() : _state(Ong), _pos(0) {}
@@ -107,10 +111,9 @@ FsmState WordFsm::eat(char c, std::size_t pos) {
   if (_state == Acc) {
     return _state;
   }
-  if (_state == Ong && _word[_pos] == c) {
-    _state = Acc;
-    _pos++;
-    if (_pos >= _word.size()) {
+  if (_state == Ong && _word[_index] == c) {
+    ++_index;
+    if (_index >= _word.size()) {
       _state = Acc;
     }
     return _state;
@@ -182,5 +185,31 @@ FsmState NumberFsm::eat(char c, std::size_t pos) {
 }
 
 Token NumberFsm::token() { return Token(TkNumber, _word, _pos - _word.size()); }
+
+FsmState CmdFsm::eat(char c, std::size_t pos) {
+  BaseFsm::eat(c, pos);
+  // Handle first char
+  if (_state == Ong && _cmd.size() == 0) {
+    bool isalpha = std::isalpha(static_cast<unsigned char>(c)) != 0;
+    if (isalpha) {
+      _cmd.push_back(c);
+    } else {
+      _state = Rej;
+    }
+    return _state;
+  }
+
+  if (_state == Ong) {
+    bool isalphanum = std::isalnum(static_cast<unsigned char>(c)) != 0;
+    if (isalphanum) {
+      _cmd.push_back(c);
+    } else {
+      _state = Acc;
+    }
+  }
+  return _state;
+}
+
+Token CmdFsm::token() { return Token(TkCmd, _cmd, _pos - _cmd.size()); }
 
 }  // namespace arty
