@@ -4,6 +4,11 @@
 #include <GL/glew.h>
 #include <arty/core/ecs.h>
 
+// Include GLM
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+using namespace glm;
+
 namespace arty {
 
 class OpenGlRenderer : public System {
@@ -22,6 +27,8 @@ class OpenGlRenderer : public System {
   GLuint _program_id;
   GLuint _vertexbuffer;
   GLuint _vertexarrayid;
+  GLuint MatrixID;
+  glm::mat4 MVP;
 };
 
 }  // namespace arty
