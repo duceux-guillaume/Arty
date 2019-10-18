@@ -12,9 +12,26 @@ ComponentStorage::Ptr Blackboard::get(ComponentStorage::type_t const &type) {
   return nullptr;
 }
 
-}  // namespace arty
+Result System::process(Ptr<Blackboard> const &) { return ok(); }
 
-std::ostream &operator<<(std::ostream &os, const arty::Result &r) {
-  os << r.message();
-  return os;
+Result System::init(Ptr<Blackboard> const &) { return ok(); }
+
+void System::release() {}
+
+void System::add_type(const ComponentStorage::type_t &type) {
+  _types.push_back(type);
 }
+
+std::vector<ComponentStorage::type_t> System::find_missing_components(
+    Ptr<Blackboard> const &board) {
+  std::vector<ComponentStorage::type_t> result;
+  for (auto type : _types) {
+    auto storage = board->get(type);
+    if (!storage) {
+      result.push_back(type);
+    }
+  }
+  return result;
+}
+
+}  // namespace arty

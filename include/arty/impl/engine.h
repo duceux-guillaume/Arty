@@ -9,29 +9,22 @@ namespace arty {
 
 class Engine {
  public:
-  Engine(Ptr<Window> const& ptr) : _window(ptr) {}
+  Engine& set_window(Ptr<Window> const& ptr);
 
-  Result start() { return _window->init(); }
+  Engine add_system(Ptr<System> const& system);
 
-  Result step() {
-    _window->clear();
-    std::cout << "Do stuff someday" << std::endl;
-    _window->swapBuffer();
-    return OK;
-  }
+  Result start();
 
-  Result run() {
-    Result res;
-    do {
-      res = step();
-    } while (res && _window->isOk());
-    return res;
-  }
+  Result step();
 
-  void stop() { _window->close(); }
+  Result run();
+
+  void stop();
 
  private:
   Ptr<Window> _window;
+  std::vector<Ptr<System>> _systems;
+  Ptr<Blackboard> _state;
 };
 
 }  // namespace arty

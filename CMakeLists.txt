@@ -59,23 +59,6 @@ add_definitions(
         -D_CRT_SECURE_NO_WARNINGS
 )
 
-# Tutorial 2
-add_executable(tutorial02_red_triangle
-        tutorial02_red_triangle/tutorial02.cpp
-        common/shader.cpp
-        common/shader.hpp
-
-        tutorial02_red_triangle/SimpleFragmentShader.fragmentshader
-        tutorial02_red_triangle/SimpleVertexShader.vertexshader
-)
-target_link_libraries(tutorial02_red_triangle
-        ${ALL_LIBS}
-)
-# Xcode and Visual working directories
-set_target_properties(tutorial02_red_triangle PROPERTIES XCODE_ATTRIBUTE_CONFIGURATION_BUILD_DIR "${CMAKE_CURRENT_SOURCE_DIR}/tutorial02_red_triangle/")
-create_target_launcher(tutorial02_red_triangle WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/tutorial02_red_triangle/")
-create_default_target_launcher(tutorial02_red_triangle WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/tutorial02_red_triangle/") # tut 1 is not the default or people would complain that tut 2 doesn't work
-
 # Tutorial 3
 add_executable(tutorial03_matrices
         tutorial03_matrices/tutorial03.cpp
@@ -646,8 +629,11 @@ create_target_launcher(tutorial18_particles WORKING_DIRECTORY "${CMAKE_CURRENT_S
 ##########
 
 file(GLOB_RECURSE ARTY_MATH_FILES include/arty/* src/arty/*)
+message(info ${ARTY_MATH_FILES})
 add_library(arty ${ARTY_MATH_FILES})
 target_link_libraries(arty ${ALL_LIBS})
+target_compile_features(arty PRIVATE cxx_std_17)
+
 include_directories(include)
 
 #add_executable(artyshell src/bin/artyshell.cpp)
@@ -657,7 +643,7 @@ add_executable(bot_arena
         bot_arena/bot_arena.cpp
 )
 target_link_libraries(bot_arena
-        ${ALL_LIBS}
+        arty ${ALL_LIBS}
 )
 # Xcode and Visual working directories
 set_target_properties(bot_arena PROPERTIES XCODE_ATTRIBUTE_CONFIGURATION_BUILD_DIR "${CMAKE_CURRENT_SOURCE_DIR}/bot_arena/")
@@ -681,10 +667,6 @@ if (NOT ${CMAKE_GENERATOR} MATCHES "Xcode" )
 add_custom_command(
    TARGET bot_arena POST_BUILD
    COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/bot_arena${CMAKE_EXECUTABLE_SUFFIX}" "${CMAKE_CURRENT_SOURCE_DIR}/bot_arena/"
-)
-add_custom_command(
-   TARGET tutorial02_red_triangle POST_BUILD
-   COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/tutorial02_red_triangle${CMAKE_EXECUTABLE_SUFFIX}" "${CMAKE_CURRENT_SOURCE_DIR}/tutorial02_red_triangle/"
 )
 add_custom_command(
    TARGET tutorial03_matrices POST_BUILD

@@ -2,8 +2,18 @@
 #define RESULT_H
 
 #include <iostream>
+#include <memory>
+
+#define check_result(result) \
+  do {                       \
+    if (!result) {           \
+      return result;         \
+    }                        \
+  } while (0)
 
 namespace arty {
+template <typename T>
+using Ptr = std::shared_ptr<T>;
 
 class Result {
  public:
@@ -29,7 +39,7 @@ class Result {
 
 std::ostream &operator<<(std::ostream &os, arty::Result const &r);
 
-#define OK arty::Result()
-#define ERROR(message) arty::Result(message)
+#define ok() arty::Result()
+#define error(msg) arty::Result(msg)
 
-#endif // RESULT_H
+#endif  // RESULT_H

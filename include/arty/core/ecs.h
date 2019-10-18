@@ -2,6 +2,7 @@
 #define ECS_H
 
 #include <arty/core/result.h>
+
 #include <cstdint>
 #include <memory>
 #include <set>
@@ -10,9 +11,6 @@
 #include <vector>
 
 namespace arty {
-
-template <typename T>
-using Ptr = std::shared_ptr<T>;
 
 class Entity {
  public:
@@ -80,20 +78,16 @@ class Blackboard {
 
 class System {
  public:
-  using Ptr = std::shared_ptr<System>;
-  virtual ~System() = 0;
-  virtual Result process(Blackboard::Ptr const &board) = 0;
+  virtual Result process(Ptr<Blackboard> const &board);
+  virtual Result init(Ptr<Blackboard> const &board);
+  virtual void release();
 
- private:
-};
+  void add_type(ComponentStorage::type_t const &type);
+  std::vector<ComponentStorage::type_t> find_missing_components(
+      Ptr<Blackboard> const &board);
 
-class StringComponent {
- public:
-  StringComponent() = default;
-  StringComponent(std::string const &val) : _val(val) {}
-
- private:
-  std::string _val;
+ protected:
+  std::vector<ComponentStorage::type_t> _types;
 };
 
 template <typename C>
