@@ -48,6 +48,11 @@ Result OpenGlWindow::init() {
   // Dark blue background
   glClearColor(0.0f, 0.0f, 0.4f, 0.0f);
 
+  // Enable depth test
+  glEnable(GL_DEPTH_TEST);
+  // Accept fragment if it closer to the camera than the former one
+  glDepthFunc(GL_LESS);
+
   // During init, enable debug output
   glEnable(GL_DEBUG_OUTPUT);
   glDebugMessageCallback(MessageCallback, 0);
@@ -58,7 +63,7 @@ Result OpenGlWindow::init() {
 void OpenGlWindow::clear() {
   // Clear the screen. It's not mentioned before Tutorial 02, but it can cause
   // flickering, so it's there nonetheless.
-  glClear(GL_COLOR_BUFFER_BIT);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
 void OpenGlWindow::swapBuffer() {

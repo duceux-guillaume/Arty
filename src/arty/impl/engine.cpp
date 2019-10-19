@@ -39,7 +39,7 @@ Result Engine::run() {
   do {
     res = step();
     count++;
-  } while (res && _window->isOk() && count < 20);
+  } while (res && _window->isOk() && count < 10000000);
   return res;
 }
 

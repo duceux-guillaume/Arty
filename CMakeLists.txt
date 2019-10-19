@@ -59,22 +59,6 @@ add_definitions(
         -D_CRT_SECURE_NO_WARNINGS
 )
 
-# Tutorial 4
-add_executable(tutorial04_colored_cube
-        tutorial04_colored_cube/tutorial04.cpp
-        common/shader.cpp
-        common/shader.hpp
-
-        tutorial04_colored_cube/TransformVertexShader.vertexshader
-        tutorial04_colored_cube/ColorFragmentShader.fragmentshader
-)
-target_link_libraries(tutorial04_colored_cube
-        ${ALL_LIBS}
-)
-# Xcode and Visual working directories
-set_target_properties(tutorial04_colored_cube PROPERTIES XCODE_ATTRIBUTE_CONFIGURATION_BUILD_DIR "${CMAKE_CURRENT_SOURCE_DIR}/tutorial04_colored_cube/")
-create_target_launcher(tutorial04_colored_cube WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/tutorial04_colored_cube/")
-
 # Tutorial 5
 add_executable(tutorial05_textured_cube
         tutorial05_textured_cube/tutorial05.cpp
@@ -650,10 +634,6 @@ if (NOT ${CMAKE_GENERATOR} MATCHES "Xcode" )
 add_custom_command(
    TARGET bot_arena POST_BUILD
    COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/bot_arena${CMAKE_EXECUTABLE_SUFFIX}" "${CMAKE_CURRENT_SOURCE_DIR}/bot_arena/"
-)
-add_custom_command(
-   TARGET tutorial04_colored_cube POST_BUILD
-   COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/tutorial04_colored_cube${CMAKE_EXECUTABLE_SUFFIX}" "${CMAKE_CURRENT_SOURCE_DIR}/tutorial04_colored_cube/"
 )
 add_custom_command(
    TARGET tutorial05_textured_cube POST_BUILD

@@ -5,6 +5,7 @@
 #include <arty/core/property.h>
 #include <arty/core/result.h>
 
+#include <set>
 #include <string>
 #include <unordered_map>
 #include <vector>

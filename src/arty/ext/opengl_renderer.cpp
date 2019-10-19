@@ -13,8 +13,8 @@ OpenGlRenderer::~OpenGlRenderer() { std::cout << "ByeBye" << std::endl; }
 
 Result OpenGlRenderer::init(Ptr<Blackboard> const& board) {
   // Create and compile our GLSL program from the shaders
-  _program_id = LoadShaders("shaders/SimpleTransform.vertexshader",
-                            "shaders/SingleColor.fragmentshader");
+  _program_id = LoadShaders("shaders/TransformVertexShader.vertexshader",
+                            "shaders/ColorFragmentShader.fragmentshader");
   if (_program_id == 0) {
     return error("error loading shaders");
   }
@@ -33,9 +33,9 @@ Result OpenGlRenderer::init(Ptr<Blackboard> const& board) {
 
   // Camera matrix
   glm::mat4 View = glm::lookAt(
-      glm::vec3(4, 3, 3),  // Camera is at (4,3,3), in World Space
-      glm::vec3(0, 0, 0),  // and looks at the origin
-      glm::vec3(0, 1, 0)   // Head is up (set to 0,-1,0 to look upside-down)
+      glm::vec3(4, 3, -3),  // Camera is at (4,3,3), in World Space
+      glm::vec3(0, 0, 0),   // and looks at the origin
+      glm::vec3(0, 1, 0)    // Head is up (set to 0,-1,0 to look upside-down)
   );
   // Model matrix : an identity matrix (model will be at the origin)
   glm::mat4 Model = glm::mat4(1.0f);
@@ -46,10 +46,15 @@ Result OpenGlRenderer::init(Ptr<Blackboard> const& board) {
   glGenVertexArrays(1, &_vertexarrayid);
   glBindVertexArray(_vertexarrayid);
 
-  auto component_iterator = board->get_property<Mesh>("mesh");
-  for (auto& mesh : *component_iterator) {
-    std::cout << "mesh" << std::endl;
-
+  auto ptrit1 = board->get_property<Mesh>("mesh");
+  for (auto& mesh : *ptrit1) {
+    glGenBuffers(1, &mesh.val().vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, mesh.val().vbo);
+    glBufferData(GL_ARRAY_BUFFER, mesh.val().buffer.size() * sizeof(GLfloat),
+                 mesh.val().buffer.data(), GL_STATIC_DRAW);
+  }
+  auto ptrit2 = board->get_property<Mesh>("color");
+  for (auto& mesh : *ptrit2) {
     glGenBuffers(1, &mesh.val().vbo);
     glBindBuffer(GL_ARRAY_BUFFER, mesh.val().vbo);
     glBufferData(GL_ARRAY_BUFFER, mesh.val().buffer.size() * sizeof(GLfloat),
@@ -60,8 +65,6 @@ Result OpenGlRenderer::init(Ptr<Blackboard> const& board) {
 }
 
 Result OpenGlRenderer::process(const Ptr<Blackboard>& board) {
-  std::cout << "TRIANGLE" << std::endl;
-
   // Use our shader
   glUseProgram(_program_id);
 
@@ -71,27 +74,46 @@ Result OpenGlRenderer::process(const Ptr<Blackboard>& board) {
 
   // 1rst attribute buffer : vertices
   glEnableVertexAttribArray(0);
-
-  auto component_iterator = board->get_property<Mesh>("mesh");
-  for (auto& mesh : *component_iterator) {
-    std::cout << "mesh" << std::endl;
-    glBindBuffer(GL_ARRAY_BUFFER, mesh.val().vbo);
-    glVertexAttribPointer(0,  // attribute 0. No particular reason for 0, but
-                              // must match the layout in the shader.
-                          3,  // size
-                          GL_FLOAT,  // type
-                          GL_FALSE,  // normalized?
-                          0,         // stride
-                          (void*)0   // array buffer offset
-    );
-    // Draw the triangle !
-    glDrawArrays(GL_TRIANGLES, 0, 3);  // 3 indices starting at 0 -> 1 triangle
+  {
+    auto ptrit = board->get_property<Mesh>("mesh");
+    for (auto& mesh : *ptrit) {
+      glBindBuffer(GL_ARRAY_BUFFER, mesh.val().vbo);
+      glVertexAttribPointer(0,  // attribute 0. No particular reason for 0, but
+                                // must match the layout in the shader.
+                            3,  // size
+                            GL_FLOAT,  // type
+                            GL_FALSE,  // normalized?
+                            0,         // stride
+                            (void*)0   // array buffer offset
+      );
+    }
   }
 
+  glEnableVertexAttribArray(1);
+  {
+    auto ptrit = board->get_property<Mesh>("color");
+    for (auto& mesh : *ptrit) {
+      glBindBuffer(GL_ARRAY_BUFFER, mesh.val().vbo);
+      glVertexAttribPointer(1,  // attribute 0. No particular reason for 0, but
+                                // must match the layout in the shader.
+                            3,  // size
+                            GL_FLOAT,  // type
+                            GL_FALSE,  // normalized?
+                            0,         // stride
+                            (void*)0   // array buffer offset
+      );
+    }
+  }
+
+  // Draw the triangle !
+  glDrawArrays(GL_TRIANGLES, 0,
+               3 * 12);  // 3 indices starting at 0 -> 1 triangle
+
   glDisableVertexAttribArray(0);
+  glDisableVertexAttribArray(1);
 
   return ok();
-}
+}  // namespace arty
 
 void OpenGlRenderer::release() {
   glDeleteProgram(_program_id);

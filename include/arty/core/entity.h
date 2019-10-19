@@ -21,7 +21,6 @@ class Entity {
   std::string const &name() const { return _name; }
 
   id_t const &id() const { return _id; }
-  id_t const &val() const { return _id; }
 
  private:
   id_t _id;
