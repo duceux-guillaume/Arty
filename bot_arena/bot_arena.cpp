@@ -12,6 +12,7 @@ using namespace arty;
 
 int main(void) {
   Entity triangle("Triangle");
+
   Mesh mesh;
   mesh.vbo = 0;
   mesh.buffer = {
@@ -54,9 +55,9 @@ int main(void) {
 
   };
 
-  Mesh mesh2;
-  mesh2.vbo = 0;
-  mesh2.buffer = {
+  Mesh color;
+  color.vbo = 0;
+  color.buffer = {
       0.583f, 0.771f, 0.014f,  //
       0.609f, 0.115f, 0.436f,  //
       0.327f, 0.483f, 0.844f,  //
@@ -95,6 +96,46 @@ int main(void) {
       0.982f, 0.099f, 0.879f   //
   };
 
+  Mesh texture;
+  texture.buffer = {
+      0.000059f, 1.0f - 0.000004f,  //
+      0.000103f, 1.0f - 0.336048f,  //
+      0.335973f, 1.0f - 0.335903f,  //
+      1.000023f, 1.0f - 0.000013f,  //
+      0.667979f, 1.0f - 0.335851f,  //
+      0.999958f, 1.0f - 0.336064f,  //
+      0.667979f, 1.0f - 0.335851f,  //
+      0.336024f, 1.0f - 0.671877f,  //
+      0.667969f, 1.0f - 0.671889f,  //
+      1.000023f, 1.0f - 0.000013f,  //
+      0.668104f, 1.0f - 0.000013f,  //
+      0.667979f, 1.0f - 0.335851f,  //
+      0.000059f, 1.0f - 0.000004f,  //
+      0.335973f, 1.0f - 0.335903f,  //
+      0.336098f, 1.0f - 0.000071f,  //
+      0.667979f, 1.0f - 0.335851f,  //
+      0.335973f, 1.0f - 0.335903f,  //
+      0.336024f, 1.0f - 0.671877f,  //
+      1.000004f, 1.0f - 0.671847f,  //
+      0.999958f, 1.0f - 0.336064f,  //
+      0.667979f, 1.0f - 0.335851f,  //
+      0.668104f, 1.0f - 0.000013f,  //
+      0.335973f, 1.0f - 0.335903f,  //
+      0.667979f, 1.0f - 0.335851f,  //
+      0.335973f, 1.0f - 0.335903f,  //
+      0.668104f, 1.0f - 0.000013f,  //
+      0.336098f, 1.0f - 0.000071f,  //
+      0.000103f, 1.0f - 0.336048f,  //
+      0.000004f, 1.0f - 0.671870f,  //
+      0.336024f, 1.0f - 0.671877f,  //
+      0.000103f, 1.0f - 0.336048f,  //
+      0.336024f, 1.0f - 0.671877f,  //
+      0.335973f, 1.0f - 0.335903f,  //
+      0.667969f, 1.0f - 0.671889f,  //
+      1.000004f, 1.0f - 0.671847f,  //
+      0.667979f, 1.0f - 0.335851f   //
+  };
+
   Ptr<Window> window(new OpenGlWindow);
   Engine engine;
   engine.set_window(window)
@@ -102,7 +143,8 @@ int main(void) {
       .add_system(Ptr<System>(new PositionSystem));
 
   engine.set(triangle, "mesh", mesh);
-  engine.set(triangle, "color", mesh2);
+  engine.set(triangle, "color", color);
+  engine.set(triangle, "texture", texture);
 
   auto res = engine.start();
   if (!res) {
