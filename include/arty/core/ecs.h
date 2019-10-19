@@ -1,6 +1,8 @@
 #ifndef ECS_H
 #define ECS_H
 
+#include <arty/core/blackboard.h>
+#include <arty/core/entity.h>
 #include <arty/core/result.h>
 
 #include <cstdint>
@@ -12,36 +14,18 @@
 
 namespace arty {
 
-class Entity {
+class Component {
  public:
-  using id_t = uint64_t;
-  using Ptr = std::shared_ptr<Entity>;
-
-  Entity(id_t id) : _id(id) {}
-
-  static Entity create() {
-    Entity ent(_next);
-    _next++;
-    return ent;
-  }
-
-  bool operator==(Entity const &e) const { return _id == e._id; }
-
-  bool operator!=(Entity const &e) const { return !(*this == e); }
-
-  bool operator<(Entity const &e) const { return _id < e._id; }
+  Entity id;
 
  private:
-  id_t _id;
-  static id_t _next;
 };
-
-class Component {};
 
 class ComponentStorage {
  public:
   using type_t = std::string;
-  using Ptr = std::shared_ptr<ComponentStorage>;
+
+  ComponentStorage(type_t const &t) : _type(t) {}
 
   type_t const &type() { return _type; }
 
@@ -53,27 +37,20 @@ class ComponentStorage {
     return Result("nope");
   }
 
- private:
+ protected:
   type_t _type;
 };
 
-class Blackboard {
+template <typename C>
+class DenseComponentStorage : public ComponentStorage {
  public:
-  using Ptr = std::shared_ptr<Blackboard>;
+  DenseComponentStorage(ComponentStorage::type_t const &type)
+      : ComponentStorage(type) {}
 
-  void add(ComponentStorage::Ptr const &ptr);
-  ComponentStorage::Ptr get(ComponentStorage::type_t const &type);
+  void set(Entity const &e, C const &val) { _data[e] = val; }
 
-  bool exist(Entity const &id) const {
-    return _entities.find(id) != _entities.end();
-  }
-
-  void create(Entity const &id) { _entities.insert(id); }
-
- private:
-  std::set<Entity> _entities;
-  std::unordered_map<ComponentStorage::type_t, ComponentStorage::Ptr>
-      _components;
+ protected:
+  std::vector<C> _data;
 };
 
 class System {
@@ -88,18 +65,6 @@ class System {
 
  protected:
   std::vector<ComponentStorage::type_t> _types;
-};
-
-template <typename C>
-class DenseComponentStorage : public ComponentStorage {
- public:
-  DenseComponentStorage(ComponentStorage::type_t const &type) : _type(type) {}
-
-  void set(Entity const &e, C const &val) { _data[e] = val; }
-
- private:
-  ComponentStorage::type_t _type;
-  std::vector<C> _data;
 };
 
 };  // namespace arty

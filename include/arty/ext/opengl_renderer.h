@@ -11,6 +11,11 @@ using namespace glm;
 
 namespace arty {
 
+struct Mesh {
+  GLuint vbo;
+  std::vector<GLfloat> buffer;
+};
+
 class OpenGlRenderer : public System {
  public:
   OpenGlRenderer();
