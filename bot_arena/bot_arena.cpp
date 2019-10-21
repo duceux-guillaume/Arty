@@ -10,51 +10,48 @@
 
 using namespace arty;
 
-int main(void) {
-  Entity triangle("Triangle");
-
-  Mesh mesh;
-  mesh.vbo = 0;
-  mesh.buffer = {
-      -1.0f, -1.0f, -1.0f,  //
-      -1.0f, -1.0f, 1.0f,   //
-      -1.0f, 1.0f,  1.0f,   //
-      1.0f,  1.0f,  -1.0f,  //
-      -1.0f, -1.0f, -1.0f,  //
-      -1.0f, 1.0f,  -1.0f,  //
-      1.0f,  -1.0f, 1.0f,   //
-      -1.0f, -1.0f, -1.0f,  //
-      1.0f,  -1.0f, -1.0f,  //
-      1.0f,  1.0f,  -1.0f,  //
-      1.0f,  -1.0f, -1.0f,  //
-      -1.0f, -1.0f, -1.0f,  //
-      -1.0f, -1.0f, -1.0f,  //
-      -1.0f, 1.0f,  1.0f,   //
-      -1.0f, 1.0f,  -1.0f,  //
-      1.0f,  -1.0f, 1.0f,   //
-      -1.0f, -1.0f, 1.0f,   //
-      -1.0f, -1.0f, -1.0f,  //
-      -1.0f, 1.0f,  1.0f,   //
-      -1.0f, -1.0f, 1.0f,   //
-      1.0f,  -1.0f, 1.0f,   //
-      1.0f,  1.0f,  1.0f,   //
-      1.0f,  -1.0f, -1.0f,  //
-      1.0f,  1.0f,  -1.0f,  //
-      1.0f,  -1.0f, -1.0f,  //
-      1.0f,  1.0f,  1.0f,   //
-      1.0f,  -1.0f, 1.0f,   //
-      1.0f,  1.0f,  1.0f,   //
-      1.0f,  1.0f,  -1.0f,  //
-      -1.0f, 1.0f,  -1.0f,  //
-      1.0f,  1.0f,  1.0f,   //
-      -1.0f, 1.0f,  -1.0f,  //
-      -1.0f, 1.0f,  1.0f,   //
-      1.0f,  1.0f,  1.0f,   //
-      -1.0f, 1.0f,  1.0f,   //
-      1.0f,  -1.0f, 1.0f    //
-
+std::vector<float> make_cube(float length) {
+  return std::vector<float>{
+      length * -1.0f, length * -1.0f, length * -1.0f,  //
+      length * -1.0f, length * -1.0f, length * 1.0f,   //
+      length * -1.0f, length * 1.0f,  length * 1.0f,   //
+      length * 1.0f,  length * 1.0f,  length * -1.0f,  //
+      length * -1.0f, length * -1.0f, length * -1.0f,  //
+      length * -1.0f, length * 1.0f,  length * -1.0f,  //
+      length * 1.0f,  length * -1.0f, length * 1.0f,   //
+      length * -1.0f, length * -1.0f, length * -1.0f,  //
+      length * 1.0f,  length * -1.0f, length * -1.0f,  //
+      length * 1.0f,  length * 1.0f,  length * -1.0f,  //
+      length * 1.0f,  length * -1.0f, length * -1.0f,  //
+      length * -1.0f, length * -1.0f, length * -1.0f,  //
+      length * -1.0f, length * -1.0f, length * -1.0f,  //
+      length * -1.0f, length * 1.0f,  length * 1.0f,   //
+      length * -1.0f, length * 1.0f,  length * -1.0f,  //
+      length * 1.0f,  length * -1.0f, length * 1.0f,   //
+      length * -1.0f, length * -1.0f, length * 1.0f,   //
+      length * -1.0f, length * -1.0f, length * -1.0f,  //
+      length * -1.0f, length * 1.0f,  length * 1.0f,   //
+      length * -1.0f, length * -1.0f, length * 1.0f,   //
+      length * 1.0f,  length * -1.0f, length * 1.0f,   //
+      length * 1.0f,  length * 1.0f,  length * 1.0f,   //
+      length * 1.0f,  length * -1.0f, length * -1.0f,  //
+      length * 1.0f,  length * 1.0f,  length * -1.0f,  //
+      length * 1.0f,  length * -1.0f, length * -1.0f,  //
+      length * 1.0f,  length * 1.0f,  length * 1.0f,   //
+      length * 1.0f,  length * -1.0f, length * 1.0f,   //
+      length * 1.0f,  length * 1.0f,  length * 1.0f,   //
+      length * 1.0f,  length * 1.0f,  length * -1.0f,  //
+      length * -1.0f, length * 1.0f,  length * -1.0f,  //
+      length * 1.0f,  length * 1.0f,  length * 1.0f,   //
+      length * -1.0f, length * 1.0f,  length * -1.0f,  //
+      length * -1.0f, length * 1.0f,  length * 1.0f,   //
+      length * 1.0f,  length * 1.0f,  length * 1.0f,   //
+      length * -1.0f, length * 1.0f,  length * 1.0f,   //
+      length * 1.0f,  length * -1.0f, length * 1.0f    //
   };
+}
 
+int main(void) {
   Mesh color;
   color.vbo = 0;
   color.buffer = {
@@ -140,11 +137,21 @@ int main(void) {
   Engine engine;
   engine.set_window(window)
       .add_system(Ptr<System>(new OpenGlRenderer))
-      .add_system(Ptr<System>(new PositionSystem));
+      .add_system(Ptr<System>(new PositionSystem(window)));
 
-  engine.set(triangle, "mesh", mesh);
-  engine.set(triangle, "color", color);
-  engine.set(triangle, "texture", texture);
+  Entity mybot("mybot");
+  engine.set(mybot, "mesh", Mesh(make_cube(1.f)));
+  engine.set(mybot, "color", color);
+  engine.set(mybot, "texture", texture);
+  engine.set(mybot, "position", Position());
+
+  Entity player("player");
+  engine.set(player, "keyboard", mybot);
+
+  // Entity ennemi("ennemi");
+  // engine.set(ennemi, "mesh", Mesh(make_cube(0.5f)));
+  // engine.set(ennemi, "color", color);
+  // engine.set(ennemi, "texture", texture);
 
   auto res = engine.start();
   if (!res) {

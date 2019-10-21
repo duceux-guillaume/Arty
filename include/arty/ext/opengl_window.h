@@ -23,15 +23,27 @@ class OpenGlWindow : public Window {
 
   // Window interface
  public:
-  Result init();
+  Result init() override;
 
-  void clear();
+  void clear() override;
 
-  void swapBuffer();
+  void swapBuffer() override;
 
-  bool isOk();
+  bool isOk() override;
 
-  void close();
+  void close() override;
+
+  CursorPosition getCursorPosition() override;
+
+  void setCursorPosition(CursorPosition const& cursor) override;
+
+  double getTime() override;
+
+  bool keyHasBeenPressed(Key key) override;
+
+  int width() override;
+
+  int height() override;
 };
 }  // namespace arty
 

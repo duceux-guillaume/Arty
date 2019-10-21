@@ -14,7 +14,7 @@ class Engine {
 
   Engine& set_window(Ptr<Window> const& ptr);
 
-  Engine add_system(Ptr<System> const& system);
+  Engine& add_system(Ptr<System> const& system);
 
   Result start();
 

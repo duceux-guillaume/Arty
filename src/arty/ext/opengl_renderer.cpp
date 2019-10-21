@@ -250,6 +250,35 @@ Result OpenGlRenderer::init(Ptr<Blackboard> const& board) {
   // Get a handle for our "MVP" uniform
   MatrixID = glGetUniformLocation(_program_id, "MVP");
 
+  // Load the texture using any two methods
+  Texture = loadBMP_custom("texture/uvtemplate.bmp");
+  // Texture = loadDDS("texture/uvtemplate.DDS");
+  if (Texture == 0) {
+    return error("error loading texture");
+  }
+
+  // Get a handle for our "myTextureSampler" uniform
+  TextureID = glGetUniformLocation(_program_id, "myTextureSampler");
+
+  auto ptrit1 = board->getProperty<Mesh>("mesh");
+  for (auto& mesh : *ptrit1) {
+    glGenBuffers(1, &mesh.val().vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, mesh.val().vbo);
+    glBufferData(GL_ARRAY_BUFFER, mesh.val().buffer.size() * sizeof(GLfloat),
+                 mesh.val().buffer.data(), GL_STATIC_DRAW);
+  }
+  auto ptrit2 = board->getProperty<Mesh>("texture");
+  for (auto& mesh : *ptrit2) {
+    glGenBuffers(1, &mesh.val().vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, mesh.val().vbo);
+    glBufferData(GL_ARRAY_BUFFER, mesh.val().buffer.size() * sizeof(GLfloat),
+                 mesh.val().buffer.data(), GL_STATIC_DRAW);
+  }
+
+  return ok();
+}
+
+Result OpenGlRenderer::process(const Ptr<Blackboard>& board) {
   // Projection matrix : 45� Field of View, 4:3 ratio, display range : 0.1 unit
   // <-> 100 units
   glm::mat4 Projection =
@@ -267,39 +296,11 @@ Result OpenGlRenderer::init(Ptr<Blackboard> const& board) {
   );
   // Model matrix : an identity matrix (model will be at the origin)
   glm::mat4 Model = glm::mat4(1.0f);
+
   // Our ModelViewProjection : multiplication of our 3 matrices
   MVP = Projection * View *
         Model;  // Remember, matrix multiplication is the other way around
 
-  // Load the texture using any two methods
-  Texture = loadBMP_custom("texture/uvtemplate.bmp");
-  // Texture = loadDDS("texture/uvtemplate.DDS");
-  if (Texture == 0) {
-    return error("error loading texture");
-  }
-
-  // Get a handle for our "myTextureSampler" uniform
-  TextureID = glGetUniformLocation(_program_id, "myTextureSampler");
-
-  auto ptrit1 = board->get_property<Mesh>("mesh");
-  for (auto& mesh : *ptrit1) {
-    glGenBuffers(1, &mesh.val().vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, mesh.val().vbo);
-    glBufferData(GL_ARRAY_BUFFER, mesh.val().buffer.size() * sizeof(GLfloat),
-                 mesh.val().buffer.data(), GL_STATIC_DRAW);
-  }
-  auto ptrit2 = board->get_property<Mesh>("texture");
-  for (auto& mesh : *ptrit2) {
-    glGenBuffers(1, &mesh.val().vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, mesh.val().vbo);
-    glBufferData(GL_ARRAY_BUFFER, mesh.val().buffer.size() * sizeof(GLfloat),
-                 mesh.val().buffer.data(), GL_STATIC_DRAW);
-  }
-
-  return ok();
-}
-
-Result OpenGlRenderer::process(const Ptr<Blackboard>& board) {
   // Use our shader
   glUseProgram(_program_id);
 
@@ -316,7 +317,7 @@ Result OpenGlRenderer::process(const Ptr<Blackboard>& board) {
   // 1rst attribute buffer : vertices
   glEnableVertexAttribArray(0);
   {
-    auto ptrit = board->get_property<Mesh>("mesh");
+    auto ptrit = board->getProperty<Mesh>("mesh");
     for (auto& mesh : *ptrit) {
       glBindBuffer(GL_ARRAY_BUFFER, mesh.val().vbo);
       glVertexAttribPointer(0,  // attribute 0. No particular reason for 0, but
@@ -332,7 +333,7 @@ Result OpenGlRenderer::process(const Ptr<Blackboard>& board) {
 
   glEnableVertexAttribArray(1);
   {
-    auto ptrit = board->get_property<Mesh>("texture");
+    auto ptrit = board->getProperty<Mesh>("texture");
     for (auto& mesh : *ptrit) {
       glBindBuffer(GL_ARRAY_BUFFER, mesh.val().vbo);
       glVertexAttribPointer(1,  // attribute 0. No particular reason for 0, but

@@ -7,7 +7,7 @@ Engine &Engine::set_window(const Ptr<Window> &ptr) {
   return *this;
 }
 
-Engine Engine::add_system(const Ptr<System> &system) {
+Engine &Engine::add_system(const Ptr<System> &system) {
   _systems.push_back(system);
   return *this;
 }
@@ -26,8 +26,12 @@ Result Engine::step() {
   Result res;
   _window->clear();
   for (auto system : _systems) {
-    res = system->process(_state);
-    check_result(res);
+    if (system) {
+      res = system->process(_state);
+      check_result(res);
+    } else {
+      return error("Null ptr system");
+    }
   }
   _window->swapBuffer();
   return ok();
@@ -39,7 +43,7 @@ Result Engine::run() {
   do {
     res = step();
     count++;
-  } while (res && _window->isOk() && count < 10000000);
+  } while (res && _window->isOk() && count < 1000);
   return res;
 }
 

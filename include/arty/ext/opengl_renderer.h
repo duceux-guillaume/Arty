@@ -14,6 +14,9 @@ namespace arty {
 struct Mesh {
   GLuint vbo;
   std::vector<GLfloat> buffer;
+
+  Mesh() : vbo(0), buffer() {}
+  Mesh(std::vector<GLfloat>&& vector) : vbo(0), buffer(vector) {}
 };
 
 class OpenGlRenderer : public System {

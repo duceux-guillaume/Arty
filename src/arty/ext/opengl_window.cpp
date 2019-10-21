@@ -44,6 +44,12 @@ Result OpenGlWindow::init() {
 
   // Ensure we can capture the escape key being pressed below
   glfwSetInputMode(_window, GLFW_STICKY_KEYS, GL_TRUE);
+  // Hide the mouse and enable unlimited mouvement
+  glfwSetInputMode(_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
+  // Set the mouse at the center of the screen
+  glfwPollEvents();
+  glfwSetCursorPos(_window, 1024 / 2, 768 / 2);
 
   // Dark blue background
   glClearColor(0.0f, 0.0f, 0.4f, 0.0f);
@@ -52,6 +58,8 @@ Result OpenGlWindow::init() {
   glEnable(GL_DEPTH_TEST);
   // Accept fragment if it closer to the camera than the former one
   glDepthFunc(GL_LESS);
+  // Cull triangles which normal is not towards the camera
+  glEnable(GL_CULL_FACE);
 
   // During init, enable debug output
   glEnable(GL_DEBUG_OUTPUT);
@@ -81,5 +89,26 @@ void OpenGlWindow::close() {
   // Close OpenGL window and terminate GLFW
   glfwTerminate();
 }
+
+CursorPosition OpenGlWindow::getCursorPosition() {
+  // Get mouse position
+  CursorPosition cursor;
+  glfwGetCursorPos(_window, &cursor.x, &cursor.y);
+  return cursor;
+}
+
+void OpenGlWindow::setCursorPosition(const CursorPosition& cursor) {
+  glfwSetCursorPos(_window, cursor.x, cursor.y);
+}
+
+double OpenGlWindow::getTime() { return glfwGetTime(); }
+
+bool OpenGlWindow::keyHasBeenPressed(Key key) {
+  return glfwGetKey(_window, key) == GLFW_PRESS;
+}
+
+int OpenGlWindow::width() { return 1024; }
+
+int OpenGlWindow::height() { return 768; }
 
 }  // namespace arty

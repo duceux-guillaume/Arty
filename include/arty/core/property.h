@@ -11,6 +11,7 @@ class Property {
   Property(Entity const& entity, T const& val) : _entity(entity), _val(val) {}
   T& val() { return _val; }
   T const& val() const { return _val; }
+  Entity const& entity() const { return _entity; }
 
  private:
   T _val;

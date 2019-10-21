@@ -2,12 +2,13 @@
 #define POSITION_SYSTEM_H
 
 #include <arty/core/ecs.h>
+#include <arty/core/window.h>
 
 namespace arty {
 
 struct Position {
-  float pos[3];
-  float rot[4];
+  float position[3];
+  float orientation[4];
 };
 
 }  // namespace arty
@@ -26,19 +27,47 @@ class PositionComponent : public DenseComponentStorage<Position> {
 
 class PositionSystem : public System {
  public:
-  PositionSystem() : System() { System::_types.push_back("Position"); }
+  PositionSystem(Ptr<Window> const& w) : System(), _window(w) {}
 
   Result init(Ptr<Blackboard> const& board) override { return ok(); }
 
   Result process(Ptr<Blackboard> const& board) override {
-    auto component_iterator = board->get_property<Position>("position");
-    for (auto& pos : *component_iterator) {
-      // std::cout << pos << std::endl;
+    // Get the position we want to move
+    Position p;
+    auto pentity = board->getProperty<Entity>("keyboard");
+    {
+      if (!pentity) {
+        return error("no entity being controlled");
+      }
+      if (pentity->size() > 1) {
+        return error("multiple control entities is not implemented");
+      }
+      auto pposition = board->getEntityProperty<Position>(
+          pentity->front().val(), "position");
+      if (!pposition) {
+        return error("entity has no position property");
+      }
+      p = *pposition;
     }
+
+    static double lastTime = _window->getTime();
+    double currentTime = _window->getTime();
+    double deltaTime = currentTime - lastTime;
+    CursorPosition cursor = _window->getCursorPosition();
+    _window->setCursorPosition(
+        CursorPosition(_window->width() / 2.0, _window->height() / 2.0));
+
+    if (_window->keyHasBeenPressed(Key::UP)) {
+      p.position[0] += 1.f;
+    }
+    board->set(pentity->front().val(), "position", p);
+    std::cout << "set: " << pentity->front().val().name() << " position "
+              << p.position[0] << std::endl;
     return ok();
   }
 
  private:
+  Ptr<Window> _window;
 };
 
 }  // namespace arty
