@@ -22,13 +22,7 @@ class Blackboard {
  public:
   template <typename T>
   Holder<T> getProperty(std::string const& property_name) {
-    auto ptr = items<T>[property_name];
-    if (ptr) {
-      std::cout << "get: " << property_name << " " << ptr->size() << std::endl;
-    } else {
-      std::cout << "unknown property: " << property_name << std::endl;
-    }
-    return ptr;
+    return items<T>[property_name];
   }
 
   template <typename T>
@@ -62,7 +56,6 @@ class Blackboard {
 
   template <typename T>
   T* getEntityProperty(Entity const& ent, std::string const& property_name) {
-    std::cout << "get: " << ent.name() << "_" << property_name << std::endl;
     // TODO find a faster way to avoid doing that
     auto ptr = items<T>[property_name];
     if (!ptr) {

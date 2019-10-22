@@ -36,7 +36,6 @@ class OpenGlRenderer : public System {
   GLuint _vertexbuffer;
   GLuint _vertexarrayid;
   GLuint MatrixID;
-  glm::mat4 MVP;
   GLuint TextureID;
   GLuint Texture;
 };

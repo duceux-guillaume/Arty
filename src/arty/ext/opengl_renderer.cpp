@@ -281,54 +281,19 @@ Result OpenGlRenderer::init(Ptr<Blackboard> const& board) {
 }
 
 Result OpenGlRenderer::process(const Ptr<Blackboard>& board) {
-  // Update positions
-  std::vector<GLfloat> buffer;
-  auto pmesh = board->getProperty<Mesh>("mesh");
-  assert(pmesh);
+  // Get camera
+  glm::mat4 MVP;
   {
-    auto ppos = board->getProperty<Position>("position");
-    assert(pmesh);
-    auto meshIt = pmesh->begin();
-    auto posIt = ppos->begin();
-    auto meshEnd = pmesh->end();
-    std::vector<GLfloat> buffer;
-    for (; meshIt != meshEnd; ++meshIt, ++posIt) {
-      Quatf rot(posIt->val().orientation);
-      Vec3f trans(posIt->val().position);
-      auto mptIt = meshIt->val().buffer.begin();
-      auto mptEnd = meshIt->val().buffer.end();
-      for (; mptIt != mptEnd; mptIt += 3) {
-        Vec3f mesh{*mptIt, *(mptIt + 1), *(mptIt + 2)};
-        auto res = rot * mesh;
-        res += trans;
-        buffer.push_back(res[0]);
-        buffer.push_back(res[1]);
-        buffer.push_back(res[2]);
+    auto ptr = board->getProperty<Mat4x4f>("mvp");
+    assert(ptr);
+    assert(ptr->size() == 1);
+    auto cam = ptr->at(0).val();
+    for (int j = 0; j < 4; ++j) {
+      for (int i = 0; i < 4; ++i) {
+        MVP[i][j] = cam(i, j);
       }
     }
   }
-
-  // Projection matrix : 45� Field of View, 4:3 ratio, display range : 0.1 unit
-  // <-> 100 units
-  glm::mat4 Projection =
-      glm::perspective(glm::radians(45.0f), 4.0f / 3.0f, 0.1f, 100.0f);
-  // Or, for an ortho camera :
-  // glm::mat4 Projection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, 0.0f,
-  // 100.0f);
-  // // In world coordinates
-
-  // Camera matrix
-  glm::mat4 View = glm::lookAt(
-      glm::vec3(4, 3, 3),  // Camera is at (4,3,3), in World Space
-      glm::vec3(0, 0, 0),  // and looks at the origin
-      glm::vec3(0, 1, 0)   // Head is up (set to 0,-1,0 to look upside-down)
-  );
-  // Model matrix : an identity matrix (model will be at the origin)
-  glm::mat4 Model = glm::mat4(1.0f);
-
-  // Our ModelViewProjection : multiplication of our 3 matrices
-  MVP = Projection * View *
-        Model;  // Remember, matrix multiplication is the other way around
 
   // Use our shader
   glUseProgram(_program_id);
@@ -346,6 +311,8 @@ Result OpenGlRenderer::process(const Ptr<Blackboard>& board) {
   // 1rst attribute buffer : vertices
   glEnableVertexAttribArray(0);
   {
+    auto pmesh = board->getProperty<Mesh>("mesh");
+    assert(pmesh);
     for (auto& mesh : *pmesh) {
       glBindBuffer(GL_ARRAY_BUFFER, mesh.val().vbo);
       glVertexAttribPointer(0,  // attribute 0. No particular reason for 0, but

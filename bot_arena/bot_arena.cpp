@@ -1,10 +1,10 @@
 #include <arty/ext/opengl_renderer.h>
 #include <arty/ext/opengl_window.h>
 #include <arty/impl/engine.h>
-#include <arty/impl/position_system.h>
-#include <stdio.h>
-#include <stdlib.h>
 
+#include <arty/impl/camera_system.hpp>
+#include <cstdio>
+#include <cstdlib>
 #include <iostream>
 #include <memory>
 
@@ -136,14 +136,13 @@ int main(void) {
   Ptr<Window> window(new OpenGlWindow);
   Engine engine;
   engine.set_window(window)
-      .add_system(Ptr<System>(new OpenGlRenderer))
-      .add_system(Ptr<System>(new PositionSystem(window)));
+      .add_system(Ptr<System>(new CameraSystem(window)))
+      .add_system(Ptr<System>(new OpenGlRenderer));
 
   Entity mybot("mybot");
   engine.set(mybot, "mesh", Mesh(make_cube(1.f)));
   engine.set(mybot, "color", color);
   engine.set(mybot, "texture", texture);
-  engine.set(mybot, "position", Position());
 
   Entity player("player");
   engine.set(player, "keyboard", mybot);
