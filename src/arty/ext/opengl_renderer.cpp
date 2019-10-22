@@ -1,4 +1,6 @@
+#include <arty/core/math.h>
 #include <arty/ext/opengl_renderer.h>
+#include <arty/impl/position_system.h>
 
 #include <cstring>
 #include <fstream>
@@ -279,6 +281,33 @@ Result OpenGlRenderer::init(Ptr<Blackboard> const& board) {
 }
 
 Result OpenGlRenderer::process(const Ptr<Blackboard>& board) {
+  // Update positions
+  std::vector<GLfloat> buffer;
+  auto pmesh = board->getProperty<Mesh>("mesh");
+  assert(pmesh);
+  {
+    auto ppos = board->getProperty<Position>("position");
+    assert(pmesh);
+    auto meshIt = pmesh->begin();
+    auto posIt = ppos->begin();
+    auto meshEnd = pmesh->end();
+    std::vector<GLfloat> buffer;
+    for (; meshIt != meshEnd; ++meshIt, ++posIt) {
+      Quatf rot(posIt->val().orientation);
+      Vec3f trans(posIt->val().position);
+      auto mptIt = meshIt->val().buffer.begin();
+      auto mptEnd = meshIt->val().buffer.end();
+      for (; mptIt != mptEnd; mptIt += 3) {
+        Vec3f mesh{*mptIt, *(mptIt + 1), *(mptIt + 2)};
+        auto res = rot * mesh;
+        res += trans;
+        buffer.push_back(res[0]);
+        buffer.push_back(res[1]);
+        buffer.push_back(res[2]);
+      }
+    }
+  }
+
   // Projection matrix : 45� Field of View, 4:3 ratio, display range : 0.1 unit
   // <-> 100 units
   glm::mat4 Projection =
@@ -317,8 +346,7 @@ Result OpenGlRenderer::process(const Ptr<Blackboard>& board) {
   // 1rst attribute buffer : vertices
   glEnableVertexAttribArray(0);
   {
-    auto ptrit = board->getProperty<Mesh>("mesh");
-    for (auto& mesh : *ptrit) {
+    for (auto& mesh : *pmesh) {
       glBindBuffer(GL_ARRAY_BUFFER, mesh.val().vbo);
       glVertexAttribPointer(0,  // attribute 0. No particular reason for 0, but
                                 // must match the layout in the shader.
