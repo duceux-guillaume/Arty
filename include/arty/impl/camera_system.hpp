@@ -17,26 +17,35 @@ class CameraSystem : public System {
         _view(),
         _projection(),
         _position({4.f, 3.f, 3.f}),
-        _hangle(3.14f),
-        _vangle(0.0f),
+        _hangle(4.f),
+        _vangle(-0.6f),
         _fov(45.0f),
-        _speed(3.f),
-        _mouseSpeed(0.005f),
+        _speed(10.f),
+        _mouseSpeed(0.002f),
         _camera("camera") {}
 
-  Result init(Ptr<Blackboard> const& board) override { return ok(); }
+  Result init(Ptr<Blackboard> const& board) override {
+    _window->setCursorPosition(
+        CursorPosition(_window->width() / 2.0, _window->height() / 2.0));
+    return ok();
+  }
 
   Result process(Ptr<Blackboard> const& board) override {
     static double lastTime = _window->getTime();
     double currentTime = _window->getTime();
     float deltaTime = currentTime - lastTime;
+
     CursorPosition cursor = _window->getCursorPosition();
     _window->setCursorPosition(
         CursorPosition(_window->width() / 2.0, _window->height() / 2.0));
 
-    _hangle += _mouseSpeed * (_window->width() / 2.f - cursor.x);
-    _vangle += _mouseSpeed * (_window->height() / 2.f - cursor.y);
-
+    float dx = (_window->width() / 2.f - cursor.x);
+    float dy = (_window->height() / 2.f - cursor.y);
+    if (std::fabs(dx) < 100 &&
+        std::fabs(dy) < 100) {  // Don't why its not stable at startup
+      _hangle += _mouseSpeed * (_window->width() / 2.f - cursor.x);
+      _vangle += _mouseSpeed * (_window->height() / 2.f - cursor.y);
+    }
     Vec3f direction{std::cos(_vangle) * std::sin(_hangle),  //
                     std::sin(_vangle),                      //
                     std::cos(_vangle) * std::cos(_hangle)};
@@ -61,24 +70,10 @@ class CameraSystem : public System {
     }
 
     _projection = perspective(radians(_fov), 4.0f / 3.0f, 0.1f, 100.0f);
-    std::cout << "_projection" << _projection << std::endl;
 
-    //_view = lookAt(_position, _position + direction, up);
-    _view = lookAt(Vec3f{4, 3, 3}, Vec3f{0, 0, 0}, Vec3f{0, 1, 0});
-    std::cout << "_view" << _view << std::endl;
+    _view = lookAt(_position, _position + direction, up);
 
-    // Mat4x4f camera = _projection * _view;
-    Mat4x4f camera(1.f);
-    camera(0, 0) = 0.1f;
-    camera(0, 3) = _position[0];
-    camera(1, 3) = _position[1];
-    camera(2, 3) = _position[2];
-
-    std::cout << "_position" << _position << std::endl;
-    std::cout << "direction" << direction << std::endl;
-    std::cout << "up" << up << std::endl;
-    std::cout << "camera" << camera << std::endl;
-
+    Mat4x4f camera = _projection * _view;
     board->set(_camera, "mvp", camera);
 
     lastTime = currentTime;

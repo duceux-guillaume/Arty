@@ -288,9 +288,9 @@ Result OpenGlRenderer::process(const Ptr<Blackboard>& board) {
     assert(ptr);
     assert(ptr->size() == 1);
     auto cam = ptr->at(0).val();
-    for (int j = 0; j < 4; ++j) {
-      for (int i = 0; i < 4; ++i) {
-        MVP[i][j] = cam(i, j);
+    for (int i = 0; i < 4; ++i) {
+      for (int j = 0; j < 4; ++j) {
+        MVP[j][i] = cam(i, j);
       }
     }
   }

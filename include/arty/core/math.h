@@ -92,23 +92,29 @@ class MatBase {
     return *this;
   }
 
-  MatBase<T, Rows, Cols, Derived>& operator*=(
-      MatBase<T, Rows, Cols, Derived> const& r) {
-    auto other = transpose(r);
+  Derived& operator*=(MatBase<T, Rows, Cols, Derived> const& r) {
     MatBase<T, Rows, Cols, Derived> res;
     for (size_t i = 0; i < Rows; ++i) {
       for (size_t j = 0; j < Cols; ++j) {
         for (size_t step = 0; step < Cols; ++step) {
-          res(i, j) += arr[i * Cols + step] * other[j * Cols + step];
+          res(i, j) += (*this)(i, step) * r(step, j);
         }
       }
     }
-    std::swap(*this, res);
+    std::memcpy(this->arr, res.arr, sizeof(this->arr));
     return *reinterpret_cast<Derived*>(this);
   }
 
   T const* const ptr() const { return arr; }
-};
+
+  bool operator==(MatBase<T, Rows, Cols, Derived> const& r) const {
+    return std::memcmp(this->arr, r.arr, sizeof(this->arr)) == 0;
+  }
+
+  bool operator!=(MatBase<T, Rows, Cols, Derived> const& r) const {
+    return !(*this == r);
+  }
+};  // namespace arty
 
 template <typename T, int Rows, int Cols, class Derived>
 inline const Derived operator+(MatBase<T, Rows, Cols, Derived> l,
@@ -158,13 +164,7 @@ inline Derived normalize(MatBase<T, Rows, Cols, Derived> const& m) {
 
 template <typename T, int Rows, int Cols, class Derived>
 inline Derived transpose(MatBase<T, Rows, Cols, Derived> const& m) {
-  MatBase<T, Cols, Rows, Derived> res;
-  for (std::size_t j = 0; j < Cols; ++j) {
-    for (std::size_t i = 0; i < Rows; ++i) {
-      res(j, i) = m(i, j);
-    }
-  }
-  return *reinterpret_cast<Derived*>(&res);
+  return transpose(*reinterpret_cast<Derived const*>(&m));
 }
 
 template <typename T, int Rows, int Cols>
@@ -176,6 +176,17 @@ class Mat : public MatBase<T, Rows, Cols, Mat<T, Rows, Cols>> {
   Mat(std::initializer_list<T> l) : Base(l) {}
   Mat(T p[Base::size]) : Base(p) {}
 };
+
+template <typename T, int Rows, int Cols>
+inline Mat<T, Cols, Rows> transpose(Mat<T, Rows, Cols> const& m) {
+  Mat<T, Cols, Rows> res;
+  for (std::size_t i = 0; i < Rows; ++i) {
+    for (std::size_t j = 0; j < Cols; ++j) {
+      res(j, i) = m(i, j);
+    }
+  }
+  return res;
+}
 
 template <typename T>
 using Mat3x3 = Mat<T, 3, 3>;
@@ -231,7 +242,7 @@ template <typename T>
 Vec3<T> inline cross(Vec3<T> const& l, Vec3<T> const& r) {
   return Vec3<T>{
       l[1] * r[2] - r[1] * l[2],  //
-      l[0] * r[2] - r[0] * l[2],  //
+      l[2] * r[0] - r[2] * l[0],  //
       l[0] * r[1] - r[0] * l[1],  //
   };
 }
@@ -282,8 +293,8 @@ inline Mat4x4<T> perspective(T const& fov, T const& aspect, T const& znear,
   mat(0, 0) = static_cast<T>(1) / (aspect * tanHalfFovy);
   mat(1, 1) = static_cast<T>(1) / (tanHalfFovy);
   mat(2, 2) = -(zfar + znear) / (zfar - znear);
-  mat(2, 3) = -static_cast<T>(1);
-  mat(3, 2) = -(static_cast<T>(2) * zfar * znear) / (zfar - znear);
+  mat(3, 2) = -static_cast<T>(1);
+  mat(2, 3) = -(static_cast<T>(2) * zfar * znear) / (zfar - znear);
   return mat;
 }
 
@@ -296,17 +307,17 @@ inline Mat4x4<T> lookAt(Vec3<T> const& eye, Vec3<T> const& center,
 
   Mat4x4<T> result(1);
   result(0, 0) = s.x();
-  result(1, 0) = s.y();
-  result(2, 0) = s.z();
-  result(0, 1) = u.x();
+  result(0, 1) = s.y();
+  result(0, 2) = s.z();
+  result(1, 0) = u.x();
   result(1, 1) = u.y();
-  result(2, 1) = u.z();
-  result(0, 2) = -f.x();
-  result(1, 2) = -f.y();
+  result(1, 2) = u.z();
+  result(2, 0) = -f.x();
+  result(2, 1) = -f.y();
   result(2, 2) = -f.z();
-  result(3, 0) = -dot(s, eye);
-  result(3, 1) = -dot(u, eye);
-  result(3, 2) = dot(f, eye);
+  result(0, 3) = -dot(s, eye);
+  result(1, 3) = -dot(u, eye);
+  result(2, 3) = dot(f, eye);
   return result;
 }
 
