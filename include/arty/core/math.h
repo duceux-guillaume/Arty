@@ -85,11 +85,11 @@ class MatBase {
   }
 
   template <typename S>
-  MatBase<T, Rows, Cols, Derived>& operator*=(S const& scalar) {
+  Derived& operator*=(S const& scalar) {
     for (int i = 0; i < size; ++i) {
       arr[i] *= scalar;
     }
-    return *this;
+    return *reinterpret_cast<Derived*>(this);
   }
 
   Derived& operator*=(MatBase<T, Rows, Cols, Derived> const& r) {
@@ -132,10 +132,9 @@ inline const MatBase<T, Rows, Cols, Derived> operator-(
 }
 
 template <typename T, int Rows, int Cols, class Derived>
-inline const MatBase<T, Rows, Cols, Derived> operator*(
-    MatBase<T, Rows, Cols, Derived> l, T const& r) {
+inline Derived operator*(MatBase<T, Rows, Cols, Derived> l, T const& r) {
   l *= r;
-  return l;
+  return *reinterpret_cast<Derived*>(&l);
 }
 
 template <typename T, int Rows, int Cols, class Derived>
@@ -332,6 +331,45 @@ static std::ostream& operator<<(
     out << "|";
   }
   return out;
+}
+
+template <typename T>
+inline Mat4x4<T> translation(T const& x, T const& y, T const& z) {
+  Mat4x4<T> res(static_cast<T>(1.f));
+  res(0, 3) = x;
+  res(1, 3) = y;
+  res(2, 3) = z;
+  return res;
+}
+
+template <typename T>
+inline Mat4x4<T> translation(Vec3<T> const& t) {
+  Mat4x4<T> res(static_cast<T>(1.f));
+  res(0, 3) = t.x();
+  res(1, 3) = t.y();
+  res(2, 3) = t.z();
+  return res;
+}
+
+template <typename T>
+inline Mat4x4<T> rotation(T const& a, T const& b, T const& c) {
+  Mat4x4<T> res(static_cast<T>(1.f));
+  T c1 = std::cos(a);
+  T c2 = std::cos(b);
+  T c3 = std::cos(c);
+  T s1 = std::sin(a);
+  T s2 = std::sin(b);
+  T s3 = std::sin(c);
+  res(0, 0) = c2 * c3;
+  res(0, 1) = -c2 * s3;
+  res(0, 2) = s2;
+  res(1, 0) = c1 * s3 + c3 * s1 * s2;
+  res(1, 1) = c1 * c3 - s1 * s2 * s3;
+  res(1, 2) = -c2 * s1;
+  res(2, 0) = s1 * s3 - c1 * c3 * s2;
+  res(2, 1) = c3 * s1 + c1 * s2 * s3;
+  res(2, 2) = c1 * c2;
+  return res;
 }
 
 }  // namespace arty

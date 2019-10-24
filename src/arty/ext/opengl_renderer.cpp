@@ -368,7 +368,7 @@ Result OpenGlRenderer::init(Ptr<Blackboard> const& board) {
   TextureID = glGetUniformLocation(_program_id, "myTextureSampler");
 
   // Read our .obj file
-  bool res = loadOBJ("models/cube.obj", vertices, uvs, normals);
+  bool res = loadOBJ("models/bot_1.obj", vertices, uvs, normals);
   if (!res) {
     return error("error loading obj");
   }
