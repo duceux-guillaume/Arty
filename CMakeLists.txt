@@ -59,26 +59,6 @@ add_definitions(
         -D_CRT_SECURE_NO_WARNINGS
 )
 
-# Tutorial 6
-add_executable(tutorial06_keyboard_and_mouse
-        tutorial06_keyboard_and_mouse/tutorial06.cpp
-        common/shader.cpp
-        common/shader.hpp
-        common/controls.cpp
-        common/controls.hpp
-        common/texture.cpp
-        common/texture.hpp
-
-        tutorial06_keyboard_and_mouse/TransformVertexShader.vertexshader
-        tutorial06_keyboard_and_mouse/TextureFragmentShader.fragmentshader
-)
-target_link_libraries(tutorial06_keyboard_and_mouse
-        ${ALL_LIBS}
-)
-# Xcode and Visual working directories
-set_target_properties(tutorial06_keyboard_and_mouse PROPERTIES XCODE_ATTRIBUTE_CONFIGURATION_BUILD_DIR "${CMAKE_CURRENT_SOURCE_DIR}/tutorial06_keyboard_and_mouse/")
-create_target_launcher(tutorial06_keyboard_and_mouse WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/tutorial06_keyboard_and_mouse/")
-
 # Tutorial 7
 add_executable(tutorial07_model_loading
         tutorial07_model_loading/tutorial07.cpp
@@ -616,10 +596,6 @@ if (NOT ${CMAKE_GENERATOR} MATCHES "Xcode" )
 add_custom_command(
    TARGET bot_arena POST_BUILD
    COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/bot_arena${CMAKE_EXECUTABLE_SUFFIX}" "${CMAKE_CURRENT_SOURCE_DIR}/bot_arena/"
-)
-add_custom_command(
-   TARGET tutorial06_keyboard_and_mouse POST_BUILD
-   COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/tutorial06_keyboard_and_mouse${CMAKE_EXECUTABLE_SUFFIX}" "${CMAKE_CURRENT_SOURCE_DIR}/tutorial06_keyboard_and_mouse/"
 )
 add_custom_command(
    TARGET tutorial07_model_loading POST_BUILD
