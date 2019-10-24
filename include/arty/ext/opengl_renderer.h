@@ -34,10 +34,14 @@ class OpenGlRenderer : public System {
  private:
   GLuint _program_id;
   GLuint _vertexbuffer;
+  GLuint _uvbuffer;
   GLuint _vertexarrayid;
   GLuint MatrixID;
   GLuint TextureID;
   GLuint Texture;
+  std::vector<glm::vec3> vertices;
+  std::vector<glm::vec2> uvs;
+  std::vector<glm::vec3> normals;
 };
 
 }  // namespace arty
