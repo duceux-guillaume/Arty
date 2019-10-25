@@ -139,14 +139,6 @@ int main(void) {
       .add_system(Ptr<System>(new CameraSystem(window)))
       .add_system(Ptr<System>(new OpenGlRenderer));
 
-  Entity mybot("mybot");
-  engine.set(mybot, "mesh", Mesh(make_cube(1.f)));
-  engine.set(mybot, "color", color);
-  engine.set(mybot, "texture", texture);
-
-  Entity player("player");
-  engine.set(player, "keyboard", mybot);
-
   // Entity ennemi("ennemi");
   // engine.set(ennemi, "mesh", Mesh(make_cube(0.5f)));
   // engine.set(ennemi, "color", color);

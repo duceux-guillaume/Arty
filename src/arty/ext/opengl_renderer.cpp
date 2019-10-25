@@ -1,6 +1,5 @@
 #include <arty/core/math.h>
 #include <arty/ext/opengl_renderer.h>
-#include <arty/impl/position_system.h>
 
 #include <cstring>
 #include <fstream>
@@ -389,7 +388,7 @@ Result OpenGlRenderer::init(Ptr<Blackboard> const& board) {
 
 Result OpenGlRenderer::process(const Ptr<Blackboard>& board) {
   // Get camera
-  auto ptr = board->getProperty<Mat4x4f>("mvp");
+  auto ptr = board->getProperty("mvp");
   assert(ptr);
   assert(ptr->size() == 1);
   Mat4x4f MVP = ptr->at(0).val();
