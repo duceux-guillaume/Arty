@@ -1,6 +1,5 @@
 # vim tmp files
 *.swp
-_*
 *~
 build
 *.user
