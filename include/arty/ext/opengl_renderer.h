@@ -24,9 +24,6 @@ class OpenGlRenderer : public System {
   Result process(Ptr<Blackboard> const& board) override;
   void release() override;
 
-  GLuint LoadShaders(const char* vertex_file_path,
-                     const char* fragment_file_path);
-
  private:
   GLuint _program_id;
   GLuint _vertexbuffer;
