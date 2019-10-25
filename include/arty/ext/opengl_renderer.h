@@ -3,11 +3,7 @@
 
 #include <GL/glew.h>
 #include <arty/core/ecs.h>
-
-// Include GLM
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-using namespace glm;
+#include <arty/core/math.h>
 
 namespace arty {
 
@@ -39,9 +35,9 @@ class OpenGlRenderer : public System {
   GLuint MatrixID;
   GLuint TextureID;
   GLuint Texture;
-  std::vector<glm::vec3> vertices;
-  std::vector<glm::vec2> uvs;
-  std::vector<glm::vec3> normals;
+  std::vector<Vec3f> vertices;
+  std::vector<Vec2f> uvs;
+  std::vector<Vec3f> normals;
 };
 
 }  // namespace arty

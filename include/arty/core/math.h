@@ -234,6 +234,10 @@ class Vec : public MatBase<T, Rows, 1, Vec<T, Rows>> {
 };
 
 template <typename T>
+using Vec2 = Vec<T, 2>;
+using Vec2f = Vec2<float>;
+
+template <typename T>
 using Vec3 = Vec<T, 3>;
 using Vec3f = Vec3<float>;
 

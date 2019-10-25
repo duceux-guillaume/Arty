@@ -12,10 +12,6 @@
 // Include GLFW
 #include <GLFW/glfw3.h>
 
-// Include GLM
-#include <glm/glm.hpp>
-using namespace glm;
-
 namespace arty {
 class OpenGlWindow : public Window {
  private:

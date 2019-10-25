@@ -6,6 +6,8 @@
 #include <fstream>
 #include <sstream>
 
+namespace arty {
+
 // Very, VERY simple OBJ loader.
 // Here is a short list of features a real function would provide :
 // - Binary files. Reading a model should be just a few memcpy's away, not
@@ -17,15 +19,15 @@
 // - More secure. Change another line and you can inject code.
 // - Loading from memory, stream, etc
 
-static bool loadOBJ(const char* path, std::vector<glm::vec3>& out_vertices,
-                    std::vector<glm::vec2>& out_uvs,
-                    std::vector<glm::vec3>& out_normals) {
+static bool loadOBJ(const char* path, std::vector<Vec3f>& out_vertices,
+                    std::vector<Vec2f>& out_uvs,
+                    std::vector<Vec3f>& out_normals) {
   printf("Loading OBJ file %s...\n", path);
 
   std::vector<unsigned int> vertexIndices, uvIndices, normalIndices;
-  std::vector<glm::vec3> temp_vertices;
-  std::vector<glm::vec2> temp_uvs;
-  std::vector<glm::vec3> temp_normals;
+  std::vector<Vec3f> temp_vertices;
+  std::vector<Vec2f> temp_uvs;
+  std::vector<Vec3f> temp_normals;
 
   FILE* file = fopen(path, "r");
   if (file == NULL) {
@@ -45,19 +47,19 @@ static bool loadOBJ(const char* path, std::vector<glm::vec3>& out_vertices,
     // else : parse lineHeader
 
     if (strcmp(lineHeader, "v") == 0) {
-      glm::vec3 vertex;
-      fscanf(file, "%f %f %f\n", &vertex.x, &vertex.y, &vertex.z);
+      Vec3f vertex;
+      fscanf(file, "%f %f %f\n", &vertex.x(), &vertex.y(), &vertex.z());
       temp_vertices.push_back(vertex);
     } else if (strcmp(lineHeader, "vt") == 0) {
-      glm::vec2 uv;
-      fscanf(file, "%f %f\n", &uv.x, &uv.y);
-      uv.y = -uv.y;  // Invert V coordinate since we will only use DDS texture,
-                     // which are inverted. Remove if you want to use TGA or BMP
-                     // loaders.
+      Vec2f uv;
+      fscanf(file, "%f %f\n", &uv.x(), &uv.y());
+      uv.y() = -uv.y();  // Invert V coordinate since we will only use DDS
+                         // texture, which are inverted. Remove if you want to
+                         // use TGA or BMP loaders.
       temp_uvs.push_back(uv);
     } else if (strcmp(lineHeader, "vn") == 0) {
-      glm::vec3 normal;
-      fscanf(file, "%f %f %f\n", &normal.x, &normal.y, &normal.z);
+      Vec3f normal;
+      fscanf(file, "%f %f %f\n", &normal.x(), &normal.y(), &normal.z());
       temp_normals.push_back(normal);
     } else if (strcmp(lineHeader, "f") == 0) {
       std::string vertex1, vertex2, vertex3;
@@ -97,9 +99,9 @@ static bool loadOBJ(const char* path, std::vector<glm::vec3>& out_vertices,
     unsigned int normalIndex = normalIndices[i];
 
     // Get the attributes thanks to the index
-    glm::vec3 vertex = temp_vertices[vertexIndex - 1];
-    glm::vec2 uv = temp_uvs[uvIndex - 1];
-    glm::vec3 normal = temp_normals[normalIndex - 1];
+    Vec3f vertex = temp_vertices[vertexIndex - 1];
+    Vec2f uv = temp_uvs[uvIndex - 1];
+    Vec3f normal = temp_normals[normalIndex - 1];
 
     // Put the attributes in buffers
     out_vertices.push_back(vertex);
@@ -334,7 +336,6 @@ static GLuint loadDDS(const char* imagepath) {
   return textureID;
 }
 
-namespace arty {
 OpenGlRenderer::OpenGlRenderer()
     : _program_id(0), _vertexbuffer(0), _vertexarrayid(0) {
   std::cout << "Hello" << std::endl;
@@ -375,12 +376,12 @@ Result OpenGlRenderer::init(Ptr<Blackboard> const& board) {
 
   glGenBuffers(1, &_vertexbuffer);
   glBindBuffer(GL_ARRAY_BUFFER, _vertexbuffer);
-  glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glm::vec3),
-               &vertices[0], GL_STATIC_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vec3f), &vertices[0],
+               GL_STATIC_DRAW);
 
   glGenBuffers(1, &_uvbuffer);
   glBindBuffer(GL_ARRAY_BUFFER, _uvbuffer);
-  glBufferData(GL_ARRAY_BUFFER, uvs.size() * sizeof(glm::vec2), &uvs[0],
+  glBufferData(GL_ARRAY_BUFFER, uvs.size() * sizeof(Vec2f), &uvs[0],
                GL_STATIC_DRAW);
 
   return ok();
@@ -388,25 +389,17 @@ Result OpenGlRenderer::init(Ptr<Blackboard> const& board) {
 
 Result OpenGlRenderer::process(const Ptr<Blackboard>& board) {
   // Get camera
-  glm::mat4 MVP;
-  {
-    auto ptr = board->getProperty<Mat4x4f>("mvp");
-    assert(ptr);
-    assert(ptr->size() == 1);
-    auto cam = ptr->at(0).val();
-    for (int i = 0; i < 4; ++i) {
-      for (int j = 0; j < 4; ++j) {
-        MVP[j][i] = cam(i, j);
-      }
-    }
-  }
+  auto ptr = board->getProperty<Mat4x4f>("mvp");
+  assert(ptr);
+  assert(ptr->size() == 1);
+  Mat4x4f MVP = ptr->at(0).val();
 
   // Use our shader
   glUseProgram(_program_id);
 
   // Send our transformation to the currently bound shader,
   // in the "MVP" uniform
-  glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
+  glUniformMatrix4fv(MatrixID, 1, GL_FALSE, transpose(MVP).ptr());
 
   // Bind our texture in Texture Unit 0
   glActiveTexture(GL_TEXTURE0);
