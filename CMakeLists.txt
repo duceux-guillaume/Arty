@@ -59,28 +59,6 @@ add_definitions(
         -D_CRT_SECURE_NO_WARNINGS
 )
 
-# Tutorial 8
-add_executable(tutorial08_basic_shading
-        tutorial08_basic_shading/tutorial08.cpp
-        common/shader.cpp
-        common/shader.hpp
-        common/controls.cpp
-        common/controls.hpp
-        common/texture.cpp
-        common/texture.hpp
-        common/objloader.cpp
-        common/objloader.hpp
-
-        tutorial08_basic_shading/StandardShading.vertexshader
-        tutorial08_basic_shading/StandardShading.fragmentshader
-)
-target_link_libraries(tutorial08_basic_shading
-        ${ALL_LIBS}
-)
-# Xcode and Visual working directories
-set_target_properties(tutorial08_basic_shading PROPERTIES XCODE_ATTRIBUTE_CONFIGURATION_BUILD_DIR "${CMAKE_CURRENT_SOURCE_DIR}/tutorial08_basic_shading/")
-create_target_launcher(tutorial08_basic_shading WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/tutorial08_basic_shading/")
-
 # Tutorial 9
 add_executable(tutorial09_vbo_indexing
         tutorial09_vbo_indexing/tutorial09.cpp
@@ -574,10 +552,6 @@ if (NOT ${CMAKE_GENERATOR} MATCHES "Xcode" )
 add_custom_command(
    TARGET bot_arena POST_BUILD
    COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/bot_arena${CMAKE_EXECUTABLE_SUFFIX}" "${CMAKE_CURRENT_SOURCE_DIR}/bot_arena/"
-)
-add_custom_command(
-   TARGET tutorial08_basic_shading POST_BUILD
-   COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/tutorial08_basic_shading${CMAKE_EXECUTABLE_SUFFIX}" "${CMAKE_CURRENT_SOURCE_DIR}/tutorial08_basic_shading/"
 )
 add_custom_command(
    TARGET tutorial09_vbo_indexing POST_BUILD

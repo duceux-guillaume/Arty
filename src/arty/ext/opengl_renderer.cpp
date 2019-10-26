@@ -38,7 +38,12 @@ Result OpenGlRenderer::init(Ptr<Blackboard> const& board) {
       return error("error opening program file: " + shaderIt->vertex + " " +
                    shaderIt->fragment);
     }
-    shaderIt->camera = glGetUniformLocation(shaderIt->program, "MVP");
+    shaderIt->matrixId = glGetUniformLocation(shaderIt->program, "MVP");
+    shaderIt->viewId = glGetUniformLocation(shaderIt->program, "V");
+    shaderIt->modelId = glGetUniformLocation(shaderIt->program, "M");
+    shaderIt->lightId =
+        glGetUniformLocation(shaderIt->program, "LightPosition_worldspace");
+
     shaderIt->texture = loadDDS(shaderIt->textureFile.c_str());
     if (shaderIt->texture == 0) {
       return error("error loading texture");
@@ -53,11 +58,15 @@ Result OpenGlRenderer::init(Ptr<Blackboard> const& board) {
     }
     glGenBuffers(1, &vertexIt->vbo);
     glBindBuffer(GL_ARRAY_BUFFER, vertexIt->vbo);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertexIt->buffer.size()), NULL,
+    glBufferData(GL_ARRAY_BUFFER, vertexIt->buffer.size() * sizeof(Vec3f), NULL,
                  GL_STREAM_DRAW);
     glGenBuffers(1, &uvIt->vbo);
     glBindBuffer(GL_ARRAY_BUFFER, uvIt->vbo);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(uvIt->buffer.size()), NULL,
+    glBufferData(GL_ARRAY_BUFFER, uvIt->buffer.size() * sizeof(Vec2f), NULL,
+                 GL_STREAM_DRAW);
+    glGenBuffers(1, &normalIt->vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, normalIt->vbo);
+    glBufferData(GL_ARRAY_BUFFER, normalIt->buffer.size() * sizeof(Vec3f), NULL,
                  GL_STREAM_DRAW);
   }
   return ok();
@@ -72,6 +81,7 @@ Result OpenGlRenderer::process(const Ptr<Blackboard>& board) {
   auto vertexPtr = board->getProperties<BufferVec3f>("vertex");
   auto uvPtr = board->getProperties<BufferVec2f>("uv");
   auto posPtr = board->getProperties<Transform>("transform");
+  auto normPtr = board->getProperties<BufferVec3f>("normal");
   if (!shaderPtr || !vertexPtr || !uvPtr || !posPtr) {
     return error("nothing to render");
   }
@@ -81,15 +91,24 @@ Result OpenGlRenderer::process(const Ptr<Blackboard>& board) {
   auto vertexIt = vertexPtr->buffer().begin();
   auto uvIt = uvPtr->buffer().begin();
   auto posIt = posPtr->buffer().begin();
+  auto normIt = normPtr->buffer().begin();
 
-  for (; shaderIt != shaderEnd; ++shaderIt, ++vertexIt, ++uvIt, ++posIt) {
+  for (; shaderIt != shaderEnd;
+       ++shaderIt, ++vertexIt, ++uvIt, ++posIt, ++normIt) {
     // Use our shader
     glUseProgram(shaderIt->program);
 
     // Send our transformation to the currently bound shader,
     // in the "MVP" uniform
-    Mat4x4f mvp = VP * translation(posIt->position);
-    glUniformMatrix4fv(shaderIt->camera, 1, GL_FALSE, transpose(mvp).ptr());
+    Mat4x4f model = translation(posIt->position);
+    Mat4x4f mvp = VP * model;
+    glUniformMatrix4fv(shaderIt->matrixId, 1, GL_FALSE, transpose(mvp).ptr());
+    glUniformMatrix4fv(shaderIt->modelId, 1, GL_FALSE, transpose(model).ptr());
+    glUniformMatrix4fv(shaderIt->viewId, 1, GL_FALSE,
+                       transpose(cam.view).ptr());
+
+    Vec3f lightPos{4.f, 4.f, 4.f};
+    glUniform3f(shaderIt->lightId, lightPos.x(), lightPos.y(), lightPos.z());
 
     // Bind our texture in Texture Unit 0
     glActiveTexture(GL_TEXTURE0);
@@ -127,10 +146,26 @@ Result OpenGlRenderer::process(const Ptr<Blackboard>& board) {
                           (void*)0   // array buffer offset
     );
 
+    // 3rd attribute buffer : normals
+    glEnableVertexAttribArray(2);
+    glBindBuffer(GL_ARRAY_BUFFER, normIt->vbo);
+    glBufferData(GL_ARRAY_BUFFER, normIt->buffer.size() * sizeof(Vec3f), NULL,
+                 GL_STREAM_DRAW);
+    glBufferSubData(GL_ARRAY_BUFFER, 0, uvIt->buffer.size() * sizeof(Vec3f),
+                    uvIt->buffer.data());
+    glVertexAttribPointer(2,         // attribute
+                          3,         // size
+                          GL_FLOAT,  // type
+                          GL_FALSE,  // normalized?
+                          0,         // stride
+                          (void*)0   // array buffer offset
+    );
+
     // Draw the triangle !
     glDrawArrays(GL_TRIANGLES, 0, vertexIt->buffer.size());
     glDisableVertexAttribArray(0);
     glDisableVertexAttribArray(1);
+    glDisableVertexAttribArray(2);
   }
 
   return ok();

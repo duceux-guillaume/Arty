@@ -144,7 +144,10 @@ struct Shader {
   std::string fragment;
   std::string textureFile;
   uint32_t program;
-  uint32_t camera;
+  uint32_t matrixId;
+  uint32_t viewId;
+  uint32_t modelId;
+  uint32_t lightId;
   uint32_t texture;
   uint32_t textureId;
 };

@@ -78,7 +78,7 @@ int main(void) {
   Factory factory;
   auto res = factory.name("mybot")
                  .position(0.f, 0.f, 0.f)
-                 .shaders("shaders/StandardShading.vertexshader.vertexshader",
+                 .shaders("shaders/StandardShading.vertexshader",
                           "shaders/StandardShading.fragmentshader")
                  .texture("textures/uvmap.DDS")
                  .obj("models/bot_1.obj")
@@ -87,7 +87,7 @@ int main(void) {
 
   res = factory.name("mybot")
             .position(4.f, 0.f, 0.f)
-            .shaders("shaders/StandardShading.vertexshader.vertexshader",
+            .shaders("shaders/StandardShading.vertexshader",
                      "shaders/StandardShading.fragmentshader")
             .texture("textures/uvmap.DDS")
             .obj("models/cube.obj")
@@ -96,7 +96,7 @@ int main(void) {
 
   res = factory.name("suzanne")
             .position(-4.f, 0.f, 0.f)
-            .shaders("shaders/StandardShading.vertexshader.vertexshader",
+            .shaders("shaders/StandardShading.vertexshader",
                      "shaders/StandardShading.fragmentshader")
             .texture("textures/uvmap.DDS")
             .obj("models/suzanne.obj")
