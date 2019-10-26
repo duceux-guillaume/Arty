@@ -11,20 +11,6 @@
 
 using namespace arty;
 
-class Transform {
- public:
-  Transform() : position(), rotation(1.f), scale({1.f, 1.f, 1.f}) {}
-
-  Vec3f position;
-  Mat4x4f rotation;
-  Vec3f scale;
-};
-
-struct Shader {
- public:
-  unsigned int program;
-};
-
 class Factory {
  public:
   Factory& name(std::string const& name) {
@@ -48,24 +34,28 @@ class Factory {
 
   Factory& shaders(std::string const& vertexshader,
                    std::string const& fragment) {
-    auto id = LoadShaders("shaders/TransformVertexShader.vertexshader",
-                          "shaders/TextureFragmentShader.fragmentshader");
-    _shader.program = id;
+    _shader.vertex = vertexshader;
+    _shader.fragment = fragment;
     return *this;
   }
 
-  Result build(Engine& engine) {
-    if (_shader.program == 0) {
-      return error("error loading shaders");
-    }
+  Factory& texture(std::string const& file) {
+    _shader.textureFile = file;
+    return *this;
+  }
 
-    Entity entity(_name);
+  Factory& obj(std::string const& file) {
+    _vertex.file = file;
+    return *this;
+  }
 
-    engine.set(entity, "transform", _tf);
-    engine.set(entity, "shader", _shader);
-    engine.set(entity, "vertex", _vertex);
-    engine.set(entity, "uv", _uv);
-    engine.set(entity, "normal", _normal);
+  Result build(Ptr<Blackboard> const& board) {
+    std::string entity = board->createEntity(_name);
+    board->set(entity, "transform", _tf);
+    board->set(entity, "shader", _shader);
+    board->set(entity, "vertex", _vertex);
+    board->set(entity, "uv", _uv);
+    board->set(entity, "normal", _normal);
     return ok();
   }
 
@@ -73,9 +63,9 @@ class Factory {
   std::string _name;
   Transform _tf;
   Shader _shader;
-  Mesh _vertex;
-  Mesh _uv;
-  Mesh _normal;
+  BufferVec3f _vertex;
+  BufferVec2f _uv;
+  BufferVec3f _normal;
 };
 
 int main(void) {
@@ -86,12 +76,32 @@ int main(void) {
       .add_system(Ptr<System>(new OpenGlRenderer));
 
   Factory factory;
-  auto res = factory.name("mybot").position(0.f, 0.f, 0.f).build(engine);
-  if (!res) {
-    std::cerr << res.message() << std::endl;
-    engine.stop();
-    return res;
-  }
+  auto res = factory.name("mybot")
+                 .position(0.f, 0.f, 0.f)
+                 .shaders("shaders/StandardShading.vertexshader.vertexshader",
+                          "shaders/StandardShading.fragmentshader")
+                 .texture("textures/uvmap.DDS")
+                 .obj("models/bot_1.obj")
+                 .build(engine.board());
+  check_result(res);
+
+  res = factory.name("mybot")
+            .position(4.f, 0.f, 0.f)
+            .shaders("shaders/StandardShading.vertexshader.vertexshader",
+                     "shaders/StandardShading.fragmentshader")
+            .texture("textures/uvmap.DDS")
+            .obj("models/cube.obj")
+            .build(engine.board());
+  check_result(res);
+
+  res = factory.name("suzanne")
+            .position(-4.f, 0.f, 0.f)
+            .shaders("shaders/StandardShading.vertexshader.vertexshader",
+                     "shaders/StandardShading.fragmentshader")
+            .texture("textures/uvmap.DDS")
+            .obj("models/suzanne.obj")
+            .build(engine.board());
+  check_result(res);
 
   res = engine.start();
   if (!res) {
@@ -99,9 +109,8 @@ int main(void) {
     engine.stop();
     return res;
   }
+
   res = engine.run();
-  if (!res) {
-    std::cerr << res.message() << std::endl;
-  }
+  check_result(res);
   return res;
 }

@@ -24,11 +24,7 @@ class Engine {
 
   void stop();
 
-  template <typename T>
-  Engine& set(Entity entity, std::string const& property_name, T const& val) {
-    _state->set(entity, property_name, val);
-    return *this;
-  }
+  Ptr<Blackboard> board() const { return _state; }
 
  private:
   Ptr<Window> _window;

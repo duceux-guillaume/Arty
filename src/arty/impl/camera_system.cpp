@@ -123,8 +123,10 @@ Result CameraSystem::process(const Ptr<Blackboard> &board) {
 
   std::cout << "position" << _camFromWorld << std::endl;
 
-  Mat4x4f camera = _projection * _camFromWorld;
-  board->set(_camera, "mvp", camera);
+  Camera camera;
+  camera.projection = _projection;
+  camera.view = _camFromWorld;
+  board->setCamera(camera);
 
   lastTime = currentTime;
 
