@@ -40,7 +40,21 @@ Result Engine::step() {
 Result Engine::run() {
   Result res;
   size_t count = 0;
+  // For speed computation
+  double lastTime = _window->getTime();
+  int nbFrames = 0;
   do {
+    // Measure speed
+    double currentTime = _window->getTime();
+    nbFrames++;
+    // If last prinf() was more than 1sec ago
+    if (currentTime - lastTime >= 1.0) {
+      // printf and reset
+      std::cout << (currentTime - lastTime) * 1000. / double(nbFrames)
+                << " ms/frame" << std::endl;
+      nbFrames = 0;
+      lastTime = currentTime;
+    }
     res = step();
     count++;
   } while (res && _window->isOk() && count < 10000);

@@ -540,10 +540,6 @@ create_target_launcher(bot_arena WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/
 ## POST BUILD ##
 ################
 
-
-
-
-
 SOURCE_GROUP(common REGULAR_EXPRESSION ".*/common/.*" )
 SOURCE_GROUP(shaders REGULAR_EXPRESSION ".*/.*shader$" )
 

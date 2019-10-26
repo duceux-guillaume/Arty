@@ -116,12 +116,9 @@ Result CameraSystem::process(const Ptr<Blackboard> &board) {
     }
   }
 
-  std::cout << _hangle << " " << _vangle << std::endl;
   _camFromWorld = _camFromWorld * rotation(-_vangle, _hangle, 0.f);
 
   _projection = perspective(radians(_fov), 4.0f / 3.0f, 0.1f, 100.0f);
-
-  std::cout << "position" << _camFromWorld << std::endl;
 
   Camera camera;
   camera.projection = _projection;
