@@ -152,18 +152,6 @@ struct Shader {
   uint32_t textureId;
 };
 
-struct Mesh {
-  std::string file;
-  uint32_t vertexVbo;
-  std::vector<Vec3f> vertex;
-  uint32_t uvVbo;
-  std::vector<Vec2f> uv;
-  uint32_t normalVbo;
-  std::vector<Vec3f> normal;
-  uint32_t indexVbo;
-  std::vector<uint16_t> index;
-};
-
 }  // namespace arty
 
 #endif  // BLACKBOARD_H

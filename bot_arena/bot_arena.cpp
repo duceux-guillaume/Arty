@@ -3,6 +3,7 @@
 #include <arty/ext/opengl_window.h>
 #include <arty/impl/engine.h>
 
+#include <arty/core/mesh.hpp>
 #include <arty/impl/camera_system.hpp>
 #include <cstdio>
 #include <cstdlib>
@@ -41,11 +42,12 @@ class Factory {
 
   Factory& texture(std::string const& file) {
     _shader.textureFile = file;
+    _mesh.texture_file = file;
     return *this;
   }
 
   Factory& obj(std::string const& file) {
-    _mesh.file = file;
+    _mesh.model_file = file;
     return *this;
   }
 

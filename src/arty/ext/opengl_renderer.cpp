@@ -2,6 +2,8 @@
 #include <arty/ext/gl_loader.h>
 #include <arty/ext/opengl_renderer.h>
 
+#include <arty/core/mesh.hpp>
+
 namespace arty {
 
 OpenGlRenderer::OpenGlRenderer()
@@ -14,15 +16,15 @@ Result OpenGlRenderer::init(Ptr<Blackboard> const& board) {
   glBindVertexArray(_vertexarrayid);
 
   auto shaderPtr = board->getProperties<Shader>("shader");
-  auto vertexPtr = board->getProperties<Mesh>("mesh");
+  auto meshPtr = board->getProperties<Mesh>("mesh");
 
-  if (!shaderPtr || !vertexPtr) {
+  if (!shaderPtr || !meshPtr) {
     return error("nothing to render");
   }
 
   auto shaderIt = shaderPtr->buffer().begin();
   auto shaderEnd = shaderPtr->buffer().end();
-  auto meshIt = vertexPtr->buffer().begin();
+  auto meshIt = meshPtr->buffer().begin();
 
   for (; shaderIt != shaderEnd; ++shaderIt, ++meshIt) {
     shaderIt->program =
@@ -44,22 +46,25 @@ Result OpenGlRenderer::init(Ptr<Blackboard> const& board) {
     shaderIt->textureId =
         glGetUniformLocation(shaderIt->program, "myTextureSampler");
 
-    if (!loadOBJ(vertexIt->file.c_str(), vertexIt->buffer, uvIt->buffer,
-                 normalIt->buffer)) {
+    if (!loadOBJ(meshIt->model_file.c_str(), meshIt->vertices, meshIt->uvs,
+                 meshIt->normals)) {
       return error("error loading obj file");
     }
-    glGenBuffers(1, &vertexIt->vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, vertexIt->vbo);
-    glBufferData(GL_ARRAY_BUFFER, vertexIt->buffer.size() * sizeof(Vec3f), NULL,
-                 GL_STREAM_DRAW);
-    glGenBuffers(1, &uvIt->vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, uvIt->vbo);
-    glBufferData(GL_ARRAY_BUFFER, uvIt->buffer.size() * sizeof(Vec2f), NULL,
-                 GL_STREAM_DRAW);
-    glGenBuffers(1, &normalIt->vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, normalIt->vbo);
-    glBufferData(GL_ARRAY_BUFFER, normalIt->buffer.size() * sizeof(Vec3f), NULL,
-                 GL_STREAM_DRAW);
+
+    if (meshIt->hasTexture() && meshIt->hasNormals()) {
+      glGenBuffers(1, &meshIt->vertices_vbo);
+      glBindBuffer(GL_ARRAY_BUFFER, meshIt->vertices_vbo);
+      glBufferData(GL_ARRAY_BUFFER, meshIt->vertices.size() * sizeof(Vec3f),
+                   NULL, GL_STREAM_DRAW);
+      glGenBuffers(1, &meshIt->uvs_vbo);
+      glBindBuffer(GL_ARRAY_BUFFER, meshIt->uvs_vbo);
+      glBufferData(GL_ARRAY_BUFFER, meshIt->uvs.size() * sizeof(Vec2f), NULL,
+                   GL_STREAM_DRAW);
+      glGenBuffers(1, &meshIt->normals_vbo);
+      glBindBuffer(GL_ARRAY_BUFFER, meshIt->normals_vbo);
+      glBufferData(GL_ARRAY_BUFFER, meshIt->normals.size() * sizeof(Vec3f),
+                   NULL, GL_STREAM_DRAW);
+    }
   }
   return ok();
 }
@@ -70,23 +75,18 @@ Result OpenGlRenderer::process(const Ptr<Blackboard>& board) {
   Mat4x4f VP = cam.projection * cam.view;
 
   auto shaderPtr = board->getProperties<Shader>("shader");
-  auto vertexPtr = board->getProperties<BufferVec3f>("vertex");
-  auto uvPtr = board->getProperties<BufferVec2f>("uv");
+  auto meshPtr = board->getProperties<Mesh>("mesh");
   auto posPtr = board->getProperties<Transform>("transform");
-  auto normPtr = board->getProperties<BufferVec3f>("normal");
-  if (!shaderPtr || !vertexPtr || !uvPtr || !posPtr) {
+  if (!shaderPtr || !meshPtr || !posPtr) {
     return error("nothing to render");
   }
 
   auto shaderIt = shaderPtr->buffer().begin();
   auto shaderEnd = shaderPtr->buffer().end();
-  auto vertexIt = vertexPtr->buffer().begin();
-  auto uvIt = uvPtr->buffer().begin();
+  auto meshIt = meshPtr->buffer().begin();
   auto posIt = posPtr->buffer().begin();
-  auto normIt = normPtr->buffer().begin();
 
-  for (; shaderIt != shaderEnd;
-       ++shaderIt, ++vertexIt, ++uvIt, ++posIt, ++normIt) {
+  for (; shaderIt != shaderEnd; ++shaderIt, ++meshIt, ++posIt) {
     // Use our shader
     glUseProgram(shaderIt->program);
 
@@ -110,11 +110,11 @@ Result OpenGlRenderer::process(const Ptr<Blackboard>& board) {
 
     // 1rst attribute buffer : vertices
     glEnableVertexAttribArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, vertexIt->vbo);
-    glBufferData(GL_ARRAY_BUFFER, vertexIt->buffer.size() * sizeof(Vec3f), NULL,
+    glBindBuffer(GL_ARRAY_BUFFER, meshIt->vertices_vbo);
+    glBufferData(GL_ARRAY_BUFFER, meshIt->vertices.size() * sizeof(Vec3f), NULL,
                  GL_STREAM_DRAW);
-    glBufferSubData(GL_ARRAY_BUFFER, 0, vertexIt->buffer.size() * sizeof(Vec3f),
-                    vertexIt->buffer.data());
+    glBufferSubData(GL_ARRAY_BUFFER, 0, meshIt->vertices.size() * sizeof(Vec3f),
+                    meshIt->vertices.data());
     glVertexAttribPointer(0,         // attribute
                           3,         // size
                           GL_FLOAT,  // type
@@ -123,41 +123,50 @@ Result OpenGlRenderer::process(const Ptr<Blackboard>& board) {
                           (void*)0   // array buffer offset
     );
 
-    // 2nd attribute buffer : UVs
-    glEnableVertexAttribArray(1);
-    glBindBuffer(GL_ARRAY_BUFFER, uvIt->vbo);
-    glBufferData(GL_ARRAY_BUFFER, uvIt->buffer.size() * sizeof(Vec2f), NULL,
-                 GL_STREAM_DRAW);
-    glBufferSubData(GL_ARRAY_BUFFER, 0, uvIt->buffer.size() * sizeof(Vec2f),
-                    uvIt->buffer.data());
-    glVertexAttribPointer(1,         // attribute
-                          2,         // size
-                          GL_FLOAT,  // type
-                          GL_FALSE,  // normalized?
-                          0,         // stride
-                          (void*)0   // array buffer offset
-    );
+    if (meshIt->hasTexture()) {
+      // 2nd attribute buffer : UVs
+      glEnableVertexAttribArray(1);
+      glBindBuffer(GL_ARRAY_BUFFER, meshIt->uvs_vbo);
+      glBufferData(GL_ARRAY_BUFFER, meshIt->uvs.size() * sizeof(Vec2f), NULL,
+                   GL_STREAM_DRAW);
+      glBufferSubData(GL_ARRAY_BUFFER, 0, meshIt->uvs.size() * sizeof(Vec2f),
+                      meshIt->uvs.data());
+      glVertexAttribPointer(1,         // attribute
+                            2,         // size
+                            GL_FLOAT,  // type
+                            GL_FALSE,  // normalized?
+                            0,         // stride
+                            (void*)0   // array buffer offset
+      );
+    }
 
-    // 3rd attribute buffer : normals
-    glEnableVertexAttribArray(2);
-    glBindBuffer(GL_ARRAY_BUFFER, normIt->vbo);
-    glBufferData(GL_ARRAY_BUFFER, normIt->buffer.size() * sizeof(Vec3f), NULL,
-                 GL_STREAM_DRAW);
-    glBufferSubData(GL_ARRAY_BUFFER, 0, uvIt->buffer.size() * sizeof(Vec3f),
-                    uvIt->buffer.data());
-    glVertexAttribPointer(2,         // attribute
-                          3,         // size
-                          GL_FLOAT,  // type
-                          GL_FALSE,  // normalized?
-                          0,         // stride
-                          (void*)0   // array buffer offset
-    );
+    if (meshIt->hasNormals()) {
+      // 3rd attribute buffer : normals
+      glEnableVertexAttribArray(2);
+      glBindBuffer(GL_ARRAY_BUFFER, meshIt->normals_vbo);
+      glBufferData(GL_ARRAY_BUFFER, meshIt->normals.size() * sizeof(Vec3f),
+                   NULL, GL_STREAM_DRAW);
+      glBufferSubData(GL_ARRAY_BUFFER, 0,
+                      meshIt->normals.size() * sizeof(Vec3f),
+                      meshIt->normals.data());
+      glVertexAttribPointer(2,         // attribute
+                            3,         // size
+                            GL_FLOAT,  // type
+                            GL_FALSE,  // normalized?
+                            0,         // stride
+                            (void*)0   // array buffer offset
+      );
+    }
 
     // Draw the triangle !
-    glDrawArrays(GL_TRIANGLES, 0, vertexIt->buffer.size());
+    glDrawArrays(GL_TRIANGLES, 0, meshIt->vertices.size());
     glDisableVertexAttribArray(0);
-    glDisableVertexAttribArray(1);
-    glDisableVertexAttribArray(2);
+    if (meshIt->hasTexture()) {
+      glDisableVertexAttribArray(1);
+    }
+    if (meshIt->hasNormals()) {
+      glDisableVertexAttribArray(2);
+    }
   }
 
   return ok();
