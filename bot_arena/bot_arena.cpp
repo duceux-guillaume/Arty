@@ -45,7 +45,7 @@ class Factory {
   }
 
   Factory& obj(std::string const& file) {
-    _vertex.file = file;
+    _mesh.file = file;
     return *this;
   }
 
@@ -53,9 +53,7 @@ class Factory {
     std::string entity = board->createEntity(_name);
     board->set(entity, "transform", _tf);
     board->set(entity, "shader", _shader);
-    board->set(entity, "vertex", _vertex);
-    board->set(entity, "uv", _uv);
-    board->set(entity, "normal", _normal);
+    board->set(entity, "mesh", _mesh);
     return ok();
   }
 
@@ -63,9 +61,7 @@ class Factory {
   std::string _name;
   Transform _tf;
   Shader _shader;
-  BufferVec3f _vertex;
-  BufferVec2f _uv;
-  BufferVec3f _normal;
+  Mesh _mesh;
 };
 
 int main(void) {

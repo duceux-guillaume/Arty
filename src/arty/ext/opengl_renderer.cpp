@@ -14,24 +14,17 @@ Result OpenGlRenderer::init(Ptr<Blackboard> const& board) {
   glBindVertexArray(_vertexarrayid);
 
   auto shaderPtr = board->getProperties<Shader>("shader");
-  auto vertexPtr = board->getProperties<BufferVec3f>("vertex");
-  auto normalPtr = board->getProperties<BufferVec3f>("normal");
-  auto uvPtr = board->getProperties<BufferVec2f>("uv");
-  auto posPtr = board->getProperties<Transform>("transform");
+  auto vertexPtr = board->getProperties<Mesh>("mesh");
 
-  if (!shaderPtr || !vertexPtr || !uvPtr || !posPtr) {
+  if (!shaderPtr || !vertexPtr) {
     return error("nothing to render");
   }
 
   auto shaderIt = shaderPtr->buffer().begin();
   auto shaderEnd = shaderPtr->buffer().end();
-  auto vertexIt = vertexPtr->buffer().begin();
-  auto uvIt = uvPtr->buffer().begin();
-  auto posIt = posPtr->buffer().begin();
-  auto normalIt = normalPtr->buffer().begin();
+  auto meshIt = vertexPtr->buffer().begin();
 
-  for (; shaderIt != shaderEnd;
-       ++shaderIt, ++vertexIt, ++uvIt, ++posIt, ++normalIt) {
+  for (; shaderIt != shaderEnd; ++shaderIt, ++meshIt) {
     shaderIt->program =
         LoadShaders(shaderIt->vertex.c_str(), shaderIt->fragment.c_str());
     if (shaderIt->program == 0) {
@@ -51,7 +44,6 @@ Result OpenGlRenderer::init(Ptr<Blackboard> const& board) {
     shaderIt->textureId =
         glGetUniformLocation(shaderIt->program, "myTextureSampler");
 
-    std::cout << "loading object: " << vertexIt->file << std::endl;
     if (!loadOBJ(vertexIt->file.c_str(), vertexIt->buffer, uvIt->buffer,
                  normalIt->buffer)) {
       return error("error loading obj file");
