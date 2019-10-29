@@ -74,30 +74,12 @@ int main(void) {
       .add_system(Ptr<System>(new OpenGlRenderer));
 
   Factory factory;
-  auto res = factory.name("bot")
+  auto res = factory.name("test")
                  .position(0.f, 0.f, 0.f)
-                 .shaders("shaders/StandardShading.vertexshader",
-                          "shaders/StandardShading.fragmentshader")
-                 .obj("models/bot_1.obj")
+                 .shaders("../shaders/StandardShading.vertexshader",
+                          "../shaders/StandardShading.fragmentshader")
+                 .obj("../models/uv_test/tower.obj")
                  .build(engine.board());
-  check_result(res);
-
-  res = factory.name("cube")
-            .position(4.f, 0.f, 0.f)
-            .shaders("shaders/StandardShading.vertexshader",
-                     "shaders/StandardShading.fragmentshader")
-            .texture("textures/uvtemplate.DDS")
-            .obj("models/cube.obj")
-            .build(engine.board());
-  check_result(res);
-
-  res = factory.name("suzanne")
-            .position(-4.f, 0.f, 0.f)
-            .shaders("shaders/StandardShading.vertexshader",
-                     "shaders/StandardShading.fragmentshader")
-            .texture("textures/uvmap.DDS")
-            .obj("models/suzanne.obj")
-            .build(engine.board());
   check_result(res);
 
   res = engine.start();

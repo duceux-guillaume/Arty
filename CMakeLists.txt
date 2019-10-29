@@ -530,11 +530,6 @@ add_executable(bot_arena
 target_link_libraries(bot_arena
         arty ${ALL_LIBS}
 )
-# Xcode and Visual working directories
-set_target_properties(bot_arena PROPERTIES XCODE_ATTRIBUTE_CONFIGURATION_BUILD_DIR "${CMAKE_CURRENT_SOURCE_DIR}/bot_arena/")
-create_target_launcher(bot_arena WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/bot_arena/")
-
-
 
 ################
 ## POST BUILD ##
@@ -547,7 +542,7 @@ SOURCE_GROUP(shaders REGULAR_EXPRESSION ".*/.*shader$" )
 if (NOT ${CMAKE_GENERATOR} MATCHES "Xcode" )
 add_custom_command(
    TARGET bot_arena POST_BUILD
-   COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/bot_arena${CMAKE_EXECUTABLE_SUFFIX}" "${CMAKE_CURRENT_SOURCE_DIR}/bot_arena/"
+   COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/bot_arena${CMAKE_EXECUTABLE_SUFFIX}" "${CMAKE_CURRENT_SOURCE_DIR}/bin/"
 )
 add_custom_command(
    TARGET tutorial09_vbo_indexing POST_BUILD
