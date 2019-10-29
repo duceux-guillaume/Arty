@@ -26,6 +26,7 @@ Result OpenGlRenderer::init(Ptr<Blackboard> const& board) {
   auto shaderEnd = shaderPtr->buffer().end();
   auto meshIt = meshPtr->buffer().begin();
 
+  Loader loader;
   for (; shaderIt != shaderEnd; ++shaderIt, ++meshIt) {
     shaderIt->program =
         LoadShaders(shaderIt->vertex.c_str(), shaderIt->fragment.c_str());
@@ -39,31 +40,41 @@ Result OpenGlRenderer::init(Ptr<Blackboard> const& board) {
     shaderIt->lightId =
         glGetUniformLocation(shaderIt->program, "LightPosition_worldspace");
 
-    shaderIt->texture = loadDDS(shaderIt->textureFile.c_str());
-    if (shaderIt->texture == 0) {
-      return error("error loading texture");
-    }
-    shaderIt->textureId =
-        glGetUniformLocation(shaderIt->program, "myTextureSampler");
-
-    if (!loadOBJ(meshIt->model_file.c_str(), meshIt->vertices, meshIt->uvs,
-                 meshIt->normals)) {
-      return error("error loading obj file");
+    if (shaderIt->textureFile.size() > 0) {
+      shaderIt->texture = loadDDS(shaderIt->textureFile.c_str());
+      if (shaderIt->texture == 0) {
+        return error("error loading texture");
+      }
+      shaderIt->textureId =
+          glGetUniformLocation(shaderIt->program, "myTextureSampler");
     }
 
-    if (meshIt->hasTexture() && meshIt->hasNormals()) {
-      glGenBuffers(1, &meshIt->vertices_vbo);
-      glBindBuffer(GL_ARRAY_BUFFER, meshIt->vertices_vbo);
-      glBufferData(GL_ARRAY_BUFFER, meshIt->vertices.size() * sizeof(Vec3f),
-                   NULL, GL_STREAM_DRAW);
+    check_result(loader.load(meshIt));
+
+    glGenBuffers(1, &meshIt->vertices_vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, meshIt->vertices_vbo);
+    glBufferData(GL_ARRAY_BUFFER, meshIt->vertices.size() * sizeof(Vec3f), NULL,
+                 GL_STREAM_DRAW);
+
+    if (meshIt->hasTexture()) {
       glGenBuffers(1, &meshIt->uvs_vbo);
       glBindBuffer(GL_ARRAY_BUFFER, meshIt->uvs_vbo);
       glBufferData(GL_ARRAY_BUFFER, meshIt->uvs.size() * sizeof(Vec2f), NULL,
                    GL_STREAM_DRAW);
+    }
+
+    if (meshIt->hasNormals()) {
       glGenBuffers(1, &meshIt->normals_vbo);
       glBindBuffer(GL_ARRAY_BUFFER, meshIt->normals_vbo);
       glBufferData(GL_ARRAY_BUFFER, meshIt->normals.size() * sizeof(Vec3f),
                    NULL, GL_STREAM_DRAW);
+    }
+
+    if (meshIt->hasColors()) {
+      glGenBuffers(1, &meshIt->colors_vbo);
+      glBindBuffer(GL_ARRAY_BUFFER, meshIt->colors_vbo);
+      glBufferData(GL_ARRAY_BUFFER, meshIt->colors.size() * sizeof(Vec3f), NULL,
+                   GL_STREAM_DRAW);
     }
   }
   return ok();
@@ -102,11 +113,13 @@ Result OpenGlRenderer::process(const Ptr<Blackboard>& board) {
     Vec3f lightPos{4.f, 4.f, 4.f};
     glUniform3f(shaderIt->lightId, lightPos.x(), lightPos.y(), lightPos.z());
 
-    // Bind our texture in Texture Unit 0
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, shaderIt->texture);
-    // Set our "myTextureSampler" sampler to use Texture Unit 0
-    glUniform1i(shaderIt->textureId, 0);
+    if (meshIt->hasTexture()) {
+      // Bind our texture in Texture Unit 0
+      glActiveTexture(GL_TEXTURE0);
+      glBindTexture(GL_TEXTURE_2D, shaderIt->texture);
+      // Set our "myTextureSampler" sampler to use Texture Unit 0
+      glUniform1i(shaderIt->textureId, 0);
+    }
 
     // 1rst attribute buffer : vertices
     glEnableVertexAttribArray(0);
@@ -138,6 +151,20 @@ Result OpenGlRenderer::process(const Ptr<Blackboard>& board) {
                             0,         // stride
                             (void*)0   // array buffer offset
       );
+    } else if (meshIt->hasColors()) {
+      glEnableVertexAttribArray(1);
+      glBindBuffer(GL_ARRAY_BUFFER, meshIt->colors_vbo);
+      glBufferData(GL_ARRAY_BUFFER, meshIt->colors.size() * sizeof(Vec4f), NULL,
+                   GL_STREAM_DRAW);
+      glBufferSubData(GL_ARRAY_BUFFER, 0, meshIt->colors.size() * sizeof(Vec4f),
+                      meshIt->colors.data());
+      glVertexAttribPointer(1,         // attribute
+                            4,         // size
+                            GL_FLOAT,  // type
+                            GL_FALSE,  // normalized?
+                            0,         // stride
+                            (void*)0   // array buffer offset
+      );
     }
 
     if (meshIt->hasNormals()) {
@@ -161,7 +188,7 @@ Result OpenGlRenderer::process(const Ptr<Blackboard>& board) {
     // Draw the triangle !
     glDrawArrays(GL_TRIANGLES, 0, meshIt->vertices.size());
     glDisableVertexAttribArray(0);
-    if (meshIt->hasTexture()) {
+    if (meshIt->hasTexture() || meshIt->hasColors()) {
       glDisableVertexAttribArray(1);
     }
     if (meshIt->hasNormals()) {

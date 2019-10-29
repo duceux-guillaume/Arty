@@ -74,20 +74,19 @@ int main(void) {
       .add_system(Ptr<System>(new OpenGlRenderer));
 
   Factory factory;
-  auto res = factory.name("mybot")
+  auto res = factory.name("bot")
                  .position(0.f, 0.f, 0.f)
                  .shaders("shaders/StandardShading.vertexshader",
                           "shaders/StandardShading.fragmentshader")
-                 .texture("textures/uvmap.DDS")
                  .obj("models/bot_1.obj")
                  .build(engine.board());
   check_result(res);
 
-  res = factory.name("mybot")
+  res = factory.name("cube")
             .position(4.f, 0.f, 0.f)
             .shaders("shaders/StandardShading.vertexshader",
                      "shaders/StandardShading.fragmentshader")
-            .texture("textures/uvmap.DDS")
+            .texture("textures/uvtemplate.DDS")
             .obj("models/cube.obj")
             .build(engine.board());
   check_result(res);

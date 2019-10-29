@@ -516,7 +516,7 @@ create_target_launcher(tutorial18_particles WORKING_DIRECTORY "${CMAKE_CURRENT_S
 file(GLOB_RECURSE ARTY_MATH_FILES include/arty/* src/arty/*)
 message(info ${ARTY_MATH_FILES})
 add_library(arty ${ARTY_MATH_FILES})
-target_link_libraries(arty ${ALL_LIBS})
+target_link_libraries(arty ${ALL_LIBS} assimp)
 target_compile_features(arty PRIVATE cxx_std_17)
 
 include_directories(include)

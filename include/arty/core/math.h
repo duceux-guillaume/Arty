@@ -242,6 +242,10 @@ using Vec3 = Vec<T, 3>;
 using Vec3f = Vec3<float>;
 
 template <typename T>
+using Vec4 = Vec<T, 4>;
+using Vec4f = Vec4<float>;
+
+template <typename T>
 Vec3<T> inline cross(Vec3<T> const& l, Vec3<T> const& r) {
   return Vec3<T>{
       l[1] * r[2] - r[1] * l[2],  //
