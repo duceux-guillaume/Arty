@@ -29,12 +29,6 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/external/rpavlik-cmake-module
 include(CreateLaunchers)
 include(MSVCMultipleProcessCompile) # /MP
 
-if(INCLUDE_DISTRIB)
-        add_subdirectory(distrib)
-endif(INCLUDE_DISTRIB)
-
-
-
 include_directories(
         external/AntTweakBar-1.16/include/
         external/glfw-3.1.2/include/
