@@ -73,7 +73,8 @@ int main(void) {
       nbFrames = 0;
       lastTime = currentTime;
     }
-    model = rotation(0.f, count / 300.f * 3.14f, 0.f);
+    model = rotation(count / 500.f * 3.14f, count / 300.f * 3.14f,
+                     count / 1000.f * 3.14f);
     renderer.drawStaticMeshNoTexture(mymesh, model, view, proj);
     window->swapBuffer();
     count++;

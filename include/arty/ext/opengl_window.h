@@ -1,10 +1,11 @@
 #ifndef OPENGLWINDOW_H
 #define OPENGLWINDOW_H
 
-#include <arty/core/ecs.h>
 #include <arty/core/window.h>
 #include <stdio.h>
 #include <stdlib.h>
+
+#include <arty/core/system.hpp>
 
 // Include GLEW
 #include <GL/glew.h>

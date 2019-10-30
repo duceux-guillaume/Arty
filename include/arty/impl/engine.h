@@ -1,10 +1,10 @@
 #ifndef ENGINE_H
 #define ENGINE_H
 
-#include <arty/core/ecs.h>
-#include <arty/core/property.h>
 #include <arty/core/result.h>
 #include <arty/core/window.h>
+
+#include <arty/core/system.hpp>
 
 namespace arty {
 

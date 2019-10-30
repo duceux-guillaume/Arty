@@ -105,7 +105,7 @@ class MatBase {
     return *reinterpret_cast<Derived*>(this);
   }
 
-  T const* const ptr() const { return arr; }
+  T const* ptr() const { return &arr[0]; }
 
   bool operator==(MatBase<T, Rows, Cols, Derived> const& r) const {
     return std::memcmp(this->arr, r.arr, sizeof(this->arr)) == 0;

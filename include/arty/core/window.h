@@ -1,7 +1,7 @@
 #ifndef WINDOW_H
 #define WINDOW_H
 
-#include <arty/core/ecs.h>
+#include <arty/core/system.hpp>
 
 namespace arty {
 

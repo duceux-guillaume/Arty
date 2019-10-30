@@ -13,10 +13,9 @@ CameraSystem::CameraSystem(const Ptr<Window> &w)
       _fov(45.0f),
       _speed(10.f),
       _mouseSpeed(0.002f),
-      _camera("camera"),
       _mode(0) {}
 
-Result CameraSystem::init(const Ptr<Blackboard> &board) {
+Result CameraSystem::init(const Ptr<Blackboard> & /*board*/) {
   _window->setCursorPosition(
       CursorPosition(_window->width() / 2.0, _window->height() / 2.0));
   return ok();

@@ -1,10 +1,10 @@
 #ifndef CAMERA_SYSTEM_HPP
 #define CAMERA_SYSTEM_HPP
 
-#include <arty/core/ecs.h>
 #include <arty/core/math.h>
 #include <arty/core/window.h>
 
+#include <arty/core/system.hpp>
 #include <cmath>
 
 namespace arty {
@@ -30,7 +30,6 @@ class CameraSystem : public System {
   float _fov;
   float _speed;
   float _mouseSpeed;
-  Entity _camera;
   int _mode;
 };
 
