@@ -359,13 +359,7 @@ Result Renderer::drawStaticMeshNoTexture(const Mesh& mesh, const Mat4x4f& model,
                         (void*)0   // array buffer offset
   );
 
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbos.element);
-
-  glDrawElements(GL_LINES,             // mode
-                 mesh.indices.size(),  // count
-                 GL_UNSIGNED_SHORT,    // type
-                 (void*)0              // element array buffer offset
-  );
+  glDrawArrays(GL_TRIANGLES, 0, mesh.vertices.size());
 
   glDisableVertexAttribArray(0);
   glDisableVertexAttribArray(1);

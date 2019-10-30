@@ -7,7 +7,7 @@
 
 namespace arty {
 
-Result Loader::load(const std::string &path, Mesh *out) {
+Result Loader::loadObj(const std::string &path, Mesh *out) {
   if (!out) {
     return error("given empty pointer");
   }
@@ -79,43 +79,56 @@ Result Loader::load(const std::string &path, Mesh *out) {
             << " indices: " << tmp.indices.size() << std::endl;
   std::cout << "start optimizing mesh" << std::endl;
 
-  std::unordered_map<uint16_t, uint16_t> mapping;
+  out->type = TRIANGLE;
+  if (tmp.type == QUAD) {
+    std::cout << "converting quads to triangles" << std::endl;
+    // We need to reorganized again to transform quads into triangles
+    auto cpy = tmp.indices;
+    out->indices.clear();
+    for (std::size_t i = 0; i < cpy.size() - 3; i += 4) {
+      tmp.indices.push_back(cpy[i]);
+      tmp.indices.push_back(cpy[i + 1]);
+      tmp.indices.push_back(cpy[i + 2]);
+      tmp.indices.push_back(cpy[i]);
+      tmp.indices.push_back(cpy[i + 2]);
+      tmp.indices.push_back(cpy[i + 3]);
+    }
+  }
+
   for (std::size_t i = 0; i < tmp.indices.size() - 2; i += 3) {
     uint16_t v, vt, vn;
     v = tmp.indices[i];
     vt = tmp.indices[i + 1];
     vn = tmp.indices[i + 2];
+    std::cout << "f " << v << "/" << vt << "/" << vn << std::endl;
 
-    if (mapping.count(v) == 0) {
-      uint16_t id = out->vertices.size();
-      out->vertices.push_back(tmp.vertices[v]);
-      out->uvs.push_back(tmp.uvs[vt]);
-      out->normals.push_back(tmp.normals[vn]);
-      out->indices.push_back(id);
-      mapping[v] = id;
-    } else {
-      out->indices.push_back(mapping[v]);
-    }
+    uint16_t id = out->vertices.size() + 1;
+    out->vertices.push_back(tmp.vertices[v - 1]);
+    out->uvs.push_back(tmp.uvs[vt - 1]);
+    out->normals.push_back(tmp.normals[vn - 1]);
+    out->indices.push_back(id);
   }
-  out->type = TRIANGLE;
-  if (tmp.type == QUAD) {
-    std::cout << "converting quads to triangles" << std::endl;
-    // We need to reorganized again to transform quads into triangles
-    auto cpy = out->indices;
-    out->indices.clear();
-    for (std::size_t i = 0; i < cpy.size() - 3; i += 4) {
-      out->indices.push_back(cpy[i]);
-      out->indices.push_back(cpy[i + 1]);
-      out->indices.push_back(cpy[i + 2]);
-      out->indices.push_back(cpy[i]);
-      out->indices.push_back(cpy[i + 2]);
-      out->indices.push_back(cpy[i + 3]);
-    }
-  }
+
   std::cout << "mesh is ready! vertex: " << out->vertices.size()
             << " normals: " << out->normals.size()
             << " uvs: " << out->uvs.size()
             << " indices: " << out->indices.size() << std::endl;
+  for (std::size_t i = 0; i < out->vertices.size(); ++i) {
+    std::cout << "v " << out->vertices[i].x() << " " << out->vertices[i].y()
+              << " " << out->vertices[i].z() << std::endl;
+  }
+  for (std::size_t i = 0; i < out->uvs.size(); ++i) {
+    std::cout << "vt " << out->uvs[i].x() << " " << out->uvs[i].y()
+              << std::endl;
+  }
+  for (std::size_t i = 0; i < out->normals.size(); ++i) {
+    std::cout << "vn " << out->normals[i].x() << " " << out->normals[i].y()
+              << " " << out->normals[i].z() << std::endl;
+  }
+  for (std::size_t i = 0; i < out->indices.size() - 2; i += 3) {
+    std::cout << "f " << out->indices[i] << " " << out->indices[i + 1] << " "
+              << out->indices[i + 2] << std::endl;
+  }
   return ok();
 }
 

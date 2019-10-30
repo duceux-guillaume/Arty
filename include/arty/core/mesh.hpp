@@ -28,6 +28,8 @@ struct Mesh {
   bool hasColors() const { return colors.size() > 0; }
 };
 
+struct Material {};
+
 }  // namespace arty
 
 #endif  // MESH_HPP
