@@ -43,8 +43,8 @@ int main(void) {
   Mesh mymesh;
   // loader.load("../models/obstacles.obj", &mymesh);
   // loader.load("../models/arena_test.obj", &mymesh);
-  loader.load("../models/bot.obj", &mymesh);
-  // loader.load("../models/uv_test/tower.obj", &mymesh);
+  // loader.load("../models/bot.obj", &mymesh);
+  loader.load("../models/uv_test/tower.obj", &mymesh);
 
   Ptr<Window> window(new OpenGlWindow);
   window->init();

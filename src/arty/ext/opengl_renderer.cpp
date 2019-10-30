@@ -361,7 +361,7 @@ Result Renderer::drawStaticMeshNoTexture(const Mesh& mesh, const Mat4x4f& model,
 
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbos.element);
 
-  glDrawElements(GL_TRIANGLES,         // mode
+  glDrawElements(GL_LINES,             // mode
                  mesh.indices.size(),  // count
                  GL_UNSIGNED_SHORT,    // type
                  (void*)0              // element array buffer offset
