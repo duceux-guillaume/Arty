@@ -1,10 +1,10 @@
-#include <arty/ext/gl_loader.h>
 #include <arty/ext/opengl_renderer.h>
 #include <arty/ext/opengl_window.h>
 #include <arty/impl/engine.h>
 
 #include <arty/core/mesh.hpp>
 #include <arty/impl/camera_system.hpp>
+#include <arty/impl/mesh_loader_system.hpp>
 #include <cstdio>
 #include <cstdlib>
 #include <iostream>
@@ -12,61 +12,8 @@
 
 using namespace arty;
 
-class Factory {
- public:
-  Factory& name(std::string const& name) {
-    _name = name;
-    return *this;
-  }
-
-  Factory& position(float x, float y, float z) {
-    _tf.position.x() = x;
-    _tf.position.y() = y;
-    _tf.position.z() = z;
-    return *this;
-  }
-
-  Factory& scale(float x, float y, float z) {
-    _tf.scale.x() = x;
-    _tf.scale.y() = y;
-    _tf.scale.z() = z;
-    return *this;
-  }
-
-  Factory& shaders(std::string const& vertexshader,
-                   std::string const& fragment) {
-    _shader.vertex = vertexshader;
-    _shader.fragment = fragment;
-    return *this;
-  }
-
-  Factory& texture(std::string const& file) {
-    _shader.textureFile = file;
-    _mesh.texture_file = file;
-    return *this;
-  }
-
-  Factory& obj(std::string const& file) {
-    _mesh.model_file = file;
-    return *this;
-  }
-
-  Result build(Ptr<Blackboard> const& board) {
-    std::string entity = board->createEntity(_name);
-    board->set(entity, "transform", _tf);
-    board->set(entity, "shader", _shader);
-    board->set(entity, "mesh", _mesh);
-    return ok();
-  }
-
- private:
-  std::string _name;
-  Transform _tf;
-  Shader _shader;
-  Mesh _mesh;
-};
-
 int main(void) {
+  /*
   Ptr<Window> window(new OpenGlWindow);
   Engine engine;
   engine.set_window(window)
@@ -91,5 +38,46 @@ int main(void) {
 
   res = engine.run();
   check_result(res);
-  return res;
+  */
+  Loader loader;
+  Mesh mymesh;
+  // loader.load("../models/obstacles.obj", &mymesh);
+  // loader.load("../models/arena_test.obj", &mymesh);
+  // loader.load("../models/bot.obj", &mymesh);
+  loader.load("../models/uv_test/tower.obj", &mymesh);
+
+  Ptr<Window> window(new OpenGlWindow);
+  window->init();
+  Renderer renderer;
+  check_result(renderer.init());
+  renderer.importStaticMeshNoTexture(mymesh);
+
+  size_t count = 0;
+  Mat4x4f proj = perspective(radians(45.f), 4.0f / 3.0f, 0.1f, 100.0f);
+  Mat4x4f view = translation(0.f, 0.f, -10.f);
+  Mat4x4f model = rotation(0.f, count / 10000.f * 3.14f, 0.f);
+
+  // For speed computation
+  double lastTime = window->getTime();
+  int nbFrames = 0;
+  do {
+    window->clear();
+    // Measure speed
+    double currentTime = window->getTime();
+    nbFrames++;
+    // If last prinf() was more than 1sec ago
+    if (currentTime - lastTime >= 1.0) {
+      // printf and reset
+      std::cout << (currentTime - lastTime) * 1000. / double(nbFrames)
+                << " ms/frame" << std::endl;
+      nbFrames = 0;
+      lastTime = currentTime;
+    }
+    model = rotation(0.f, count / 300.f * 3.14f, 0.f);
+    renderer.drawStaticMeshNoTexture(mymesh, model, view, proj);
+    window->swapBuffer();
+    count++;
+  } while (window->isOk() && count < 10000);
+  renderer.release();
+  return ok();
 }
