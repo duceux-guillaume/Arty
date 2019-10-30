@@ -37,11 +37,13 @@ Result Loader::load(const std::string &path, Mesh *out) {
       float x, y, z;
       ss >> x >> y >> z;
       out->vertices.emplace_back(Vec3f{x, y, z});
-    } else if (header.compare("v") == 0) {
+    } else if (header.compare("vt") == 0) {
       float u, v;
+      ss >> u >> v;
       out->uvs.emplace_back(Vec2f{u, v});
     } else if (header.compare("vn") == 0) {
       float x, y, z;
+      ss >> x >> y >> z;
       out->normals.emplace_back(Vec3f{x, y, z});
     } else if (header.compare("f") == 0) {
       std::size_t count = 0;
@@ -79,6 +81,8 @@ Result Loader::load(const std::string &path, Mesh *out) {
       std::cout << "unhandled: " << header << std::endl;
     }
   }
+  std::cout << "loaded! vertex: " << out->vertices.size()
+            << " normals: " << out->normals.size() << std::endl;
 
   return ok();
 }
