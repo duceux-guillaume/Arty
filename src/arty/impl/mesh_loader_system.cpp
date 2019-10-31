@@ -132,4 +132,22 @@ Result Loader::loadObj(const std::string &path, Mesh *out) {
   return ok();
 }
 
+Result MeshLoaderSystem::process(const Ptr<Blackboard> &board) {
+  auto ptr = board->getProperties<std::string>("model2load");
+  for (auto const &prop : *ptr) {
+    std::cout << "prop: " << prop.entity.name << " " << prop.value << std::endl;
+    Mesh mesh;
+    check_result(loader.loadObj(prop.value, &mesh));
+    board->set(prop.entity, "mesh2import", mesh);
+  }
+  board->clearProperties("model2load");
+  return ok();
+}
+
+Result MeshLoaderSystem::init(const Ptr<Blackboard> & /*board*/) {
+  return ok();
+}
+
+void MeshLoaderSystem::release() {}
+
 }  // namespace arty

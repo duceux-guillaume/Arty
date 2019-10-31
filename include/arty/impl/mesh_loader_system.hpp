@@ -4,6 +4,7 @@
 #include <arty/core/result.h>
 
 #include <arty/core/mesh.hpp>
+#include <arty/core/system.hpp>
 
 namespace arty {
 
@@ -13,6 +14,18 @@ class Loader {
   Result loadMtl(std::string const& path, Material* out);
 
  private:
+};
+
+class MeshLoaderSystem : public System {
+ public:
+ private:
+  Loader loader;
+
+  // System interface
+ public:
+  Result process(const Ptr<Blackboard>& board) override;
+  Result init(const Ptr<Blackboard>& board) override;
+  void release() override;
 };
 
 }  // namespace arty

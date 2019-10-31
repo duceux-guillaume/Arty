@@ -15,9 +15,10 @@ CameraSystem::CameraSystem(const Ptr<Window> &w)
       _mouseSpeed(0.002f),
       _mode(0) {}
 
-Result CameraSystem::init(const Ptr<Blackboard> & /*board*/) {
+Result CameraSystem::init(const Ptr<Blackboard> &board) {
   _window->setCursorPosition(
       CursorPosition(_window->width() / 2.0, _window->height() / 2.0));
+  _camera_entity = board->createEntity("camera");
   return ok();
 }
 
@@ -122,7 +123,7 @@ Result CameraSystem::process(const Ptr<Blackboard> &board) {
   Camera camera;
   camera.projection = _projection;
   camera.view = _camFromWorld;
-  board->setCamera(camera);
+  board->set(_camera_entity, "camera", camera);
 
   lastTime = currentTime;
 

@@ -9,6 +9,11 @@
 
 namespace arty {
 
+struct Camera {
+  Mat4x4f projection;
+  Mat4x4f view;
+};
+
 class CameraSystem : public System {
  public:
   CameraSystem(Ptr<Window> const& w);
@@ -31,6 +36,7 @@ class CameraSystem : public System {
   float _speed;
   float _mouseSpeed;
   int _mode;
+  Entity _camera_entity;
 };
 
 }  // namespace arty

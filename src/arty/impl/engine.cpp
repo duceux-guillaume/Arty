@@ -12,12 +12,15 @@ Engine &Engine::add_system(const Ptr<System> &system) {
   return *this;
 }
 
+Engine &Engine::set_board(const Ptr<Blackboard> &board) {
+  _state = board;
+  return *this;
+}
+
 Result Engine::start() {
-  Result r = _window->init();
-  check_result(r);
+  check_result(_window->init());
   for (auto const &system : _systems) {
-    r = system->init(_state);
-    check_result(r);
+    check_result(system->init(_state));
   }
   return ok();
 }

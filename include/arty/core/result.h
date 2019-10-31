@@ -4,11 +4,12 @@
 #include <iostream>
 #include <memory>
 
-#define check_result(result) \
-  do {                       \
-    if (!result) {           \
-      return result;         \
-    }                        \
+#define check_result(result)                                                  \
+  do {                                                                        \
+    if (!result) {                                                            \
+      std::cerr << __FILE__ << ":" << __LINE__ << ":" << result << std::endl; \
+      return result;                                                          \
+    }                                                                         \
   } while (0)
 
 namespace arty {

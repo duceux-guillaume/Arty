@@ -11,74 +11,9 @@ OpenGlRenderer::OpenGlRenderer()
 
 OpenGlRenderer::~OpenGlRenderer() { std::cout << "ByeBye" << std::endl; }
 
-Result OpenGlRenderer::init(Ptr<Blackboard> const& board) {
+Result OpenGlRenderer::init(Ptr<Blackboard> const& /*board*/) {
   glGenVertexArrays(1, &_vertexarrayid);
   glBindVertexArray(_vertexarrayid);
-
-  auto shaderPtr = board->getProperties<OpenGlPtrs>("shader");
-  auto meshPtr = board->getProperties<Mesh>("mesh");
-
-  if (!shaderPtr || !meshPtr) {
-    return error("nothing to render");
-  }
-  /*
-    auto shaderIt = shaderPtr->buffer().begin();
-    auto shaderEnd = shaderPtr->buffer().end();
-    auto meshIt = meshPtr->buffer().begin();
-
-
-    Loader loader;
-    for (; shaderIt != shaderEnd; ++shaderIt, ++meshIt) {
-    shaderIt->program =
-        LoadShaders(shaderIt->vertex.c_str(), shaderIt->fragment.c_str());
-    if (shaderIt->program == 0) {
-      return error("error opening program file: " + shaderIt->vertex + " " +
-                   shaderIt->fragment);
-    }
-    shaderIt->matrixId = glGetUniformLocation(shaderIt->program, "MVP");
-    shaderIt->viewId = glGetUniformLocation(shaderIt->program, "V");
-    shaderIt->modelId = glGetUniformLocation(shaderIt->program, "M");
-    shaderIt->lightId =
-        glGetUniformLocation(shaderIt->program, "LightPosition_worldspace");
-
-    if (shaderIt->textureFile.size() > 0) {
-      shaderIt->texture = loadDDS(shaderIt->textureFile.c_str());
-      if (shaderIt->texture == 0) {
-        return error("error loading texture");
-      }
-      shaderIt->textureId =
-          glGetUniformLocation(shaderIt->program, "myTextureSampler");
-    }
-
-    check_result(loader.load(meshIt));
-
-    glGenBuffers(1, &meshIt->vertices_vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, meshIt->vertices_vbo);
-    glBufferData(GL_ARRAY_BUFFER, meshIt->vertices.size() * sizeof(Vec3f), NULL,
-                 GL_STREAM_DRAW);
-
-    if (meshIt->hasTexture()) {
-      glGenBuffers(1, &meshIt->uvs_vbo);
-      glBindBuffer(GL_ARRAY_BUFFER, meshIt->uvs_vbo);
-      glBufferData(GL_ARRAY_BUFFER, meshIt->uvs.size() * sizeof(Vec2f), NULL,
-                   GL_STREAM_DRAW);
-    }
-
-    if (meshIt->hasNormals()) {
-      glGenBuffers(1, &meshIt->normals_vbo);
-      glBindBuffer(GL_ARRAY_BUFFER, meshIt->normals_vbo);
-      glBufferData(GL_ARRAY_BUFFER, meshIt->normals.size() * sizeof(Vec3f),
-                   NULL, GL_STREAM_DRAW);
-    }
-
-    if (meshIt->hasColors()) {
-      glGenBuffers(1, &meshIt->colors_vbo);
-      glBindBuffer(GL_ARRAY_BUFFER, meshIt->colors_vbo);
-      glBufferData(GL_ARRAY_BUFFER, meshIt->colors.size() * sizeof(Vec3f), NULL,
-                   GL_STREAM_DRAW);
-    }
-  }
-  */
   return ok();
 }
 

@@ -10,11 +10,13 @@ namespace arty {
 
 class Engine {
  public:
-  Engine() : _window(), _systems(), _state(new Blackboard) {}
+  Engine() : _window(), _systems(), _state() {}
 
   Engine& set_window(Ptr<Window> const& ptr);
 
   Engine& add_system(Ptr<System> const& system);
+
+  Engine& set_board(Ptr<Blackboard> const& board);
 
   Result start();
 
