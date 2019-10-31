@@ -254,6 +254,31 @@ struct Transform {
   Vec3f position;
   Quatf rotation;
   Vec3f scale;
+
+  Mat4x4f toMat() const {
+    Mat4x4f tf;
+    float qx = rotation.x();
+    float qy = rotation.y();
+    float qz = rotation.z();
+    float qw = rotation.w();
+    float qx2 = qx * qx;
+    float qy2 = qy * qy;
+    float qz2 = qz * qz;
+    tf(0, 0) = 1.f - (2 * qy2 + 2 * qz2);
+    tf(1, 0) = 2 * qx * qy + 2 * qz * qw;
+    tf(2, 0) = 2 * qx * qz - 2 * qy * qw;
+    tf(0, 1) = 2 * qx * qy - 2 * qz * qw;
+    tf(1, 1) = 1 - 2 * qx2 - 2 * qz2;
+    tf(2, 1) = 2 * qy * qz + 2 * qx * qw;
+    tf(0, 2) = 2 * qx * qz + 2 * qy * qw;
+    tf(1, 2) = 2 * qy * qz - 2 * qx * qw;
+    tf(2, 2) = 1 - 2 * qx2 - 2 * qy2;
+    tf(0, 3) = position.x();
+    tf(1, 3) = position.y();
+    tf(2, 3) = position.z();
+    tf(3, 3) = 1.f;
+    return tf;
+  }
 };
 
 }  // namespace arty

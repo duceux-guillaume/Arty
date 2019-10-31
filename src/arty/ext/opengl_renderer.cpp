@@ -3,143 +3,67 @@
 #include <arty/ext/opengl_renderer.h>
 
 #include <arty/core/mesh.hpp>
+#include <arty/impl/camera_system.hpp>
 
 namespace arty {
 
-OpenGlRenderer::OpenGlRenderer()
-    : _program_id(0), _vertexbuffer(0), _vertexarrayid(0) {}
+OpenGlRenderer::OpenGlRenderer() : _renderer() {}
 
 OpenGlRenderer::~OpenGlRenderer() { std::cout << "ByeBye" << std::endl; }
 
 Result OpenGlRenderer::init(Ptr<Blackboard> const& /*board*/) {
-  glGenVertexArrays(1, &_vertexarrayid);
-  glBindVertexArray(_vertexarrayid);
+  check_result(_renderer.init());
   return ok();
 }
 
-Result OpenGlRenderer::process(const Ptr<Blackboard>& /*board*/) {
-  // Get camera
-  /*
-  Camera cam = board->getCamera();
-  Mat4x4f VP = cam.projection * cam.view;
+Result OpenGlRenderer::process(const Ptr<Blackboard>& board) {
+  // Import meshes
+  auto ptr = board->getProperties<Mesh>("mesh2import");
+  if (ptr->size()) {
+    for (auto const& prop : *ptr) {
+      MeshVbos vbo;
+      _renderer.importStaticMeshNoTexture(prop.value, vbo);
+      board->set(prop.entity, "mesh", prop.value);
+      board->set(prop.entity, "vbo", vbo);
+      std::cout << "imported: " << prop.entity.name << std::endl;
+    }
+    check_result(board->clearProperties("mesh2import"));
+  }
 
-  auto shaderPtr = board->getProperties<OpenGlPtrs>("shader");
+  // Get camera
+  auto cam = board->getProperties<Camera>("camera")->at(0).value;
+
+  auto vbosPtr = board->getProperties<MeshVbos>("vbo");
   auto meshPtr = board->getProperties<Mesh>("mesh");
   auto posPtr = board->getProperties<Transform>("transform");
-  if (!shaderPtr || !meshPtr || !posPtr) {
+  if (!vbosPtr || !meshPtr || !posPtr) {
     return error("nothing to render");
   }
 
-  auto shaderIt = shaderPtr->buffer().begin();
-  auto shaderEnd = shaderPtr->buffer().end();
-  auto meshIt = meshPtr->buffer().begin();
-  auto posIt = posPtr->buffer().begin();
+  auto vboIt = vbosPtr->begin();
+  auto vboEnd = vbosPtr->end();
+  auto meshIt = meshPtr->begin();
+  auto posIt = posPtr->begin();
 
-  for (; shaderIt != shaderEnd; ++shaderIt, ++meshIt, ++posIt) {
-          // Use our shader
-        glUseProgram(shaderIt->program);
-
-        // Send our transformation to the currently bound shader,
-        // in the "MVP" uniform
-        Mat4x4f model = translation(posIt->position);
-        Mat4x4f mvp = VP * model;
-        glUniformMatrix4fv(shaderIt->matrixId, 1, GL_FALSE,
-       transpose(mvp).ptr()); glUniformMatrix4fv(shaderIt->modelId, 1,
-       GL_FALSE, transpose(model).ptr()); glUniformMatrix4fv(shaderIt->viewId,
-       1, GL_FALSE, transpose(cam.view).ptr());
-
-        Vec3f lightPos{4.f, 4.f, 4.f};
-        glUniform3f(shaderIt->lightId, lightPos.x(), lightPos.y(),
-       lightPos.z());
-
-        if (meshIt->hasTexture()) {
-          // Bind our texture in Texture Unit 0
-          glActiveTexture(GL_TEXTURE0);
-          glBindTexture(GL_TEXTURE_2D, shaderIt->texture);
-          // Set our "myTextureSampler" sampler to use Texture Unit 0
-          glUniform1i(shaderIt->textureId, 0);
-        }
-
-        // 1rst attribute buffer : vertices
-        glEnableVertexAttribArray(0);
-        glBindBuffer(GL_ARRAY_BUFFER, meshIt->vertices_vbo);
-        glBufferData(GL_ARRAY_BUFFER, meshIt->vertices.size() * sizeof(Vec3f),
-       NULL, GL_STREAM_DRAW); glBufferSubData(GL_ARRAY_BUFFER, 0,
-       meshIt->vertices.size() * sizeof(Vec3f), meshIt->vertices.data());
-        glVertexAttribPointer(0,         // attribute
-                              3,         // size
-                              GL_FLOAT,  // type
-                              GL_FALSE,  // normalized?
-                              0,         // stride
-                              (void*)0   // array buffer offset
-        );
-
-        if (meshIt->hasTexture()) {
-          // 2nd attribute buffer : UVs
-          glEnableVertexAttribArray(1);
-          glBindBuffer(GL_ARRAY_BUFFER, meshIt->uvs_vbo);
-          glBufferData(GL_ARRAY_BUFFER, meshIt->uvs.size() * sizeof(Vec2f),
-       NULL, GL_STREAM_DRAW); glBufferSubData(GL_ARRAY_BUFFER, 0,
-       meshIt->uvs.size() * sizeof(Vec2f), meshIt->uvs.data());
-          glVertexAttribPointer(1,         // attribute
-                                2,         // size
-                                GL_FLOAT,  // type
-                                GL_FALSE,  // normalized?
-                                0,         // stride
-                                (void*)0   // array buffer offset
-          );
-        } else if (meshIt->hasColors()) {
-          glEnableVertexAttribArray(1);
-          glBindBuffer(GL_ARRAY_BUFFER, meshIt->colors_vbo);
-          glBufferData(GL_ARRAY_BUFFER, meshIt->colors.size() * sizeof(Vec4f),
-       NULL, GL_STREAM_DRAW); glBufferSubData(GL_ARRAY_BUFFER, 0,
-       meshIt->colors.size() * sizeof(Vec4f), meshIt->colors.data());
-          glVertexAttribPointer(1,         // attribute
-                                4,         // size
-                                GL_FLOAT,  // type
-                                GL_FALSE,  // normalized?
-                                0,         // stride
-                                (void*)0   // array buffer offset
-          );
-        }
-
-        if (meshIt->hasNormals()) {
-          // 3rd attribute buffer : normals
-          glEnableVertexAttribArray(2);
-          glBindBuffer(GL_ARRAY_BUFFER, meshIt->normals_vbo);
-          glBufferData(GL_ARRAY_BUFFER, meshIt->normals.size() *
-       sizeof(Vec3f), NULL, GL_STREAM_DRAW); glBufferSubData(GL_ARRAY_BUFFER,
-       0, meshIt->normals.size() * sizeof(Vec3f), meshIt->normals.data());
-          glVertexAttribPointer(2,         // attribute
-                                3,         // size
-                                GL_FLOAT,  // type
-                                GL_FALSE,  // normalized?
-                                0,         // stride
-                                (void*)0   // array buffer offset
-          );
-        }
-
-        // Draw the triangle !
-        glDrawArrays(GL_TRIANGLES, 0, meshIt->vertices.size());
-        glDisableVertexAttribArray(0);
-        if (meshIt->hasTexture() || meshIt->hasColors()) {
-          glDisableVertexAttribArray(1);
-        }
-        if (meshIt->hasNormals()) {
-          glDisableVertexAttribArray(2);
-        }
+  for (; vboIt != vboEnd; ++vboIt, ++meshIt, ++posIt) {
+    if (vboIt->entity != meshIt->entity) {
+      return error("vbo doesn't match entity");
+    }
+    if (posIt->entity != meshIt->entity) {
+      return error("transform doesn't match entity");
+    }
+    _renderer.drawStaticMeshNoTexture(meshIt->value, posIt->value.toMat(),
+                                      cam.view, cam.projection, vboIt->value);
   }
-        */
-
   return ok();
-}  // namespace arty
+}
 
 void OpenGlRenderer::release() {}
 
 static OpenGlPtrs notexture_shader;
 static std::unordered_map<std::string, GLuint> notexture_light_shader;
 
-static MeshVbos vbos;
+static MeshVbos static_vbos;
 
 Result Renderer::init() {
   glGenVertexArrays(1, &notexture_shader.array);
@@ -181,8 +105,8 @@ Result Renderer::init() {
 void Renderer::release() {}
 
 void Renderer::importDynMeshNoTextureNoIndices(const Mesh& m) {
-  glGenBuffers(1, &vbos.vertex);
-  glBindBuffer(GL_ARRAY_BUFFER, vbos.vertex);
+  glGenBuffers(1, &static_vbos.vertex);
+  glBindBuffer(GL_ARRAY_BUFFER, static_vbos.vertex);
   glBufferData(GL_ARRAY_BUFFER, m.vertices.size() * sizeof(Vec3f), NULL,
                GL_STREAM_DRAW);
 }
@@ -193,7 +117,7 @@ Result Renderer::drawDynMeshNoTextureNoIndices(const Mesh& m,
   glUniformMatrix4fv(notexture_shader.mvp, 1, GL_FALSE, transpose(mvp).ptr());
 
   glEnableVertexAttribArray(0);
-  glBindBuffer(GL_ARRAY_BUFFER, vbos.vertex);
+  glBindBuffer(GL_ARRAY_BUFFER, static_vbos.vertex);
   glBufferData(GL_ARRAY_BUFFER, m.vertices.size() * sizeof(Vec3f), NULL,
                GL_STREAM_DRAW);
   glBufferSubData(GL_ARRAY_BUFFER, 0, m.vertices.size() * sizeof(Vec3f),
@@ -212,8 +136,8 @@ Result Renderer::drawDynMeshNoTextureNoIndices(const Mesh& m,
 }
 
 void Renderer::importStaticMeshNoTextureNoIndices(const Mesh& m) {
-  glGenBuffers(1, &vbos.vertex);
-  glBindBuffer(GL_ARRAY_BUFFER, vbos.vertex);
+  glGenBuffers(1, &static_vbos.vertex);
+  glBindBuffer(GL_ARRAY_BUFFER, static_vbos.vertex);
   glBufferData(GL_ARRAY_BUFFER, m.vertices.size() * sizeof(Vec3f),
                m.vertices.data(), GL_STATIC_DRAW);
 }
@@ -224,7 +148,7 @@ Result Renderer::drawStaticMeshNoTextureNoIndices(const Mesh& m,
   glUniformMatrix4fv(notexture_shader.mvp, 1, GL_FALSE, transpose(mvp).ptr());
 
   glEnableVertexAttribArray(0);
-  glBindBuffer(GL_ARRAY_BUFFER, vbos.vertex);
+  glBindBuffer(GL_ARRAY_BUFFER, static_vbos.vertex);
   glVertexAttribPointer(0,         // attribute
                         3,         // size
                         GL_FLOAT,  // type
@@ -238,27 +162,86 @@ Result Renderer::drawStaticMeshNoTextureNoIndices(const Mesh& m,
   return ok();
 }
 
-void Renderer::importStaticMeshNoTexture(const Mesh& m) {
-  glGenBuffers(1, &vbos.vertex);
-  glBindBuffer(GL_ARRAY_BUFFER, vbos.vertex);
+void Renderer::importStaticMeshNoTexture(const Mesh& m, MeshVbos& out) {
+  glGenBuffers(1, &out.vertex);
+  glBindBuffer(GL_ARRAY_BUFFER, out.vertex);
   glBufferData(GL_ARRAY_BUFFER, m.vertices.size() * sizeof(Vec3f),
                m.vertices.data(), GL_STATIC_DRAW);
 
-  glGenBuffers(1, &vbos.normal);
-  glBindBuffer(GL_ARRAY_BUFFER, vbos.normal);
+  glGenBuffers(1, &out.normal);
+  glBindBuffer(GL_ARRAY_BUFFER, out.normal);
   glBufferData(GL_ARRAY_BUFFER, m.normals.size() * sizeof(Vec3f),
                m.normals.data(), GL_STATIC_DRAW);
 
-  glGenBuffers(1, &vbos.element);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbos.element);
+  glGenBuffers(1, &out.element);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, out.element);
   glBufferData(GL_ELEMENT_ARRAY_BUFFER,
                m.indices.size() * sizeof(unsigned short), m.indices.data(),
                GL_STATIC_DRAW);
 }
 
+void Renderer::importStreamMeshNoTexture(const Mesh& m, MeshVbos& out) {
+  glGenBuffers(1, &out.vertex);
+  glBindBuffer(GL_ARRAY_BUFFER, out.vertex);
+  glBufferData(GL_ARRAY_BUFFER, m.vertices.size() * sizeof(Vec3f), NULL,
+               GL_STREAM_DRAW);
+
+  glGenBuffers(1, &out.normal);
+  glBindBuffer(GL_ARRAY_BUFFER, out.normal);
+  glBufferData(GL_ARRAY_BUFFER, m.normals.size() * sizeof(Vec3f), NULL,
+               GL_STREAM_DRAW);
+}
+
 Result Renderer::drawStaticMeshNoTexture(const Mesh& mesh, const Mat4x4f& model,
                                          const Mat4x4f& view,
-                                         const Mat4x4f& proj) {
+                                         const Mat4x4f& proj,
+                                         const MeshVbos& vbos) {
+  glUseProgram(notexture_light_shader["program"]);
+
+  Mat4x4f mvp = proj * view * model;
+
+  glUniformMatrix4fv(notexture_light_shader["mvp"], 1, GL_FALSE,
+                     transpose(mvp).ptr());
+  glUniformMatrix4fv(notexture_light_shader["model"], 1, GL_FALSE,
+                     transpose(model).ptr());
+  glUniformMatrix4fv(notexture_light_shader["view"], 1, GL_FALSE,
+                     transpose(view).ptr());
+
+  Vec3f lightPos({2, 2, 10});
+  glUniform3f(notexture_light_shader["light"], lightPos.x(), lightPos.y(),
+              lightPos.z());
+
+  glEnableVertexAttribArray(0);
+  glBindBuffer(GL_ARRAY_BUFFER, vbos.vertex);
+  glVertexAttribPointer(0,         // attribute
+                        3,         // size
+                        GL_FLOAT,  // type
+                        GL_FALSE,  // normalized?
+                        0,         // stride
+                        (void*)0   // array buffer offset
+  );
+
+  glEnableVertexAttribArray(1);
+  glBindBuffer(GL_ARRAY_BUFFER, vbos.normal);
+  glVertexAttribPointer(1,         // attribute
+                        3,         // size
+                        GL_FLOAT,  // type
+                        GL_FALSE,  // normalized?
+                        0,         // stride
+                        (void*)0   // array buffer offset
+  );
+
+  glDrawArrays(GL_TRIANGLES, 0, mesh.vertices.size());
+
+  glDisableVertexAttribArray(0);
+  glDisableVertexAttribArray(1);
+  return ok();
+}
+
+Result Renderer::drawStreamMeshNoTexture(const Mesh& mesh, const Mat4x4f& model,
+                                         const Mat4x4f& view,
+                                         const Mat4x4f& proj,
+                                         const MeshVbos& vbos) {
   glUseProgram(notexture_light_shader["program"]);
 
   Mat4x4f mvp = proj * view * model;
@@ -276,6 +259,10 @@ Result Renderer::drawStaticMeshNoTexture(const Mesh& mesh, const Mat4x4f& model,
 
   glEnableVertexAttribArray(0);
   glBindBuffer(GL_ARRAY_BUFFER, vbos.vertex);
+  glBufferData(GL_ARRAY_BUFFER, mesh.vertices.size() * sizeof(Vec3f), NULL,
+               GL_STREAM_DRAW);
+  glBufferSubData(GL_ARRAY_BUFFER, 0, mesh.vertices.size() * sizeof(Vec3f),
+                  mesh.vertices.data());
   glVertexAttribPointer(0,         // attribute
                         3,         // size
                         GL_FLOAT,  // type
@@ -286,6 +273,10 @@ Result Renderer::drawStaticMeshNoTexture(const Mesh& mesh, const Mat4x4f& model,
 
   glEnableVertexAttribArray(1);
   glBindBuffer(GL_ARRAY_BUFFER, vbos.normal);
+  glBufferData(GL_ARRAY_BUFFER, mesh.normals.size() * sizeof(Vec3f), NULL,
+               GL_STREAM_DRAW);
+  glBufferSubData(GL_ARRAY_BUFFER, 0, mesh.normals.size() * sizeof(Vec3f),
+                  mesh.vertices.data());
   glVertexAttribPointer(1,         // attribute
                         3,         // size
                         GL_FLOAT,  // type

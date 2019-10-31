@@ -32,9 +32,16 @@ class Renderer {
   void importStaticMeshNoTextureNoIndices(Mesh const& m);
   Result drawStaticMeshNoTextureNoIndices(const Mesh& m, const Mat4x4f& mvp);
 
-  void importStaticMeshNoTexture(Mesh const& m);
+  void importStaticMeshNoTexture(Mesh const& m, MeshVbos& out);
   Result drawStaticMeshNoTexture(const Mesh& mesh, const Mat4x4f& model,
-                                 const Mat4x4f& view, const Mat4x4f& proj);
+                                 const Mat4x4f& view, const Mat4x4f& proj,
+                                 const MeshVbos& vbos);
+
+  void importStreamMeshNoTexture(const Mesh& m, MeshVbos& out);
+
+  Result drawStreamMeshNoTexture(const Mesh& mesh, const Mat4x4f& model,
+                                 const Mat4x4f& view, const Mat4x4f& proj,
+                                 const MeshVbos& vbos);
 
  private:
 };
@@ -49,16 +56,7 @@ class OpenGlRenderer : public System {
   void release() override;
 
  private:
-  GLuint _program_id;
-  GLuint _vertexbuffer;
-  GLuint _uvbuffer;
-  GLuint _vertexarrayid;
-  GLuint MatrixID;
-  GLuint TextureID;
-  GLuint Texture;
-  std::vector<Vec3f> vertices;
-  std::vector<Vec2f> uvs;
-  std::vector<Vec3f> normals;
+  Renderer _renderer;
 };
 
 }  // namespace arty

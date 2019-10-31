@@ -23,7 +23,8 @@ int main(void) {
       .add_system(Ptr<System>(new OpenGlRenderer));
 
   auto pyramid = board->createEntity("pyramid");
-  board->set(pyramid, "model2load", std::string("../models/test_pyramid.obj"));
+  board->set(pyramid, "model2load", std::string("../models/bot.obj"));
+  board->set(pyramid, "transform", Transform());
 
   check_result(engine.start());
   check_result(engine.run());
