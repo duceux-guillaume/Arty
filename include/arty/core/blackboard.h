@@ -138,8 +138,8 @@ class RealStorage : public IStorage {
     T* ptr = get(entity);
     if (!ptr) {
       ++_count;
-      _buffer.resize(entity.id + 1);
-      _buffer[entity.id] = Property<T>(entity, val);
+      _buffer.resize(entity.id);
+      _buffer[entity.id - 1] = Property<T>(entity, val);
     } else {
       *ptr = val;
     }
@@ -152,7 +152,7 @@ class RealStorage : public IStorage {
     if (_buffer.size() < entity.id) {
       return nullptr;
     }
-    Property<T>& e = _buffer[entity.id];
+    Property<T>& e = _buffer[entity.id - 1];
     if (!e.entity.isValid()) {
       return nullptr;
     }
@@ -250,7 +250,6 @@ class Blackboard {
 };
 
 struct Transform {
-  std::string entity;
   Vec3f position;
   Quatf rotation;
   Vec3f scale;
@@ -279,6 +278,9 @@ struct Transform {
     tf(3, 3) = 1.f;
     return tf;
   }
+
+  Transform() : position(), rotation(), scale() {}
+  Transform(Vec3f pos) : position(pos), rotation(), scale() {}
 };
 
 }  // namespace arty
