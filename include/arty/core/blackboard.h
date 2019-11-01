@@ -149,7 +149,7 @@ class RealStorage : public IStorage {
   Iterator<T> end() { return Iterator<T>(_buffer.end(), _buffer.end()); }
 
   T* get(Entity const& entity) {
-    if (_buffer.size() < entity.id) {
+    if (entity.id - 1 >= _buffer.size()) {
       return nullptr;
     }
     Property<T>& e = _buffer[entity.id - 1];
@@ -215,12 +215,17 @@ class Blackboard {
       _properties[property] = BaseStorage(new RealStorage<T>());
     }
     auto ptr = getProperties<T>(property);
-    ptr->set(entity, val);
+    if (ptr) {
+      ptr->set(entity, val);
+    }
   }
 
   template <typename T>
   T* getEntityProperty(Entity const& entity, std::string const& property) {
     auto ptr = getProperties<T>(property);
+    if (!ptr) {
+      return nullptr;
+    }
     return ptr->get(entity);
   }
 
@@ -255,28 +260,18 @@ struct Transform {
   Vec3f scale;
 
   Mat4x4f toMat() const {
-    Mat4x4f tf;
-    float qx = rotation.x();
-    float qy = rotation.y();
-    float qz = rotation.z();
-    float qw = rotation.w();
-    float qx2 = qx * qx;
-    float qy2 = qy * qy;
-    float qz2 = qz * qz;
-    tf(0, 0) = 1.f - (2 * qy2 + 2 * qz2);
-    tf(1, 0) = 2 * qx * qy + 2 * qz * qw;
-    tf(2, 0) = 2 * qx * qz - 2 * qy * qw;
-    tf(0, 1) = 2 * qx * qy - 2 * qz * qw;
-    tf(1, 1) = 1 - 2 * qx2 - 2 * qz2;
-    tf(2, 1) = 2 * qy * qz + 2 * qx * qw;
-    tf(0, 2) = 2 * qx * qz + 2 * qy * qw;
-    tf(1, 2) = 2 * qy * qz - 2 * qx * qw;
-    tf(2, 2) = 1 - 2 * qx2 - 2 * qy2;
+    Mat4x4f tf = rotation.toMat();
     tf(0, 3) = position.x();
     tf(1, 3) = position.y();
     tf(2, 3) = position.z();
-    tf(3, 3) = 1.f;
     return tf;
+  }
+
+  void fromMat(Mat4x4f const& m) {
+    position.x() = m(0, 3);
+    position.y() = m(1, 3);
+    position.z() = m(2, 3);
+    rotation.fromMat(m);
   }
 
   Transform() : position(), rotation(), scale() {}

@@ -9,9 +9,24 @@
 
 namespace arty {
 
+enum CameraMode {
+  CAM_FPS,
+  CAM_VIEWER,
+  CAM_TPS,
+};
+
 struct Camera {
   Mat4x4f projection;
   Mat4x4f view;
+};
+
+class InputControl {
+ public:
+  Mat4x4f tps(Ptr<Window> input, Mat4x4f target);
+  Mat4x4f fps(Ptr<Window> input, Mat4x4f target);
+  Mat4x4f viewer(Ptr<Window> input, Mat4x4f target);
+
+ private:
 };
 
 class CameraSystem : public System {
@@ -35,8 +50,9 @@ class CameraSystem : public System {
   float _fov;
   float _speed;
   float _mouseSpeed;
-  int _mode;
+  CameraMode _mode;
   Entity _camera_entity;
+  InputControl _control;
 };
 
 }  // namespace arty

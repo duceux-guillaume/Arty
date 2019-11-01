@@ -23,8 +23,17 @@ int main(void) {
       .add_system(Ptr<System>(new OpenGlRenderer));
 
   auto pyramid = board->createEntity("pyramid");
-  board->set(pyramid, "model2load", std::string("../models/bot.obj"));
-  board->set(pyramid, "transform", Transform());
+  board->set(pyramid, "model2load", std::string("../models/test_pyramid.obj"));
+  board->set(pyramid, "transform", Transform(Vec3f{3.f, 0.f, 0.f}));
+
+  auto arena = board->createEntity("arena");
+  board->set(arena, "model2load", std::string("../models/bot.obj"));
+  board->set(arena, "transform", Transform());
+
+  auto cube = board->createEntity("cube");
+  board->set(cube, "model2load", std::string("../models/test_cube.obj"));
+  board->set(cube, "transform", Transform(Vec3f{-3.f, 0.f, 0.f}));
+  board->set(cube, "camtarget", cube);
 
   check_result(engine.start());
   check_result(engine.run());

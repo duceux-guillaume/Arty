@@ -25,6 +25,15 @@ TEST(Blackboad, SetGet) {
   ASSERT_EQ(*ptr2, Vec3f({1, 2, 3}));
 }
 
+TEST(Blackboad, SetGet2) {
+  Blackboard board;
+  Entity world = board.createEntity("world");
+  board.set(world, "position", Vec3f());
+  auto ptr = board.getEntityProperty<Vec3f>(world, "position");
+  ASSERT_TRUE(ptr);
+  board.set(world, "position", Vec3f(1.f));
+}
+
 TEST(Blackboad, ClearProperties) {
   Blackboard board;
   Entity player = board.createEntity("player");

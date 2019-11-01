@@ -280,6 +280,35 @@ class Quat : public Vec<T, 4> {
         2 * ((t7 - t3) * v[0] + (t2 + t9) * v[1] + (t5 + t8) * v[2]) + v[2];
     return Vec3<T>{v1new, v2new, v3new};
   }
+
+  Mat4x4f toMat() const {
+    Mat4x4f tf;
+    float qx = this->x();
+    float qy = this->y();
+    float qz = this->z();
+    float qw = this->w();
+    float qx2 = qx * qx;
+    float qy2 = qy * qy;
+    float qz2 = qz * qz;
+    tf(0, 0) = 1.f - (2 * qy2 + 2 * qz2);
+    tf(1, 0) = 2 * qx * qy + 2 * qz * qw;
+    tf(2, 0) = 2 * qx * qz - 2 * qy * qw;
+    tf(0, 1) = 2 * qx * qy - 2 * qz * qw;
+    tf(1, 1) = 1 - 2 * qx2 - 2 * qz2;
+    tf(2, 1) = 2 * qy * qz + 2 * qx * qw;
+    tf(0, 2) = 2 * qx * qz + 2 * qy * qw;
+    tf(1, 2) = 2 * qy * qz - 2 * qx * qw;
+    tf(2, 2) = 1 - 2 * qx2 - 2 * qy2;
+    tf(3, 3) = 1.f;
+    return tf;
+  }
+
+  void fromMat(Mat4x4f const& m) {
+    this->w() = std::sqrt(1 + m(0, 0) + m(1, 1) + m(2, 2)) / 2;
+    this->x() = (m(2, 1) - m(1, 2)) / (4 * this->w());
+    this->y() = (m(0, 2) - m(2, 0)) / (4 * this->w());
+    this->z() = (m(1, 0) - m(0, 1)) / (4 * this->w());
+  }
 };
 
 using Quatf = Quat<float>;

@@ -41,6 +41,8 @@ class Result {
 std::ostream &operator<<(std::ostream &os, arty::Result const &r);
 
 #define ok() arty::Result()
-#define error(msg) arty::Result(msg)
+#define error(msg)                                                      \
+  arty::Result(__FILE__ + std::string(":") + std::to_string(__LINE__) + \
+               std::string(":") + msg)
 
 #endif  // RESULT_H
