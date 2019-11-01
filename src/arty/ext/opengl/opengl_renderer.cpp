@@ -1,6 +1,6 @@
 #include <arty/core/math.h>
-#include <arty/ext/gl_loader.h>
-#include <arty/ext/opengl_renderer.h>
+#include <arty/ext/opengl/gl_loader.h>
+#include <arty/ext/opengl/opengl_renderer.h>
 
 #include <arty/core/mesh.hpp>
 #include <arty/impl/camera_system.hpp>

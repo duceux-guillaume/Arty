@@ -1,4 +1,4 @@
-#include <arty/ext/opengl_window.h>
+#include <arty/ext/opengl/opengl_window.h>
 
 namespace arty {
 

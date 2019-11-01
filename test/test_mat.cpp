@@ -4,17 +4,17 @@
 using namespace arty;
 
 TEST(Mat, Constructor) {
-  ASSERT_EQ(Mat4x4f(1), Mat4x4f({
-                            1, 0, 0, 0,  //
-                            0, 1, 0, 0,  //
-                            0, 0, 1, 0,  //
-                            0, 0, 0, 1,  //
-                        }));
+  ASSERT_EQ(Mat4x4f(1.f), Mat4x4f({
+                              1.f, 0.f, 0.f, 0.f,  //
+                              0.f, 1.f, 0.f, 0.f,  //
+                              0.f, 0.f, 1.f, 0.f,  //
+                              0.f, 0.f, 0.f, 1.f,  //
+                          }));
   ASSERT_EQ(Mat4x4f(), Mat4x4f({
-                           0, 0, 0, 0,  //
-                           0, 0, 0, 0,  //
-                           0, 0, 0, 0,  //
-                           0, 0, 0, 0,  //
+                           0.f, 0.f, 0.f, 0.f,  //
+                           0.f, 0.f, 0.f, 0.f,  //
+                           0.f, 0.f, 0.f, 0.f,  //
+                           0.f, 0.f, 0.f, 0.f,  //
                        }));
 }
 

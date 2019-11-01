@@ -8,6 +8,7 @@
 #include <initializer_list>
 #include <iostream>
 #include <limits>
+#include <vector>
 
 namespace arty {
 
@@ -174,6 +175,8 @@ class Mat : public MatBase<T, Rows, Cols, Mat<T, Rows, Cols>> {
   Mat(T const& v) : Base(v) {}
   Mat(std::initializer_list<T> l) : Base(l) {}
   Mat(T p[Base::size]) : Base(p) {}
+  template <class... Args>
+  Mat(Args const&... args) : Base({args...}) {}
 };
 
 template <typename T, int Rows, int Cols>
@@ -204,6 +207,8 @@ class Vec : public MatBase<T, Rows, 1, Vec<T, Rows>> {
   Vec(std::initializer_list<T> l) : Base(l) {}
   Vec(T p[Base::size]) : Base(p) {}
   Vec(Base const& other) : Base(other) {}
+  template <class... Args>
+  Vec(Args const&... args) : Base({args...}) {}
 
   T& x() { return Base::arr[0]; }
   T const& x() const { return Base::arr[0]; }
@@ -261,6 +266,8 @@ class Quat : public Vec<T, 4> {
   Quat() : Base({0.f, 0.f, 0.f, 1.f}) {}
   Quat(std::initializer_list<T> l) : Base(l) {}
   Quat(T p[Base::size]) : Base(p) {}
+  template <class... Args>
+  Quat(Args const&... args) : Base({args...}) {}
 
   Vec3<T> operator*(Vec3<T> const& v) {
     T t2 = Base::arr[0] * Base::arr[1];
