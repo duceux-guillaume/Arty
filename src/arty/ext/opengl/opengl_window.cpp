@@ -27,7 +27,14 @@ Result OpenGlWindow::init() {
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
   // Open a window and create its OpenGL context
-  _window = glfwCreateWindow(1024, 768, "Bot Arena", NULL, NULL);
+  auto monitor = glfwGetPrimaryMonitor();
+  const GLFWvidmode* mode = glfwGetVideoMode(monitor);
+  glfwWindowHint(GLFW_RED_BITS, mode->redBits);
+  glfwWindowHint(GLFW_GREEN_BITS, mode->greenBits);
+  glfwWindowHint(GLFW_BLUE_BITS, mode->blueBits);
+  glfwWindowHint(GLFW_REFRESH_RATE, mode->refreshRate);
+  _window =
+      glfwCreateWindow(mode->width, mode->height, "BareMetal", monitor, NULL);
   if (_window == NULL) {
     glfwTerminate();
     return Result(
@@ -108,8 +115,16 @@ bool OpenGlWindow::keyHasBeenPressed(Key key) {
   return glfwGetKey(_window, key) == GLFW_PRESS;
 }
 
-int OpenGlWindow::width() { return 1024; }
+int OpenGlWindow::width() {
+  int width, height;
+  glfwGetWindowSize(_window, &width, &height);
+  return width;
+}
 
-int OpenGlWindow::height() { return 768; }
+int OpenGlWindow::height() {
+  int width, height;
+  glfwGetWindowSize(_window, &width, &height);
+  return height;
+}
 
 }  // namespace arty
