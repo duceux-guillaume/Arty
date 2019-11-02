@@ -15,7 +15,7 @@ Result Loader::loadObj(const std::string &path, Mesh *out) {
     return error("given empty path");
   }
   Mesh tmp;
-  std::cout << "loading mesh: " << path << std::endl;
+  // std::cout << "loading mesh: " << path << std::endl;
   std::ifstream file;
   file.open(path);
   if (!file.is_open()) {
@@ -71,17 +71,18 @@ Result Loader::loadObj(const std::string &path, Mesh *out) {
         tmp.type = FaceType::TRIANGLE;
       }
     } else {
-      std::cout << "unhandled: " << header << std::endl;
+      //  std::cout << "unhandled: " << header << std::endl;
     }
   }
-  std::cout << "loaded! vertex: " << tmp.vertices.size()
-            << " normals: " << tmp.normals.size() << " uvs: " << tmp.uvs.size()
-            << " indices: " << tmp.indices.size() << std::endl;
-  std::cout << "start optimizing mesh" << std::endl;
+  // std::cout << "loaded! vertex: " << tmp.vertices.size()
+  //          << " normals: " << tmp.normals.size() << " uvs: " <<
+  //          tmp.uvs.size()
+  //          << " indices: " << tmp.indices.size() << std::endl;
+  // std::cout << "start optimizing mesh" << std::endl;
 
   out->type = TRIANGLE;
   if (tmp.type == QUAD) {
-    std::cout << "converting quads to triangles" << std::endl;
+    // std::cout << "converting quads to triangles" << std::endl;
     // We need to reorganized again to transform quads into triangles
     auto cpy = tmp.indices;
     out->indices.clear();
@@ -100,7 +101,7 @@ Result Loader::loadObj(const std::string &path, Mesh *out) {
     v = tmp.indices[i];
     vt = tmp.indices[i + 1];
     vn = tmp.indices[i + 2];
-    std::cout << "f " << v << "/" << vt << "/" << vn << std::endl;
+    // std::cout << "f " << v << "/" << vt << "/" << vn << std::endl;
 
     uint16_t id = out->vertices.size() + 1;
     out->vertices.push_back(tmp.vertices[v - 1]);
@@ -109,26 +110,27 @@ Result Loader::loadObj(const std::string &path, Mesh *out) {
     out->indices.push_back(id);
   }
 
-  std::cout << "mesh is ready! vertex: " << out->vertices.size()
-            << " normals: " << out->normals.size()
-            << " uvs: " << out->uvs.size()
-            << " indices: " << out->indices.size() << std::endl;
-  for (std::size_t i = 0; i < out->vertices.size(); ++i) {
-    std::cout << "v " << out->vertices[i].x() << " " << out->vertices[i].y()
-              << " " << out->vertices[i].z() << std::endl;
-  }
-  for (std::size_t i = 0; i < out->uvs.size(); ++i) {
-    std::cout << "vt " << out->uvs[i].x() << " " << out->uvs[i].y()
-              << std::endl;
-  }
-  for (std::size_t i = 0; i < out->normals.size(); ++i) {
-    std::cout << "vn " << out->normals[i].x() << " " << out->normals[i].y()
-              << " " << out->normals[i].z() << std::endl;
-  }
-  for (std::size_t i = 0; i < out->indices.size() - 2; i += 3) {
-    std::cout << "f " << out->indices[i] << " " << out->indices[i + 1] << " "
-              << out->indices[i + 2] << std::endl;
-  }
+  // std::cout << "mesh is ready! vertex: " << out->vertices.size()
+  //          << " normals: " << out->normals.size()
+  //          << " uvs: " << out->uvs.size()
+  //          << " indices: " << out->indices.size() << std::endl;
+  // for (std::size_t i = 0; i < out->vertices.size(); ++i) {
+  ////  std::cout << "v " << out->vertices[i].x() << " " << out->vertices[i].y()
+  ////            << " " << out->vertices[i].z() << std::endl;
+  //}
+  // for (std::size_t i = 0; i < out->uvs.size(); ++i) {
+  // // std::cout << "vt " << out->uvs[i].x() << " " << out->uvs[i].y()
+  // //           << std::endl;
+  //}
+  // for (std::size_t i = 0; i < out->normals.size(); ++i) {
+  //  //std::cout << "vn " << out->normals[i].x() << " " << out->normals[i].y()
+  //  //          << " " << out->normals[i].z() << std::endl;
+  //}
+  // for (std::size_t i = 0; i < out->indices.size() - 2; i += 3) {
+  //  //std::cout << "f " << out->indices[i] << " " << out->indices[i + 1] << "
+  //  "
+  //  //          << out->indices[i + 2] << std::endl;
+  //}
   return ok();
 }
 

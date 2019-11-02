@@ -254,30 +254,6 @@ class Blackboard {
   }
 };
 
-struct Transform {
-  Vec3f position;
-  Quatf rotation;
-  Vec3f scale;
-
-  Mat4x4f toMat() const {
-    Mat4x4f tf = rotation.toMat();
-    tf(0, 3) = position.x();
-    tf(1, 3) = position.y();
-    tf(2, 3) = position.z();
-    return tf;
-  }
-
-  void fromMat(Mat4x4f const& m) {
-    position.x() = m(0, 3);
-    position.y() = m(1, 3);
-    position.z() = m(2, 3);
-    rotation.fromMat(m);
-  }
-
-  Transform() : position(), rotation(), scale() {}
-  Transform(Vec3f pos) : position(pos), rotation(), scale() {}
-};
-
 }  // namespace arty
 
 #endif  // BLACKBOARD_H

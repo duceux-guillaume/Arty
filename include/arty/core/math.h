@@ -1,6 +1,7 @@
 #ifndef MATH_H
 #define MATH_H
 
+#include <algorithm>
 #include <cassert>
 #include <cmath>
 #include <cstdlib>
@@ -52,6 +53,8 @@ class MatBase {
 
   MatBase(T const p[size]) { std::memcpy(arr, p, size); }
 
+  operator Derived() { return *reinterpret_cast<Derived*>(this); }
+
   T const& operator()(size_t i, size_t j) const {
     assert(i < rows);
     assert(j < cols);
@@ -82,13 +85,22 @@ class MatBase {
     for (int i = 0; i < size; ++i) {
       arr[i] -= other.arr[i];
     }
-    return *this;
+    return *reinterpret_cast<Derived*>(this);
   }
 
   template <typename S>
   Derived& operator*=(S const& scalar) {
     for (int i = 0; i < size; ++i) {
       arr[i] *= scalar;
+    }
+    return *reinterpret_cast<Derived*>(this);
+  }
+
+  template <typename S>
+  Derived& operator/=(S const& scalar) {
+    assert(scalar != static_cast<S>(0));
+    for (int i = 0; i < size; ++i) {
+      arr[i] /= scalar;
     }
     return *reinterpret_cast<Derived*>(this);
   }
@@ -129,12 +141,18 @@ inline const MatBase<T, Rows, Cols, Derived> operator-(
     MatBase<T, Rows, Cols, Derived> l,
     MatBase<T, Rows, Cols, Derived> const& r) {
   l -= r;
-  return l;
+  return *reinterpret_cast<Derived*>(&l);
 }
 
 template <typename T, int Rows, int Cols, class Derived>
 inline Derived operator*(MatBase<T, Rows, Cols, Derived> l, T const& r) {
   l *= r;
+  return *reinterpret_cast<Derived*>(&l);
+}
+
+template <typename T, int Rows, int Cols, class Derived>
+inline Derived operator/(MatBase<T, Rows, Cols, Derived> l, T const& r) {
+  l /= r;
   return *reinterpret_cast<Derived*>(&l);
 }
 
@@ -156,8 +174,18 @@ inline T dot(MatBase<T, Rows, Cols, Derived> const& l,
 }
 
 template <typename T, int Rows, int Cols, class Derived>
+inline T squaredNorm(MatBase<T, Rows, Cols, Derived> const& m) {
+  return dot(m, m);
+}
+
+template <typename T, int Rows, int Cols, class Derived>
+inline T norm(MatBase<T, Rows, Cols, Derived> const& m) {
+  return std::sqrt(squaredNorm(m));
+}
+
+template <typename T, int Rows, int Cols, class Derived>
 inline Derived normalize(MatBase<T, Rows, Cols, Derived> const& m) {
-  T invsqrt = T(1) / std::sqrt(dot(m, m));
+  T invsqrt = T(1) / norm(m);
   MatBase<T, Rows, Cols, Derived> res = m * invsqrt;
   return *reinterpret_cast<Derived*>(&res);
 }
@@ -177,6 +205,7 @@ class Mat : public MatBase<T, Rows, Cols, Mat<T, Rows, Cols>> {
   Mat(T p[Base::size]) : Base(p) {}
   template <class... Args>
   Mat(Args const&... args) : Base({args...}) {}
+  Mat(Base const& other) : Base(other) {}
 };
 
 template <typename T, int Rows, int Cols>
@@ -252,6 +281,16 @@ using Vec4f = Vec4<float>;
 
 template <typename T>
 Vec3<T> inline cross(Vec3<T> const& l, Vec3<T> const& r) {
+  return Vec3<T>{
+      l[1] * r[2] - r[1] * l[2],  //
+      l[2] * r[0] - r[2] * l[0],  //
+      l[0] * r[1] - r[0] * l[1],  //
+  };
+}
+
+template <typename T>
+Vec3<T> inline cross(MatBase<T, 3, 1, Vec3<T>> const& l,
+                     MatBase<T, 3, 1, Vec3<T>> const& r) {
   return Vec3<T>{
       l[1] * r[2] - r[1] * l[2],  //
       l[2] * r[0] - r[2] * l[0],  //
@@ -415,6 +454,204 @@ inline Mat4x4<T> rotation(T const& a, T const& b, T const& c) {
   res(2, 2) = c1 * c2;
   return res;
 }
+
+class Transform {
+ public:
+  Mat4x4f toMat() const {
+    Mat4x4f tf = _rotation.toMat();
+    tf(0, 3) = _position.x();
+    tf(1, 3) = _position.y();
+    tf(2, 3) = _position.z();
+    return tf;
+  }
+
+  void fromMat(Mat4x4f const& m) {
+    _position.x() = m(0, 3);
+    _position.y() = m(1, 3);
+    _position.z() = m(2, 3);
+    _rotation.fromMat(m);
+  }
+
+  Transform() : _position(), _rotation(), _scale() {}
+  Transform(Vec3f pos) : _position(pos), _rotation(), _scale() {}
+
+ private:
+  Vec3f _position;
+  Quatf _rotation;
+  Vec3f _scale;
+};
+
+template <typename T>
+struct Intersection {
+  bool exist;
+  T value;
+
+  Intersection() : exist(false), T() {}
+};
+
+template <typename T, int Dim>
+class Line {
+ public:
+  Line(Vec<T, Dim> const& a, Vec<T, Dim> const& b) : _ori(a), _dir(b - a) {
+    _normSquared = squaredNorm(_dir);
+  }
+
+  Vec<T, Dim> project(Vec<T, Dim> const& p) {
+    return _ori + _dir * dirCoeff(p);
+  }
+
+  T distanceSquaredTo(Vec<T, Dim> const& p) {
+    return squaredNorm(project(p) - p);
+  }
+
+  T distanceTo(Vec<T, Dim> const& p) { return std::sqrt(distanceSquaredTo(p)); }
+
+  T dirCoeff(Vec<T, Dim> const& p) {
+    return dot((p - _ori), _dir) / _normSquared;
+  }
+
+  Vec<T, Dim> const& origin() const { return _ori; }
+  Vec<T, Dim> const& direction() const { return _dir; }
+
+ private:
+  Vec<T, Dim> _ori;
+  Vec<T, Dim> _dir;
+  T _normSquared;
+};
+
+template <typename T>
+using Line3 = Line<T, 3>;
+using Line3f = Line3<float>;
+
+template <typename T, int Dim>
+class Edge {
+ public:
+  Edge(Vec<T, Dim> const& a, Vec<T, Dim> const& b) : _a(a), _b(b) {}
+
+  Vec<T, Dim> project(Vec<T, Dim> const& p) {
+    Line<T, Dim> line(_a, _b);
+    T coeff = line.dirCoeff(p);
+    if (coeff <= 0) {
+      return _a;
+    }
+    if (coeff >= 1.f) {
+      return _b;
+    }
+    return _a + line.direction() * coeff;
+  }
+
+  T distanceSquaredTo(Vec<T, Dim> const& p) {
+    return squaredNorm(project(p) - p);
+  }
+
+  T distanceTo(Vec<T, Dim> const& p) { return std::sqrt(distanceSquaredTo(p)); }
+
+ private:
+  Vec<T, Dim> _a;
+  Vec<T, Dim> _b;
+};
+
+template <typename T>
+using Edge3 = Edge<T, 3>;
+using Edge3f = Edge3<float>;
+
+template <typename T>
+class Plane {
+ public:
+  Plane(Vec3<T> const& pt1, Vec3<T> const& pt2, Vec3<T> const& pt3)
+      : _line(pt1, cross(pt2 - pt1, pt3 - pt1)) {}
+
+  Vec3<T> project(Vec3<T> const& p) {
+    T coeff = _line.dirCoeff(p);
+    return p - _line.direction() * coeff;
+  }
+
+  T distanceSquaredTo(Vec3<T> const& p) { return squaredNorm(project(p) - p); }
+
+  T distanceTo(Vec3<T> const& p) { return std::sqrt(distanceSquaredTo(p)); }
+
+  Vec3<T> const& origin() const { return _line.origin(); }
+  Vec3<T> direction() const { return _line.direction(); }
+
+  T sideOf(Vec3<T> const& p) {
+    T coeff = _line.dirCoeff(p);
+    return (T(0) < coeff) - (T(0) > coeff);
+  }
+
+ private:
+  Line3<T> _line;
+};
+using Plane3f = Plane<float>;
+
+template <typename T>
+class Triangle {
+ public:
+  Triangle(Vec3<T> const& p1, Vec3<T> const& p2, Vec3<T> const& p3)
+      : _p1(p1), _p2(p2), _p3(p3) {}
+
+  Vec3<T> project(Vec3<T> const& p) {
+    Edge3<T> e0(_p1, _p2);
+    Vec3<T> proj0 = e0.project(p);
+    T dist0 = squaredNorm(proj0 - p);
+    Edge3<T> e1(_p2, _p3);
+    Vec3<T> proj1 = e1.project(p);
+    T dist1 = squaredNorm(proj1 - p);
+    Edge3<T> e2(_p3, _p1);
+    Vec3<T> proj2 = e2.project(p);
+    T dist2 = squaredNorm(proj2 - p);
+    Plane<T> e3(_p1, _p2, _p3);
+    Vec3<T> proj3 = e3.project(p);
+    T dist3 = squaredNorm(proj3 - p);
+    std::vector<T> el({dist0, dist1, dist2, dist3});
+    std::size_t argmin = std::distance(
+        std::min_element(std::begin(el), std::end(el)), std::begin(el));
+    if (argmin == 0) {
+      return proj0;
+    }
+    if (argmin == 1) {
+      return proj1;
+    }
+    if (argmin == 2) {
+      return proj2;
+    }
+    return proj3;
+  }
+
+  T distanceSquaredTo(Vec3<T> const& p) { return squaredNorm(project(p) - p); }
+
+  T distanceTo(Vec3<T> const& p) { return std::sqrt(distanceSquaredTo(p)); }
+
+  Intersection<Vec3<T>> intersect(Edge3<T> const& e) const {
+    Intersection<Vec3<T>> intersection;
+    Plane<T> plane(_p1, _p2, _p3);
+    T sign1 = plane.sideOf(e.p1());
+    T sign2 = plane.sideOf(e.p2());
+    if (sign1 == sign2) {
+      return intersection;
+    }
+    Plane<T> plane2(e.p2(), _p1, _p2);
+    T sign3 = plane2.sideOf(e.p1());
+    Plane<T> plane3(e.p2(), _p2, _p3);
+    T sign4 = plane3.sideOf(e.p1());
+    Plane<T> plane4(e.p2(), _p3, _p1);
+    T sign5 = plane3.sideOf(e.p1());
+    if (sign3 != sign4 || sign4 != sign5) {
+      return intersection;
+    }
+    Vec3<T> n = cross(_p2 - _p1, _p3 - _p1);
+    T coeff = -dot(e.p1(), n - _p1) / dot(e.p1(), e.p2() - e.p1());
+    intersection.value = e.p1() + coeff * (e.p1() - e.p2());
+    intersection.exist = true;
+    return intersection;
+  }
+
+ private:
+  Vec3<T> _p1;
+  Vec3<T> _p2;
+  Vec3<T> _p3;
+};
+
+using Trianglef = Triangle<float>;
 
 }  // namespace arty
 
