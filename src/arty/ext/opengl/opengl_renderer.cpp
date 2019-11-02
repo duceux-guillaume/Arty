@@ -114,7 +114,7 @@ void Renderer::importDynMeshNoTextureNoIndices(const Mesh& m) {
 Result Renderer::drawDynMeshNoTextureNoIndices(const Mesh& m,
                                                Mat4x4f const& mvp) {
   glUseProgram(notexture_shader.program);
-  glUniformMatrix4fv(notexture_shader.mvp, 1, GL_FALSE, transpose(mvp).ptr());
+  glUniformMatrix4fv(notexture_shader.mvp, 1, GL_FALSE, mvp.transpose().ptr());
 
   glEnableVertexAttribArray(0);
   glBindBuffer(GL_ARRAY_BUFFER, static_vbos.vertex);
@@ -145,7 +145,7 @@ void Renderer::importStaticMeshNoTextureNoIndices(const Mesh& m) {
 Result Renderer::drawStaticMeshNoTextureNoIndices(const Mesh& m,
                                                   const Mat4x4f& mvp) {
   glUseProgram(notexture_shader.program);
-  glUniformMatrix4fv(notexture_shader.mvp, 1, GL_FALSE, transpose(mvp).ptr());
+  glUniformMatrix4fv(notexture_shader.mvp, 1, GL_FALSE, mvp.transpose().ptr());
 
   glEnableVertexAttribArray(0);
   glBindBuffer(GL_ARRAY_BUFFER, static_vbos.vertex);
@@ -201,11 +201,11 @@ Result Renderer::drawStaticMeshNoTexture(const Mesh& mesh, const Mat4x4f& model,
   Mat4x4f mvp = proj * view * model;
 
   glUniformMatrix4fv(notexture_light_shader["mvp"], 1, GL_FALSE,
-                     transpose(mvp).ptr());
+                     mvp.transpose().ptr());
   glUniformMatrix4fv(notexture_light_shader["model"], 1, GL_FALSE,
-                     transpose(model).ptr());
+                     model.transpose().ptr());
   glUniformMatrix4fv(notexture_light_shader["view"], 1, GL_FALSE,
-                     transpose(view).ptr());
+                     view.transpose().ptr());
 
   Vec3f lightPos({2, 2, 10});
   glUniform3f(notexture_light_shader["light"], lightPos.x(), lightPos.y(),
@@ -247,11 +247,11 @@ Result Renderer::drawStreamMeshNoTexture(const Mesh& mesh, const Mat4x4f& model,
   Mat4x4f mvp = proj * view * model;
 
   glUniformMatrix4fv(notexture_light_shader["mvp"], 1, GL_FALSE,
-                     transpose(mvp).ptr());
+                     mvp.transpose().ptr());
   glUniformMatrix4fv(notexture_light_shader["model"], 1, GL_FALSE,
-                     transpose(model).ptr());
+                     model.transpose().ptr());
   glUniformMatrix4fv(notexture_light_shader["view"], 1, GL_FALSE,
-                     transpose(view).ptr());
+                     view.transpose().ptr());
 
   Vec3f lightPos({2, 2, -10});
   glUniform3f(notexture_light_shader["light"], lightPos.x(), lightPos.y(),

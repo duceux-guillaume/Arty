@@ -11,37 +11,42 @@
 #include <limits>
 #include <vector>
 
+#define MAT_TEMP template <typename T, int Rows, int Cols, bool ColMajor>
+#define MAT_TYPE Mat<T, Rows, Cols, ColMajor>
+
 namespace arty {
 
-template <typename T, int Rows, int Cols, class Derived>
-class MatBase {
+MAT_TEMP
+class Mat {
   static_assert(Rows > 0, "Rows must be positiv");
   static_assert(Cols > 0, "Cols must be positiv");
+  static_assert(Rows * Cols > 1, "Mat1x1 is not allowed");
 
  public:
   static constexpr int rows = Rows;
   static constexpr int cols = Cols;
   static constexpr int size = Rows * Cols;
+  static constexpr bool col_major = ColMajor;
+  static constexpr bool is_vector = rows == 1 || cols == 1;
+  static constexpr bool is_square = rows == cols;
+  using self_type = Mat<T, Rows, Cols, ColMajor>;
+  using value_type = T;
+  using transpose_type = Mat<T, Rows, Cols, !ColMajor>;
+  using col_type = Mat<T, Rows, 1, true>;
+  using row_type = Mat<T, 1, Cols, false>;
 
  protected:
   T arr[size];
 
  public:
-  MatBase() {
-    for (size_t j = 0; j < Cols; ++j) {
-      for (size_t i = 0; i < Rows; ++i) {
-        arr[i * Cols + j] = 0;
-      }
+  Mat() : arr{0} {}
+  Mat(T const& v) : Mat() {
+    for (int i = 0; i < Rows && i < Cols; ++i) {
+      (*this)(i, i) = v;
     }
   }
-
-  MatBase(T const& v) : MatBase() {
-    for (int j = 0, i = 0; i < Rows && j < Cols; ++i, ++j) {
-      arr[i * Cols + j] = v;
-    }
-  }
-
-  MatBase(std::initializer_list<T> l) {
+  Mat(T const p[size]) { std::memcpy(arr, p, size); }
+  Mat(std::initializer_list<T> l) {
     assert(l.size() == size);
     auto it = l.begin();
     auto end = l.end();
@@ -50,21 +55,26 @@ class MatBase {
       arr[i] = *it;
     }
   }
+  template <class... Args>
+  Mat(Args const&... args) : Mat({args...}) {}
 
-  MatBase(T const p[size]) { std::memcpy(arr, p, size); }
-
-  operator Derived() { return *reinterpret_cast<Derived*>(this); }
-
+  // GETTERS
   T const& operator()(size_t i, size_t j) const {
     assert(i < rows);
     assert(j < cols);
-    return arr[i * cols + j];
+    if (col_major) {
+      return arr[i * cols + j];
+    }
+    return arr[i + j * rows];
   }
 
   T& operator()(size_t i, size_t j) {
     assert(i < rows);
     assert(j < cols);
-    return arr[i * cols + j];
+    if (col_major) {
+      return arr[i * cols + j];
+    }
+    return arr[i + j * rows];
   }
 
   T const& operator[](size_t i) const {
@@ -72,41 +82,78 @@ class MatBase {
     return arr[i];
   }
 
-  Derived& operator+=(MatBase<T, Rows, Cols, Derived> const& other) {
+  T& operator[](size_t i) {
+    assert(i < size);
+    return arr[i];
+  }
+
+  // BLOCKS
+  col_type col(std::size_t j) const {
+    assert(j < cols);
+    col_type r;
+    for (std::size_t i = 0; i < rows; ++i) {
+      r[i] = (*this)(i, j);
+    }
+    return r;
+  }
+
+  void setCol(col_type const& col, std::size_t j) {
+    assert(j < cols);
+    for (std::size_t i = 0; i < rows; ++i) {
+      (*this)(i, j) = col[i];
+    }
+  }
+
+  row_type row(std::size_t i) const {
+    assert(i < rows);
+    row_type r;
+    for (std::size_t j = 0; j < cols; ++j) {
+      r[j] = (*this)(i, j);
+    }
+    return r;
+  }
+
+  void setRow(row_type const& row, std::size_t i) {
+    assert(i < rows);
+    for (std::size_t j = 0; j < cols; ++j) {
+      (*this)(i, j) = row[j];
+    }
+  }
+
+  // OPERATORS
+  self_type& operator+=(self_type const& other) {
     for (int i = 0; i < size; ++i) {
       arr[i] += other.arr[i];
     }
-    return *reinterpret_cast<Derived*>(this);
-    ;
+    return *this;
   }
 
-  MatBase<T, Rows, Cols, Derived>& operator-=(
-      MatBase<T, Rows, Cols, Derived> const& other) {
+  self_type& operator-=(self_type const& other) {
     for (int i = 0; i < size; ++i) {
       arr[i] -= other.arr[i];
     }
-    return *reinterpret_cast<Derived*>(this);
+    return *this;
   }
 
   template <typename S>
-  Derived& operator*=(S const& scalar) {
+  self_type& operator*=(S const& scalar) {
     for (int i = 0; i < size; ++i) {
       arr[i] *= scalar;
     }
-    return *reinterpret_cast<Derived*>(this);
+    return *this;
   }
 
   template <typename S>
-  Derived& operator/=(S const& scalar) {
+  self_type& operator/=(S const& scalar) {
     assert(scalar != static_cast<S>(0));
     for (int i = 0; i < size; ++i) {
       arr[i] /= scalar;
     }
-    return *reinterpret_cast<Derived*>(this);
+    return *this;
   }
 
-  Derived& operator*=(MatBase<T, Rows, Cols, Derived> const& r) {
-    MatBase<T, Rows, Cols, Derived> res;
+  self_type& operator*=(self_type const& r) {
+    self_type res;
     for (size_t i = 0; i < Rows; ++i) {
       for (size_t j = 0; j < Cols; ++j) {
         for (size_t step = 0; step < Cols; ++step) {
@@ -115,157 +162,309 @@ class MatBase {
       }
     }
     std::memcpy(this->arr, res.arr, sizeof(this->arr));
-    return *reinterpret_cast<Derived*>(this);
+    return *this;
   }
 
   T const* ptr() const { return &arr[0]; }
 
-  bool operator==(MatBase<T, Rows, Cols, Derived> const& r) const {
+  bool operator==(self_type const& r) const {
     return std::memcmp(this->arr, r.arr, sizeof(this->arr)) == 0;
   }
 
-  bool operator!=(MatBase<T, Rows, Cols, Derived> const& r) const {
-    return !(*this == r);
+  bool operator!=(self_type const& r) const { return !(*this == r); }
+
+  T dot(self_type const& r) const {
+    T res(0);
+    for (int i = 0; i < size; ++i) {
+      res += arr[i] * r[i];
+    }
+    return res;
   }
+
+  T normsqr() const { return this->dot(*this); }
+
+  T norm() const { return std::sqrt(this->normsqr()); }
+
+  MAT_TYPE normalize() const {
+    T invsqrt = static_cast<T>(1) / this->norm();
+    return (*this) * invsqrt;
+  }
+
+  transpose_type transpose() const { return transpose_type(arr); }
+
+  // VECTORS STUFF
+  T const& x() const {
+    static_assert(rows == 1 || cols == 1, "operation reserved to vectors");
+    return arr[0];
+  }
+  T const& y() const {
+    static_assert(size >= 2, "size is too small for this operation");
+    static_assert(is_vector, "operation reserved to vectors");
+    return arr[1];
+  }
+  T const& z() const {
+    static_assert(size >= 3, "size is too small for this operation");
+    static_assert(is_vector, "operation reserved to vectors");
+    return arr[2];
+  }
+  T const& w() const {
+    static_assert(size >= 4, "size is too small for this operation");
+    static_assert(is_vector, "operation reserved to vectors");
+    return arr[3];
+  }
+  T& x() {
+    static_assert(rows == 1 || cols == 1, "operation reserved to vectors");
+    return arr[0];
+  }
+  T& y() {
+    static_assert(size >= 2, "size is too small for this operation");
+    static_assert(is_vector, "operation reserved to vectors");
+    return arr[1];
+  }
+  T& z() {
+    static_assert(size >= 3, "size is too small for this operation");
+    static_assert(is_vector, "operation reserved to vectors");
+    return arr[2];
+  }
+  T& w() {
+    static_assert(size >= 4, "size is too small for this operation");
+    static_assert(is_vector, "operation reserved to vectors");
+    return arr[3];
+  }
+
+  // SQUARE MAT STUFF
+  T tr() const {
+    static_assert(is_square, "operation only defined for square matrix");
+    T sum(0);
+    for (std::size_t i = 0; i < rows; ++i) {
+      sum += (*this)(i, i);
+    }
+    return sum;
+  }
+
+  T det() const;
+
+  self_type inv() const;
+
 };  // namespace arty
 
-template <typename T, int Rows, int Cols, class Derived>
-inline const Derived operator+(MatBase<T, Rows, Cols, Derived> l,
-                               MatBase<T, Rows, Cols, Derived> const& r) {
+namespace details {
+MAT_TEMP
+static inline T det2x2(MAT_TYPE const& m) {
+  static_assert(m.is_square, "det is only defined for square matrix");
+  static_assert(m.rows == 2, "det2x2 is fot Mat2x2");
+  return m[0] * m[3] - m[1] * m[2];
+}
+
+MAT_TEMP
+static inline T det3x3(MAT_TYPE const& m) {
+  static_assert(m.is_square, "det is only defined for square matrix");
+  static_assert(m.rows == 3, "det3x3 is fot Mat3x3");
+  return m[0] * m[4] * m[8] + m[1] * m[5] * m[6] + m[2] * m[3] * m[7] -
+         m[2] * m[4] * m[6] - m[1] * m[3] * m[8] - m[0] * m[5] * m[7];
+}
+
+MAT_TEMP
+static inline T det4x4(MAT_TYPE const& mat) {
+  static_assert(mat.is_square, "det is only defined for square matrix");
+  static_assert(mat.rows == 4, "det4x4 is for Mat4x4");
+
+  T const& a = mat(0, 0);
+  T const& b = mat(0, 1);
+  T const& c = mat(0, 2);
+  T const& d = mat(0, 3);
+  T const& e = mat(1, 0);
+  T const& f = mat(1, 1);
+  T const& g = mat(1, 2);
+  T const& h = mat(1, 3);
+  T const& i = mat(2, 0);
+  T const& j = mat(2, 1);
+  T const& k = mat(2, 2);
+  T const& l = mat(2, 3);
+  T const& m = mat(3, 0);
+  T const& n = mat(3, 1);
+  T const& o = mat(3, 2);
+  T const& p = mat(3, 3);
+
+  T f00 = k * p - l * o;
+  T f01 = j * p - l * n;
+  T f02 = j * o - k * n;
+  T f09 = i * p - l * m;
+  T f10 = i * o - k * m;
+  T f15 = i * n - j * m;
+
+  T c00 = f * f00 - g * f01 + h * f02;
+  T c04 = -e * f00 + g * f09 - h * f10;
+  T c08 = e * f01 - f * f09 + h * f15;
+  T c12 = -e * f02 + f * f10 - g * f15;
+
+  return a * c00 + b * c04 + c * c08 + d * c12;
+}
+
+MAT_TEMP
+static inline MAT_TYPE inv2x2(MAT_TYPE const& m) {
+  static_assert(m.is_square, "inv is only defined for square matrix");
+  static_assert(m.rows == 2, "inv2x2 is fot Mat2x2");
+  static_assert(std::is_floating_point<T>(), "inv is for floating types");
+
+  return (MAT_TYPE() * m.tr() - m) * static_cast<T>(1) / m.det();
+}
+
+MAT_TEMP
+static inline MAT_TYPE inv3x3(MAT_TYPE const& m) {
+  static_assert(m.is_square, "inv is only defined for square matrix");
+  static_assert(m.rows == 3, "inv3x3 is fot Mat3x3");
+  static_assert(std::is_floating_point<T>(), "inv is for floating types");
+
+  auto x0 = m.col(0);
+  auto x1 = m.col(1);
+  auto x2 = m.col(2);
+  auto invDet = static_cast<T>(1) / m.det();
+  return MAT_TYPE::fromRows(x1.cross(x2), x2.cross(x0), x0.cross(x1)) * invDet;
+}
+
+MAT_TEMP
+static inline MAT_TYPE inv4x4(MAT_TYPE const& mat) {
+  static_assert(mat.is_square, "inv is only defined for square matrix");
+  static_assert(mat.rows == 4, "inv4x4 is fot Mat4x4");
+  static_assert(std::is_floating_point<T>(), "inv is for floating types");
+
+  T const& a = mat(0, 0);
+  T const& b = mat(0, 1);
+  T const& c = mat(0, 2);
+  T const& d = mat(0, 3);
+  T const& e = mat(1, 0);
+  T const& f = mat(1, 1);
+  T const& g = mat(1, 2);
+  T const& h = mat(1, 3);
+  T const& i = mat(2, 0);
+  T const& j = mat(2, 1);
+  T const& k = mat(2, 2);
+  T const& l = mat(2, 3);
+  T const& m = mat(3, 0);
+  T const& n = mat(3, 1);
+  T const& o = mat(3, 2);
+  T const& p = mat(3, 3);
+
+  T f00 = k * p - l * o;
+  T f01 = j * p - l * n;
+  T f02 = j * o - k * n;
+  T f03 = g * p - h * o;
+  T f04 = f * p - h * n;
+  T f05 = f * o - g * n;
+  T f06 = g * l - h * k;
+  T f07 = f * l - h * j;
+  T f08 = f * k - g * j;
+  T f09 = i * p - l * m;
+  T f10 = i * o - k * m;
+  T f11 = e * p - h * m;
+  T f12 = e * o - g * m;
+  T f13 = e * l - h * i;
+  T f14 = e * k - g * i;
+  T f15 = i * n - j * m;
+  T f16 = e * n - f * m;
+  T f17 = e * j - f * i;
+
+  T c00 = f * f00 - g * f01 + h * f02;
+  T c01 = -b * f00 + c * f01 - d * f02;
+  T c02 = b * f03 - c * f04 + d * f05;
+  T c03 = -b * f06 + c * f07 - d * f08;
+  T c04 = -e * f00 + g * f09 - h * f10;
+  T c05 = a * f00 - c * f09 + d * f10;
+  T c06 = -a * f03 + c * f11 - d * f12;
+  T c07 = a * f06 - c * f13 + d * f14;
+  T c08 = e * f01 - f * f09 + h * f15;
+  T c09 = -a * f01 + b * f09 - d * f15;
+  T c10 = a * f04 - b * f11 + d * f16;
+  T c11 = -a * f07 + b * f13 - d * f17;
+  T c12 = -e * f02 + f * f10 - g * f15;
+  T c13 = a * f02 - b * f10 + c * f15;
+  T c14 = -a * f05 + b * f12 - c * f16;
+  T c15 = a * f08 - b * f14 + c * f17;
+
+  T det = a * c00 + b * c04 + c * c08 + d * c12;
+  assert(det != 0);
+
+  MAT_TYPE inverse{c00, c01, c02, c03,  //
+                   c04, c05, c06, c07,  //
+                   c08, c09, c10, c11,  //
+                   c12, c13, c14, c15};
+
+  return inverse * static_cast<T>(1) / det;
+}
+
+}  // namespace details
+
+MAT_TEMP
+T MAT_TYPE::det() const {
+  static_assert(is_square, "det is only defined for square matrix");
+  static_assert(rows <= 4, "det is not implemented for this size");
+  if constexpr (rows == 2) {
+    return details::det2x2(*this);
+  }
+  if constexpr (rows == 3) {
+    return details::det3x3(*this);
+  }
+  // if (rows == 4) {
+  return details::det4x4(*this);
+  //}
+}
+
+MAT_TEMP
+MAT_TYPE MAT_TYPE::inv() const {
+  static_assert(is_square, "inv is only defined for square matrix");
+  static_assert(rows <= 4, "inv is not implemented for this size");
+  if constexpr (rows == 2) {
+    return details::inv2x2(*this);
+  }
+  if constexpr (rows == 3) {
+    return details::inv3x3(*this);
+  }
+  // if (rows == 4) {
+  return details::inv4x4(*this);
+  //}
+}
+
+MAT_TEMP
+inline const MAT_TYPE operator+(MAT_TYPE l, MAT_TYPE const& r) {
   l += r;
-  return *reinterpret_cast<Derived*>(&l);
+  return l;
 }
 
-template <typename T, int Rows, int Cols, class Derived>
-inline const MatBase<T, Rows, Cols, Derived> operator-(
-    MatBase<T, Rows, Cols, Derived> l,
-    MatBase<T, Rows, Cols, Derived> const& r) {
+MAT_TEMP
+inline const MAT_TYPE operator-(MAT_TYPE l, MAT_TYPE const& r) {
   l -= r;
-  return *reinterpret_cast<Derived*>(&l);
+  return l;
 }
 
-template <typename T, int Rows, int Cols, class Derived>
-inline Derived operator*(MatBase<T, Rows, Cols, Derived> l, T const& r) {
+MAT_TEMP
+inline const MAT_TYPE operator*(MAT_TYPE l, T const& r) {
   l *= r;
-  return *reinterpret_cast<Derived*>(&l);
+  return l;
 }
 
-template <typename T, int Rows, int Cols, class Derived>
-inline Derived operator/(MatBase<T, Rows, Cols, Derived> l, T const& r) {
+MAT_TEMP
+inline const MAT_TYPE operator/(MAT_TYPE l, T const& r) {
   l /= r;
-  return *reinterpret_cast<Derived*>(&l);
+  return l;
 }
 
-template <typename T, int Rows, int Cols, class Derived>
-inline const Derived operator*(MatBase<T, Rows, Cols, Derived> l,
-                               MatBase<T, Rows, Cols, Derived> const& r) {
+MAT_TEMP
+inline const MAT_TYPE operator*(MAT_TYPE l, MAT_TYPE const& r) {
   l *= r;
-  return *reinterpret_cast<Derived*>(&l);
-}
-
-template <typename T, int Rows, int Cols, class Derived>
-inline T dot(MatBase<T, Rows, Cols, Derived> const& l,
-             MatBase<T, Rows, Cols, Derived> const& r) {
-  T res(0);
-  for (int i = 0; i < l.size; ++i) {
-    res += l[i] * r[i];
-  }
-  return res;
-}
-
-template <typename T, int Rows, int Cols, class Derived>
-inline T squaredNorm(MatBase<T, Rows, Cols, Derived> const& m) {
-  return dot(m, m);
-}
-
-template <typename T, int Rows, int Cols, class Derived>
-inline T norm(MatBase<T, Rows, Cols, Derived> const& m) {
-  return std::sqrt(squaredNorm(m));
-}
-
-template <typename T, int Rows, int Cols, class Derived>
-inline Derived normalize(MatBase<T, Rows, Cols, Derived> const& m) {
-  T invsqrt = T(1) / norm(m);
-  MatBase<T, Rows, Cols, Derived> res = m * invsqrt;
-  return *reinterpret_cast<Derived*>(&res);
-}
-
-template <typename T, int Rows, int Cols, class Derived>
-inline Derived transpose(MatBase<T, Rows, Cols, Derived> const& m) {
-  return transpose(*reinterpret_cast<Derived const*>(&m));
-}
-
-template <typename T, int Rows, int Cols>
-class Mat : public MatBase<T, Rows, Cols, Mat<T, Rows, Cols>> {
- public:
-  using Base = MatBase<T, Rows, Cols, Mat<T, Rows, Cols>>;
-  Mat() : Base() {}
-  Mat(T const& v) : Base(v) {}
-  Mat(std::initializer_list<T> l) : Base(l) {}
-  Mat(T p[Base::size]) : Base(p) {}
-  template <class... Args>
-  Mat(Args const&... args) : Base({args...}) {}
-  Mat(Base const& other) : Base(other) {}
-};
-
-template <typename T, int Rows, int Cols>
-inline Mat<T, Cols, Rows> transpose(Mat<T, Rows, Cols> const& m) {
-  Mat<T, Cols, Rows> res;
-  for (std::size_t i = 0; i < Rows; ++i) {
-    for (std::size_t j = 0; j < Cols; ++j) {
-      res(j, i) = m(i, j);
-    }
-  }
-  return res;
+  return l;
 }
 
 template <typename T>
-using Mat3x3 = Mat<T, 3, 3>;
+using Mat3x3 = Mat<T, 3, 3, true>;
 using Mat3x3f = Mat3x3<float>;
 
 template <typename T>
-using Mat4x4 = Mat<T, 4, 4>;
+using Mat4x4 = Mat<T, 4, 4, true>;
 using Mat4x4f = Mat4x4<float>;
 
-template <typename T, int Rows>
-class Vec : public MatBase<T, Rows, 1, Vec<T, Rows>> {
- public:
-  using Base = MatBase<T, Rows, 1, Vec<T, Rows>>;
-  Vec() : Base() {}
-  Vec(T const& v) : Base(v) {}
-  Vec(std::initializer_list<T> l) : Base(l) {}
-  Vec(T p[Base::size]) : Base(p) {}
-  Vec(Base const& other) : Base(other) {}
-  template <class... Args>
-  Vec(Args const&... args) : Base({args...}) {}
-
-  T& x() { return Base::arr[0]; }
-  T const& x() const { return Base::arr[0]; }
-  T& y() {
-    static_assert(Base::size > 1, "Size <= 1");
-    return Base::arr[1];
-  }
-  T const& y() const {
-    static_assert(Base::size > 1, "Size <= 1");
-    return Base::arr[1];
-  }
-  T& z() {
-    static_assert(Base::size > 2, "Size <= 2");
-    return Base::arr[2];
-  }
-  T const& z() const {
-    static_assert(Base::size > 2, "Size <= 2");
-    return Base::arr[2];
-  }
-  T& w() {
-    static_assert(Base::size > 3, "Size <= 3");
-    return Base::arr[3];
-  }
-  T const& w() const {
-    static_assert(Base::size > 3, "Size <= 3");
-    return Base::arr[3];
-  }
-};
+template <typename T, int Dim>
+using Vec = Mat<T, Dim, 1, true>;
 
 template <typename T>
 using Vec2 = Vec<T, 2>;
@@ -289,19 +488,9 @@ Vec3<T> inline cross(Vec3<T> const& l, Vec3<T> const& r) {
 }
 
 template <typename T>
-Vec3<T> inline cross(MatBase<T, 3, 1, Vec3<T>> const& l,
-                     MatBase<T, 3, 1, Vec3<T>> const& r) {
-  return Vec3<T>{
-      l[1] * r[2] - r[1] * l[2],  //
-      l[2] * r[0] - r[2] * l[0],  //
-      l[0] * r[1] - r[0] * l[1],  //
-  };
-}
-
-template <typename T>
-class Quat : public Vec<T, 4> {
+class Quat : public Vec4<T> {
  public:
-  using Base = Vec<T, 4>;
+  using Base = Vec4<T>;
   Quat() : Base({0.f, 0.f, 0.f, 1.f}) {}
   Quat(std::initializer_list<T> l) : Base(l) {}
   Quat(T p[Base::size]) : Base(p) {}
@@ -403,9 +592,8 @@ inline Mat4x4<T> lookAt(Vec3<T> const& eye, Vec3<T> const& center,
   return result;
 }
 
-template <typename T, int Rows, int Cols, class Derived>
-static std::ostream& operator<<(
-    std::ostream& out, arty::MatBase<T, Rows, Cols, Derived> const& mat) {
+MAT_TEMP
+static std::ostream& operator<<(std::ostream& out, MAT_TYPE const& mat) {
   for (std::size_t i = 0; i < Rows; ++i) {
     out << "\n|";
     for (std::size_t j = 0; j < Cols; ++j) {
@@ -480,178 +668,6 @@ class Transform {
   Quatf _rotation;
   Vec3f _scale;
 };
-
-template <typename T>
-struct Intersection {
-  bool exist;
-  T value;
-
-  Intersection() : exist(false), T() {}
-};
-
-template <typename T, int Dim>
-class Line {
- public:
-  Line(Vec<T, Dim> const& a, Vec<T, Dim> const& b) : _ori(a), _dir(b - a) {
-    _normSquared = squaredNorm(_dir);
-  }
-
-  Vec<T, Dim> project(Vec<T, Dim> const& p) {
-    return _ori + _dir * dirCoeff(p);
-  }
-
-  T distanceSquaredTo(Vec<T, Dim> const& p) {
-    return squaredNorm(project(p) - p);
-  }
-
-  T distanceTo(Vec<T, Dim> const& p) { return std::sqrt(distanceSquaredTo(p)); }
-
-  T dirCoeff(Vec<T, Dim> const& p) {
-    return dot((p - _ori), _dir) / _normSquared;
-  }
-
-  Vec<T, Dim> const& origin() const { return _ori; }
-  Vec<T, Dim> const& direction() const { return _dir; }
-
- private:
-  Vec<T, Dim> _ori;
-  Vec<T, Dim> _dir;
-  T _normSquared;
-};
-
-template <typename T>
-using Line3 = Line<T, 3>;
-using Line3f = Line3<float>;
-
-template <typename T, int Dim>
-class Edge {
- public:
-  Edge(Vec<T, Dim> const& a, Vec<T, Dim> const& b) : _a(a), _b(b) {}
-
-  Vec<T, Dim> project(Vec<T, Dim> const& p) {
-    Line<T, Dim> line(_a, _b);
-    T coeff = line.dirCoeff(p);
-    if (coeff <= 0) {
-      return _a;
-    }
-    if (coeff >= 1.f) {
-      return _b;
-    }
-    return _a + line.direction() * coeff;
-  }
-
-  T distanceSquaredTo(Vec<T, Dim> const& p) {
-    return squaredNorm(project(p) - p);
-  }
-
-  T distanceTo(Vec<T, Dim> const& p) { return std::sqrt(distanceSquaredTo(p)); }
-
- private:
-  Vec<T, Dim> _a;
-  Vec<T, Dim> _b;
-};
-
-template <typename T>
-using Edge3 = Edge<T, 3>;
-using Edge3f = Edge3<float>;
-
-template <typename T>
-class Plane {
- public:
-  Plane(Vec3<T> const& pt1, Vec3<T> const& pt2, Vec3<T> const& pt3)
-      : _line(pt1, cross(pt2 - pt1, pt3 - pt1)) {}
-
-  Vec3<T> project(Vec3<T> const& p) {
-    T coeff = _line.dirCoeff(p);
-    return p - _line.direction() * coeff;
-  }
-
-  T distanceSquaredTo(Vec3<T> const& p) { return squaredNorm(project(p) - p); }
-
-  T distanceTo(Vec3<T> const& p) { return std::sqrt(distanceSquaredTo(p)); }
-
-  Vec3<T> const& origin() const { return _line.origin(); }
-  Vec3<T> direction() const { return _line.direction(); }
-
-  T sideOf(Vec3<T> const& p) {
-    T coeff = _line.dirCoeff(p);
-    return (T(0) < coeff) - (T(0) > coeff);
-  }
-
- private:
-  Line3<T> _line;
-};
-using Plane3f = Plane<float>;
-
-template <typename T>
-class Triangle {
- public:
-  Triangle(Vec3<T> const& p1, Vec3<T> const& p2, Vec3<T> const& p3)
-      : _p1(p1), _p2(p2), _p3(p3) {}
-
-  Vec3<T> project(Vec3<T> const& p) {
-    Edge3<T> e0(_p1, _p2);
-    Vec3<T> proj0 = e0.project(p);
-    T dist0 = squaredNorm(proj0 - p);
-    Edge3<T> e1(_p2, _p3);
-    Vec3<T> proj1 = e1.project(p);
-    T dist1 = squaredNorm(proj1 - p);
-    Edge3<T> e2(_p3, _p1);
-    Vec3<T> proj2 = e2.project(p);
-    T dist2 = squaredNorm(proj2 - p);
-    Plane<T> e3(_p1, _p2, _p3);
-    Vec3<T> proj3 = e3.project(p);
-    T dist3 = squaredNorm(proj3 - p);
-    std::vector<T> el({dist0, dist1, dist2, dist3});
-    std::size_t argmin = std::distance(
-        std::min_element(std::begin(el), std::end(el)), std::begin(el));
-    if (argmin == 0) {
-      return proj0;
-    }
-    if (argmin == 1) {
-      return proj1;
-    }
-    if (argmin == 2) {
-      return proj2;
-    }
-    return proj3;
-  }
-
-  T distanceSquaredTo(Vec3<T> const& p) { return squaredNorm(project(p) - p); }
-
-  T distanceTo(Vec3<T> const& p) { return std::sqrt(distanceSquaredTo(p)); }
-
-  Intersection<Vec3<T>> intersect(Edge3<T> const& e) const {
-    Intersection<Vec3<T>> intersection;
-    Plane<T> plane(_p1, _p2, _p3);
-    T sign1 = plane.sideOf(e.p1());
-    T sign2 = plane.sideOf(e.p2());
-    if (sign1 == sign2) {
-      return intersection;
-    }
-    Plane<T> plane2(e.p2(), _p1, _p2);
-    T sign3 = plane2.sideOf(e.p1());
-    Plane<T> plane3(e.p2(), _p2, _p3);
-    T sign4 = plane3.sideOf(e.p1());
-    Plane<T> plane4(e.p2(), _p3, _p1);
-    T sign5 = plane3.sideOf(e.p1());
-    if (sign3 != sign4 || sign4 != sign5) {
-      return intersection;
-    }
-    Vec3<T> n = cross(_p2 - _p1, _p3 - _p1);
-    T coeff = -dot(e.p1(), n - _p1) / dot(e.p1(), e.p2() - e.p1());
-    intersection.value = e.p1() + coeff * (e.p1() - e.p2());
-    intersection.exist = true;
-    return intersection;
-  }
-
- private:
-  Vec3<T> _p1;
-  Vec3<T> _p2;
-  Vec3<T> _p3;
-};
-
-using Trianglef = Triangle<float>;
 
 }  // namespace arty
 

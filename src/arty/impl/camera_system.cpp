@@ -21,8 +21,6 @@ CameraSystem::CameraSystem(const Ptr<Window> &w)
       _mode(CAM_TPS) {}
 
 Result CameraSystem::init(const Ptr<Blackboard> &board) {
-  _window->setCursorPosition(
-      CursorPosition(_window->width() / 2.0, _window->height() / 2.0));
   _camera_entity = board->createEntity("camera");
   return ok();
 }
@@ -75,8 +73,6 @@ Result CameraSystem::process(const Ptr<Blackboard> &board) {
   rot.fromMat(_camFromWorld);
   std::cout << "rot " << rot << std::endl;
 
-  _window->setCursorPosition(
-      CursorPosition(_window->width() / 2.0, _window->height() / 2.0));
   return ok();
 }
 
@@ -172,13 +168,15 @@ Mat4x4f InputControl::viewer(Ptr<Window> input, Mat4x4f target) {
   }
   if (input->keyHasBeenPressed(Key::Q)) {
     auto direction =
-        normalize(Vec3f() - Vec3f({target(0, 3), target(1, 3), target(2, 3)}));
+        (Vec3f() - Vec3f({target(0, 3), target(1, 3), target(2, 3)}))
+            .normalize();
     direction *= (deltaTime * speed);
     target = translation(direction) * target;
   }
   if (input->keyHasBeenPressed(Key::E)) {
     auto direction =
-        normalize(Vec3f() - Vec3f({target(0, 3), target(1, 3), target(2, 3)}));
+        (Vec3f() - Vec3f({target(0, 3), target(1, 3), target(2, 3)}))
+            .normalize();
     direction *= (-deltaTime * speed);
     target = translation(direction) * target;
   }

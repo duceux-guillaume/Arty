@@ -7,7 +7,7 @@ Circle CollisionDetection::computeOuterCircle(const Mesh& mesh) {
   Vec3f center = computeCenter(mesh);
   float squaredDistanceMax = 0.f;
   for (auto const& pt : mesh.vertices) {
-    float distance2 = squaredNorm(center - pt);
+    float distance2 = (center - pt).normsqr();
     if (distance2 > squaredDistanceMax) {
       squaredDistanceMax = distance2;
     }

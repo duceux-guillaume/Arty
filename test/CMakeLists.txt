@@ -14,3 +14,7 @@ add_custom_target(TARGET collision_test POST_BUILD
    "${CMAKE_SOURCE_DIR}/test/assets/test_cube.obj"
    "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}"
 )
+
+add_executable(geometry_test geometry_test.cpp)
+target_link_libraries(geometry_test gtest_main arty)
+add_test(NAME geometry_test COMMAND geometry_test)

@@ -102,6 +102,8 @@ CursorPosition OpenGlWindow::getCursorPosition() {
   // Get mouse position
   CursorPosition cursor;
   glfwGetCursorPos(_window, &cursor.x, &cursor.y);
+  cursor.x -= width() / 2;
+  cursor.y -= height() / 2;
   return cursor;
 }
 

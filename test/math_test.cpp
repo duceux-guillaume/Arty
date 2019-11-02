@@ -61,8 +61,10 @@ TEST(Vec, Eq) {
 }
 
 TEST(Vec, Normalize) {
-  ASSERT_EQ(normalize(Vec3f{1.f, 0.f, 0.f}), Vec3f({1.f, 0.f, 0.f}));
-  ASSERT_EQ(normalize(Vec3f{2.f, 0.f, 0.f}), Vec3f({1.f, 0.f, 0.f}));
+  Vec3f v1{1.f, 0.f, 0.f};
+  ASSERT_EQ(v1.normalize(), v1);
+  Vec3f v2{1.f, 0.f, 0.f};
+  ASSERT_EQ(v2.normalize(), v1);
 }
 
 TEST(Vec, Cross) {
@@ -78,53 +80,22 @@ TEST(Vec, Cross) {
 
 TEST(Vec, Dot) {
   Vec3f test{1.f, 2.f, 3.f};
-  ASSERT_EQ(dot(test, test), 14.f);
+  ASSERT_EQ(test.dot(test), 14.f);
 }
 
-TEST(Line, project) {
-  Line3f line(Vec3f(1.f, 1.f, 0.f), Vec3f(-1.f, 1.f, 0.f));
-  Vec3f res = line.project(Vec3f());
-  ASSERT_EQ(res, Vec3f(0.f, 1.f, 0.f));
-  ASSERT_EQ(line.distanceSquaredTo(Vec3f()), 1.f);
+TEST(Mat, tr) {
+  Mat4x4f i(1.f);
+  ASSERT_EQ(i.tr(), 4);
+  Mat4x4f j;
+  ASSERT_EQ(j.tr(), 0);
 }
 
-TEST(Edge, projectPointInTheMidle) {
-  Edge3f edge(Vec3f(1.f, 1.f, 0.f), Vec3f(-1.f, 1.f, 0.f));
-  Vec3f res = edge.project(Vec3f());
-  ASSERT_EQ(res, Vec3f(0.f, 1.f, 0.f));
-  ASSERT_EQ(edge.distanceSquaredTo(Vec3f()), 1.f);
+TEST(Mat, col) {
+  Mat4x4f i(1.f);
+  ASSERT_EQ(i.col(0), Vec4f(1.f, 0.f, 0.f, 0.f));
 }
 
-TEST(Edge, projectPointLeft) {
-  Edge3f edge(Vec3f(1.f, 0.f, 0.f), Vec3f(2.f, 0.f, 0.f));
-  Vec3f res = edge.project(Vec3f());
-  ASSERT_EQ(res, Vec3f(1.f, 0.f, 0.f));
-  ASSERT_EQ(edge.distanceSquaredTo(Vec3f()), 1.f);
-}
-
-TEST(Edge, projectPointRight) {
-  Edge3f edge(Vec3f(-2.f, 0.f, 0.f), Vec3f(-1.f, 0.f, 0.f));
-  Vec3f res = edge.project(Vec3f());
-  ASSERT_EQ(res, Vec3f(-1.f, 0.f, 0.f));
-  ASSERT_EQ(edge.distanceSquaredTo(Vec3f()), 1.f);
-}
-
-TEST(Plane, project) {
-  Plane3f plane(Vec3f(0.f, 0.f, 0.f), Vec3f(1.f, 0.f, 0.f),
-                Vec3f(0.f, 1.f, 0.f));
-  Vec3f p = Vec3f(0.f, 0.f, 1.f);
-  Vec3f res = plane.project(p);
-  Vec3f exp(0.f, 0.f, 0.f);
-  ASSERT_EQ(res, exp);
-  ASSERT_EQ(plane.distanceSquaredTo(p), 1.f);
-}
-
-TEST(Triangle, project) {
-  Trianglef plane(Vec3f(0.f, 0.f, 0.f), Vec3f(1.f, 0.f, 0.f),
-                  Vec3f(0.f, 1.f, 0.f));
-  Vec3f p = Vec3f(0.f, 0.f, 1.f);
-  Vec3f res = plane.project(p);
-  Vec3f exp(0.f, 0.f, 0.f);
-  ASSERT_EQ(res, exp);
-  ASSERT_EQ(plane.distanceSquaredTo(p), 1.f);
+TEST(Mat4x4, inv) {
+  Mat4x4f id(1.f);
+  ASSERT_EQ(id.inv(), id);
 }
