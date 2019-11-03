@@ -90,6 +90,9 @@ class Iterator {
   Iterator(typename std::vector<Property<T>>::iterator begin,
            typename std::vector<Property<T>>::iterator end)
       : _vector_curr(begin), _vector_end(end) {
+    if (begin == end) {
+      return;
+    }
     if (!_vector_curr->entity.isValid()) {
       next();
     }
