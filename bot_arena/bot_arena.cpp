@@ -4,7 +4,9 @@
 
 #include <arty/core/mesh.hpp>
 #include <arty/ext/opengl/2d_renderer.hpp>
+#include <arty/ext/opengl/gl_shape_renderer.hpp>
 #include <arty/impl/camera_system.hpp>
+#include <arty/impl/collision_rendering_system.hpp>
 #include <arty/impl/debug_hid_system.hpp>
 #include <arty/impl/mesh_loader_system.hpp>
 #include <cstdio>
@@ -18,26 +20,35 @@ int main(void) {
   Ptr<Window> window(new OpenGlWindow);
   Ptr<Blackboard> board(new Blackboard);
   Ptr<ITextRenderer> textRenderer(new GlTextRenderer());
+  Ptr<IShapeRenderer> shapeRenderer(new GlShapeRenderer());
   Engine engine;
   engine.set_board(board)
       .set_window(window)
-      .add_system(Ptr<System>(new DebugHidSystem(window, textRenderer)))
-      .add_system(Ptr<System>(new MeshLoaderSystem))
       .add_system(Ptr<System>(new CameraSystem(window)))
-      .add_system(Ptr<System>(new OpenGlRenderer));
+      .add_system(Ptr<System>(new CollisionRenderingSystem(shapeRenderer)))
+      .add_system(Ptr<System>(new DebugHidSystem(window, textRenderer)))
+      //.add_system(Ptr<System>(new MeshLoaderSystem))
+      //.add_system(Ptr<System>(new OpenGlRenderer))
+      ;
 
-  auto pyramid = board->createEntity("pyramid");
-  board->set(pyramid, "model2load", std::string("../models/test_pyramid.obj"));
-  board->set(pyramid, "transform", Transform(Vec3f{3.f, 0.f, 0.f}));
+  //  auto pyramid = board->createEntity("pyramid");
+  //  board->set(pyramid, "model2load",
+  //  std::string("../models/test_pyramid.obj")); board->set(pyramid,
+  //  "transform", Transform(Vec3f{3.f, 0.f, 0.f}));
+  //
+  //  auto arena = board->createEntity("arena");
+  //  board->set(arena, "model2load", std::string("../models/bot.obj"));
+  //  board->set(arena, "transform", Transform());
+  //
+  //  auto cube = board->createEntity("cube");
+  //  board->set(cube, "model2load", std::string("../models/test_cube.obj"));
+  //  board->set(cube, "transform", Transform(Vec3f{-3.f, 0.f, 0.f}));
 
-  auto arena = board->createEntity("arena");
-  board->set(arena, "model2load", std::string("../models/bot.obj"));
-  board->set(arena, "transform", Transform());
-
-  auto cube = board->createEntity("cube");
-  board->set(cube, "model2load", std::string("../models/test_cube.obj"));
-  board->set(cube, "transform", Transform(Vec3f{-3.f, 0.f, 0.f}));
-  board->set(cube, "camtarget", cube);
+  auto edge = board->createEntity("edge");
+  board->set(edge, CollisionRenderingSystem::IMPORT_PROP,
+             Shape3f::edge(Vec3f(-10.f, 0.f, 1.f), Vec3f(10.f, 0.f, 1.f)));
+  board->set(edge, "transform", Transform());
+  board->set(edge, "camtarget", edge);
 
   check_result(engine.start());
   check_result(engine.run());

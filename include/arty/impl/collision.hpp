@@ -3,19 +3,16 @@
 
 #include <arty/core/math.h>
 
+#include <arty/core/geometry.hpp>
 #include <arty/core/mesh.hpp>
+#include <variant>
 
 namespace arty {
 
-struct Circle {
-  Vec3f position;
-  float squaredRadius;
-};
-
 class CollisionDetection {
  public:
-  Circle computeOuterCircle(Mesh const& mesh);
-  Circle computeInnerCircle(Mesh const& mesh);
+  Sphere computeOuterCircle(Mesh const& mesh);
+  Sphere computeInnerCircle(Mesh const& mesh);
   Vec3f computeCenter(Mesh const& mesh);
 
  private:

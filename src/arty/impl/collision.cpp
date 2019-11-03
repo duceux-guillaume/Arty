@@ -3,7 +3,7 @@
 
 namespace arty {
 
-Circle CollisionDetection::computeOuterCircle(const Mesh& mesh) {
+Sphere CollisionDetection::computeOuterCircle(const Mesh& mesh) {
   Vec3f center = computeCenter(mesh);
   float squaredDistanceMax = 0.f;
   for (auto const& pt : mesh.vertices) {
@@ -12,18 +12,18 @@ Circle CollisionDetection::computeOuterCircle(const Mesh& mesh) {
       squaredDistanceMax = distance2;
     }
   }
-  Circle c;
+  Sphere c;
   c.position = center;
   c.squaredRadius = squaredDistanceMax;
   return c;
 }
 
-Circle CollisionDetection::computeInnerCircle(const Mesh& mesh) {
+Sphere CollisionDetection::computeInnerCircle(const Mesh& mesh) {
   if (mesh.vertices.size() == 0) {
-    return Circle{Vec3f(), 0.f};
+    return Sphere{Vec3f(), 0.f};
   }
   if (mesh.vertices.size() == 1) {
-    return Circle{mesh.vertices[0], 0.f};
+    return Sphere{mesh.vertices[0], 0.f};
   }
 
   Vec3f center = computeCenter(mesh);
@@ -38,7 +38,7 @@ Circle CollisionDetection::computeInnerCircle(const Mesh& mesh) {
       squaredDistanceMin = distance2;
     }
   }*/
-  Circle c;
+  Sphere c;
   c.position = center;
   c.squaredRadius = squaredDistanceMin;
   return c;

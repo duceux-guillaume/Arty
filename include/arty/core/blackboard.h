@@ -74,6 +74,7 @@ class IStorage {
  public:
   virtual void clear() = 0;
   virtual std::size_t size() const = 0;
+  virtual bool empty() const = 0;
 
  protected:
 };
@@ -182,6 +183,7 @@ class RealStorage : public IStorage {
   }
 
   std::size_t size() const override { return _count; }
+  bool empty() const override { return _count == 0; }
 
  private:
   std::vector<Property<T>> _buffer;

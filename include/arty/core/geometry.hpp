@@ -3,6 +3,8 @@
 
 #include <arty/core/math.h>
 
+#include <variant>
+
 namespace arty {
 
 template <typename T>
@@ -179,6 +181,34 @@ class Triangle {
 };
 
 using Trianglef = Triangle<float>;
+
+struct Sphere {
+  Vec3f position;
+  float squaredRadius;
+};
+
+struct Box {};
+
+template <typename T, int Dim>
+class Shape {
+ public:
+  using vec_type = Vec<T, Dim>;
+  using self_type = Shape<T, Dim>;
+
+ private:
+  std::vector<vec_type> _pts;
+
+ public:
+  std::vector<Vec<T, Dim>> const& pts() const { return _pts; }
+
+  static self_type edge(vec_type const& v1, vec_type const& v2) {
+    self_type s;
+    s._pts.push_back(v1);
+    s._pts.push_back(v2);
+    return s;
+  }
+};
+using Shape3f = Shape<float, 3>;
 
 }  // namespace arty
 
