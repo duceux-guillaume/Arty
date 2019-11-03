@@ -11,8 +11,8 @@
 #include <limits>
 #include <vector>
 
-#define MAT_TEMP template <typename T, int Rows, int Cols, bool ColMajor>
-#define MAT_TYPE Mat<T, Rows, Cols, ColMajor>
+#define MAT_TEMP template <typename T, int Rows, int Cols>
+#define MAT_TYPE Mat<T, Rows, Cols>
 
 namespace arty {
 
@@ -20,32 +20,24 @@ MAT_TEMP
 class Mat {
   static_assert(Rows > 0, "Rows must be positiv");
   static_assert(Cols > 0, "Cols must be positiv");
-  static_assert(Rows * Cols > 1, "Mat1x1 is not allowed");
 
  public:
   static constexpr int rows = Rows;
   static constexpr int cols = Cols;
   static constexpr int size = Rows * Cols;
-  static constexpr bool col_major = ColMajor;
   static constexpr bool is_vector = rows == 1 || cols == 1;
   static constexpr bool is_square = rows == cols;
-  using self_type = Mat<T, Rows, Cols, ColMajor>;
+  using self_type = Mat<T, Rows, Cols>;
   using value_type = T;
-  using transpose_type = Mat<T, Rows, Cols, !ColMajor>;
-  using col_type = Mat<T, Rows, 1, true>;
-  using row_type = Mat<T, 1, Cols, false>;
+  using transpose_type = Mat<T, Cols, Rows>;
+  using col_type = Mat<T, Rows, 1>;
+  using row_type = Mat<T, 1, Cols>;
 
  protected:
   T arr[size];
 
  public:
   Mat() : arr{0} {}
-  Mat(T const& v) : Mat() {
-    for (int i = 0; i < Rows && i < Cols; ++i) {
-      (*this)(i, i) = v;
-    }
-  }
-  Mat(T const p[size]) { std::memcpy(arr, p, size); }
   Mat(std::initializer_list<T> l) {
     assert(l.size() == size);
     auto it = l.begin();
@@ -55,26 +47,33 @@ class Mat {
       arr[i] = *it;
     }
   }
-  template <class... Args>
-  Mat(Args const&... args) : Mat({args...}) {}
+  Mat(MAT_TYPE const& o) = default;
+  Mat(MAT_TYPE&& o) = default;
+  MAT_TYPE& operator=(MAT_TYPE const& o) = default;
+  MAT_TYPE& operator=(MAT_TYPE&& o) = default;
+
+  // SPECIAL CONSTRUCTOR
+  static MAT_TYPE diagonal(T const& v) {
+    MAT_TYPE m;
+    for (size_t i = 0; i < Rows && i < Cols; ++i) {
+      m(i, i) = v;
+    }
+    return m;
+  }
+  static MAT_TYPE identity() { return diagonal(T(1)); }
+  static MAT_TYPE zero() { return diagonal(T(0)); }
 
   // GETTERS
   T const& operator()(size_t i, size_t j) const {
     assert(i < rows);
     assert(j < cols);
-    if (col_major) {
-      return arr[i * cols + j];
-    }
-    return arr[i + j * rows];
+    return arr[i * cols + j];
   }
 
   T& operator()(size_t i, size_t j) {
     assert(i < rows);
     assert(j < cols);
-    if (col_major) {
-      return arr[i * cols + j];
-    }
-    return arr[i + j * rows];
+    return arr[i * cols + j];
   }
 
   T const& operator[](size_t i) const {
@@ -97,13 +96,6 @@ class Mat {
     return r;
   }
 
-  void setCol(col_type const& col, std::size_t j) {
-    assert(j < cols);
-    for (std::size_t i = 0; i < rows; ++i) {
-      (*this)(i, j) = col[i];
-    }
-  }
-
   row_type row(std::size_t i) const {
     assert(i < rows);
     row_type r;
@@ -113,11 +105,68 @@ class Mat {
     return r;
   }
 
-  void setRow(row_type const& row, std::size_t i) {
+  void setCol(std::size_t j, col_type const& col) {
+    assert(j < cols);
+    for (std::size_t i = 0; i < rows; ++i) {
+      (*this)(i, j) = col[i];
+    }
+  }
+
+  void setRow(std::size_t i, row_type const& row) {
     assert(i < rows);
     for (std::size_t j = 0; j < cols; ++j) {
       (*this)(i, j) = row[j];
     }
+  }
+
+  // VARIADIC CONSTRUCTION
+ private:
+  void setAt(std::size_t /*i*/) {}
+  void setAt(std::size_t i, T const& first) {
+    assert(i < size);
+    arr[i] = first;
+  }
+  template <typename... Args>
+  void setAt(std::size_t i, T const& first, Args... args) {
+    arr[i] = first;
+    setAt(i + 1, args...);
+  }
+
+  template <typename... Args>
+  void setCols(std::size_t j, col_type const& col, Args... args) {
+    assert(j < cols);
+    setCol(j, col);
+    setCols(j + 1, args...);
+  }
+  template <typename... Args>
+  void setRows(std::size_t j, row_type const& row, Args... args) {
+    assert(j < rows);
+    setRow(j, row);
+    setRows(j + 1, args...);
+  }
+
+ public:
+  template <typename... Args>
+  void set(Args... args) {
+    setAt(0, args...);
+  }
+  template <typename... Args>
+  Mat(Args... args) : Mat() {
+    set(args...);
+  }
+  template <typename... Args>
+  static MAT_TYPE fromCols(col_type const& col, Args... args) {
+    MAT_TYPE m;
+    m.setCol(0, col);
+    m.setCols(1, args...);
+    return m;
+  }
+  template <typename... Args>
+  static MAT_TYPE fromRows(row_type const& row, Args... args) {
+    MAT_TYPE m;
+    m.setRow(0, row);
+    m.setRows(1, args...);
+    return m;
   }
 
   // OPERATORS
@@ -165,6 +214,19 @@ class Mat {
     return *this;
   }
 
+  template <int OtherCols>
+  Mat<T, Rows, OtherCols> operator*(Mat<T, Cols, OtherCols> const& r) {
+    Mat<T, Rows, OtherCols> res;
+    for (size_t i = 0; i < Rows; ++i) {
+      for (size_t j = 0; j < OtherCols; ++j) {
+        for (size_t step = 0; step < Cols; ++step) {
+          res(i, j) += (*this)(i, step) * r(step, j);
+        }
+      }
+    }
+    return res;
+  }
+
   T const* ptr() const { return &arr[0]; }
 
   bool operator==(self_type const& r) const {
@@ -190,7 +252,15 @@ class Mat {
     return (*this) * invsqrt;
   }
 
-  transpose_type transpose() const { return transpose_type(arr); }
+  transpose_type transpose() const {
+    transpose_type r;
+    for (size_t i = 0; i < Rows; ++i) {
+      for (size_t j = 0; j < Cols; ++j) {
+        r(j, i) = (*this)(i, j);
+      }
+    }
+    return r;
+  }
 
   // VECTORS STUFF
   T const& x() const {
@@ -455,16 +525,25 @@ inline const MAT_TYPE operator*(MAT_TYPE l, MAT_TYPE const& r) {
   return l;
 }
 
+/* You should avoid using that */
 template <typename T>
-using Mat3x3 = Mat<T, 3, 3, true>;
+using Mat1 = Mat<T, 1, 1>;
+using Mat1f = Mat1<float>;
+
+template <typename T>
+using Mat2x2 = Mat<T, 2, 2>;
+using Mat2x2f = Mat2x2<float>;
+
+template <typename T>
+using Mat3x3 = Mat<T, 3, 3>;
 using Mat3x3f = Mat3x3<float>;
 
 template <typename T>
-using Mat4x4 = Mat<T, 4, 4, true>;
+using Mat4x4 = Mat<T, 4, 4>;
 using Mat4x4f = Mat4x4<float>;
 
 template <typename T, int Dim>
-using Vec = Mat<T, Dim, 1, true>;
+using Vec = Mat<T, Dim, 1>;
 
 template <typename T>
 using Vec2 = Vec<T, 2>;
@@ -576,7 +655,7 @@ inline Mat4x4<T> lookAt(Vec3<T> const& eye, Vec3<T> const& center,
   Vec3<T> const s(normalize(cross(f, up)));
   Vec3<T> const u(cross(s, f));
 
-  Mat4x4<T> result(1);
+  Mat4x4<T> result = Mat4x4<T>::identity();
   result(0, 0) = s.x();
   result(0, 1) = s.y();
   result(0, 2) = s.z();
@@ -606,7 +685,7 @@ static std::ostream& operator<<(std::ostream& out, MAT_TYPE const& mat) {
 
 template <typename T>
 inline Mat4x4<T> translation(T const& x, T const& y, T const& z) {
-  Mat4x4<T> res(static_cast<T>(1.f));
+  Mat4x4<T> res = Mat4x4<T>::identity();
   res(0, 3) = x;
   res(1, 3) = y;
   res(2, 3) = z;
@@ -615,7 +694,7 @@ inline Mat4x4<T> translation(T const& x, T const& y, T const& z) {
 
 template <typename T>
 inline Mat4x4<T> translation(Vec3<T> const& t) {
-  Mat4x4<T> res(static_cast<T>(1.f));
+  Mat4x4<T> res = Mat4x4<T>::identity();
   res(0, 3) = t.x();
   res(1, 3) = t.y();
   res(2, 3) = t.z();
@@ -624,7 +703,7 @@ inline Mat4x4<T> translation(Vec3<T> const& t) {
 
 template <typename T>
 inline Mat4x4<T> rotation(T const& a, T const& b, T const& c) {
-  Mat4x4<T> res(static_cast<T>(1.f));
+  Mat4x4<T> res = Mat4x4<T>::identity();
   T c1 = std::cos(a);
   T c2 = std::cos(b);
   T c3 = std::cos(c);

@@ -4,12 +4,12 @@
 using namespace arty;
 
 TEST(Mat, Constructor) {
-  ASSERT_EQ(Mat4x4f(1.f), Mat4x4f({
-                              1.f, 0.f, 0.f, 0.f,  //
-                              0.f, 1.f, 0.f, 0.f,  //
-                              0.f, 0.f, 1.f, 0.f,  //
-                              0.f, 0.f, 0.f, 1.f,  //
-                          }));
+  ASSERT_EQ(Mat4x4f::identity(), Mat4x4f({
+                                     1.f, 0.f, 0.f, 0.f,  //
+                                     0.f, 1.f, 0.f, 0.f,  //
+                                     0.f, 0.f, 1.f, 0.f,  //
+                                     0.f, 0.f, 0.f, 1.f,  //
+                                 }));
   ASSERT_EQ(Mat4x4f(), Mat4x4f({
                            0.f, 0.f, 0.f, 0.f,  //
                            0.f, 0.f, 0.f, 0.f,  //
@@ -84,7 +84,7 @@ TEST(Vec, Dot) {
 }
 
 TEST(Mat, tr) {
-  Mat4x4f i(1.f);
+  Mat4x4f i = Mat4x4f::identity();
   ASSERT_EQ(i.tr(), 4);
   Mat4x4f j;
   ASSERT_EQ(j.tr(), 0);
@@ -96,6 +96,21 @@ TEST(Mat, col) {
 }
 
 TEST(Mat4x4, inv) {
-  Mat4x4f id(1.f);
+  Mat4x4f id = Mat4x4f::identity();
   ASSERT_EQ(id.inv(), id);
+}
+
+TEST(Mat, transpose) {
+  Vec3f vec(1.f, 0.f, 0.f);
+  auto tr = vec.transpose();
+  ASSERT_EQ(tr[0], 1.f);
+  ASSERT_EQ(tr[1], 0.f);
+  ASSERT_EQ(tr[2], 0.f);
+}
+
+TEST(Mat, Multiply2) {
+  Vec2f vec(1.f, 2.f);
+  Vec2f::transpose_type vecT = vec.transpose();
+  ASSERT_EQ(vec * vecT, Mat2x2f(1, 2, 2, 4));
+  ASSERT_EQ(vecT * vec, Mat1f(5));
 }

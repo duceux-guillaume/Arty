@@ -2,10 +2,11 @@
 
 namespace arty {
 
-static const Mat4x4f origin = {-0.0164683, -0.999487,   -0.0274727, 0,
-                               0.629497,   -0.0317114,  0.776355,   0,
-                               -0.776828,  -0.00450899, 0.629695,   -38.3305,
-                               0,          0,           0,          1};
+static const Mat4x4f origin = {
+    -0.0164683, -0.999487,   -0.0274727, 0,         //
+    0.629497,   -0.0317114,  0.776355,   0,         //
+    -0.776828,  -0.00450899, 0.629695,   -38.3305,  //
+    0,          0,           0,          1};
 
 CameraSystem::CameraSystem(const Ptr<Window> &w)
     : System(),
@@ -13,8 +14,8 @@ CameraSystem::CameraSystem(const Ptr<Window> &w)
       _view(),
       _projection(),
       _camFromWorld(origin),
-      _hangle(4.f),
-      _vangle(-0.6f),
+      _hangle(0.f),
+      _vangle(0.f),
       _fov(45.0f),
       _speed(10.f),
       _mouseSpeed(0.002f),
@@ -67,11 +68,6 @@ Result CameraSystem::process(const Ptr<Blackboard> &board) {
   camera.projection = _projection;
   camera.view = _camFromWorld;
   board->set(_camera_entity, "camera", camera);
-
-  std::cout << "camfromworld" << _camFromWorld << std::endl;
-  Quatf rot;
-  rot.fromMat(_camFromWorld);
-  std::cout << "rot " << rot << std::endl;
 
   return ok();
 }

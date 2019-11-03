@@ -199,6 +199,7 @@ Result Renderer::drawStaticMeshNoTexture(const Mesh& mesh, const Mat4x4f& model,
   glUseProgram(notexture_light_shader["program"]);
 
   Mat4x4f mvp = proj * view * model;
+  std::cout << "mvp" << mvp << proj << view << model << std::endl;
 
   glUniformMatrix4fv(notexture_light_shader["mvp"], 1, GL_FALSE,
                      mvp.transpose().ptr());
@@ -208,6 +209,7 @@ Result Renderer::drawStaticMeshNoTexture(const Mesh& mesh, const Mat4x4f& model,
                      view.transpose().ptr());
 
   Vec3f lightPos({2, 2, 10});
+  std::cout << "light" << lightPos << std::endl;
   glUniform3f(notexture_light_shader["light"], lightPos.x(), lightPos.y(),
               lightPos.z());
 
