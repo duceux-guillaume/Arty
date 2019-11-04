@@ -207,6 +207,19 @@ class Shape {
     s._pts.push_back(v2);
     return s;
   }
+
+  static self_type triangle(vec_type const& v1, vec_type const& v2,
+                            vec_type const& v3) {
+    self_type s;
+    s._pts.push_back(v1);
+    s._pts.push_back(v2);
+    s._pts.push_back(v3);
+    return s;
+  }
+
+  static self_type box(vec_type const& center, vec_type const& halfl) {
+    self_type s;
+  }
 };
 using Shape3f = Shape<float, 3>;
 

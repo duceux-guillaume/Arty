@@ -53,7 +53,7 @@ Result OpenGlWindow::init() {
   // Ensure we can capture the escape key being pressed below
   glfwSetInputMode(_window, GLFW_STICKY_KEYS, GL_TRUE);
   // Hide the mouse and enable unlimited mouvement
-  glfwSetInputMode(_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+  glfwSetInputMode(_window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 
   // Set the mouse at the center of the screen
   glfwPollEvents();

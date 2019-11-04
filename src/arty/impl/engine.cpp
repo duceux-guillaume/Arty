@@ -31,7 +31,9 @@ Result Engine::step() {
   for (auto system : _systems) {
     if (system) {
       res = system->process(_state);
-      check_result(res);
+      if (!res) {
+        std::cerr << res.message() << std::endl;
+      }
     } else {
       return error("Null ptr system");
     }

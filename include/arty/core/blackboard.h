@@ -218,10 +218,14 @@ class Blackboard {
   void set(Entity const& entity, std::string const& property, T const& val) {
     if (_properties.count(property) == 0) {
       _properties[property] = BaseStorage(new RealStorage<T>());
+      std::cout << "creating property: " << property << std::endl;
     }
     auto ptr = getProperties<T>(property);
     if (ptr) {
       ptr->set(entity, val);
+    } else {
+      std::cerr << "type is not corresponding to prop name for " << property
+                << std::endl;
     }
   }
 
@@ -236,6 +240,9 @@ class Blackboard {
 
   template <typename T>
   DerivedStorage<T> getProperties(std::string const& property) {
+    if (_properties.count(property) == 0) {
+      return DerivedStorage<T>(nullptr);
+    }
     return pointer_cast<T>(_properties[property]);
   }
 

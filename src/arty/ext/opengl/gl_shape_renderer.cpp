@@ -19,11 +19,19 @@ Result GlShapeRenderer::init() {
 
 void GlShapeRenderer::draw(const Property<Shape3f>& s, const Mat4x4f& model,
                            const Mat4x4f& view, const Mat4x4f& proj) {
+  if (_vbos.count(s.entity) == 0) {
+    import(s);
+  }
   glUseProgram(_program);
   Mat4x4f mvp = proj * view * model;
   glUniformMatrix4fv(_mvp, 1, GL_FALSE, mvp.transpose().ptr());
   glEnableVertexAttribArray(0);
   glBindBuffer(GL_ARRAY_BUFFER, _vbos[s.entity]);
+  glBufferData(GL_ARRAY_BUFFER, s.value.pts().size() * sizeof(Vec3f), NULL,
+               GL_STREAM_DRAW);
+  glBufferSubData(GL_ARRAY_BUFFER, 0, s.value.pts().size() * sizeof(Vec3f),
+                  s.value.pts().data());
+
   glVertexAttribPointer(0,         // attribute
                         3,         // size
                         GL_FLOAT,  // type
@@ -31,7 +39,7 @@ void GlShapeRenderer::draw(const Property<Shape3f>& s, const Mat4x4f& model,
                         0,         // stride
                         (void*)0   // array buffer offset
   );
-  glDrawArrays(GL_LINE_STRIP, 0, s.value.pts().size());
+  glDrawArrays(GL_LINE_LOOP, 0, s.value.pts().size());
 }
 
 void GlShapeRenderer::release() {}
@@ -40,8 +48,8 @@ void GlShapeRenderer::import(const Property<Shape3f>& s) {
   GLuint vbo;
   glGenBuffers(1, &vbo);
   glBindBuffer(GL_ARRAY_BUFFER, vbo);
-  glBufferData(GL_ARRAY_BUFFER, s.value.pts().size() * sizeof(Vec3f),
-               s.value.pts().data(), GL_STATIC_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, s.value.pts().size() * sizeof(Vec3f), NULL,
+               GL_STREAM_DRAW);
   _vbos[s.entity] = vbo;
 }
 

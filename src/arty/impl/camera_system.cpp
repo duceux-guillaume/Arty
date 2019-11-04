@@ -2,11 +2,10 @@
 
 namespace arty {
 
-static const Mat4x4f origin = {
-    -0.0164683, -0.999487,   -0.0274727, 0,         //
-    0.629497,   -0.0317114,  0.776355,   0,         //
-    -0.776828,  -0.00450899, 0.629695,   -38.3305,  //
-    0,          0,           0,          1};
+static const Mat4x4f origin = {-0.0164683, -0.999487,   -0.0274727, 0,    //
+                               0.629497,   -0.0317114,  0.776355,   0,    //
+                               -0.776828,  -0.00450899, 0.629695,   -20,  //
+                               0,          0,           0,          1};
 
 CameraSystem::CameraSystem(const Ptr<Window> &w)
     : System(),
@@ -48,6 +47,8 @@ Result CameraSystem::process(const Ptr<Blackboard> &board) {
   } else {
     _camFromWorld = _control.viewer(_window, _camFromWorld);
   }
+  CursorPosition cursor(_window->width() / 2, _window->height() / 2);
+  _window->setCursorPosition(cursor);
 
   if (_window->keyHasBeenPressed(Key::TAB)) {
     if (_mode == CAM_FPS) {
@@ -107,7 +108,7 @@ Mat4x4f InputControl::fps(Ptr<Window> input, Mat4x4f target) {
   float hangle = 0;
   float vangle = 0;
   float mousespeed = 0.002f;
-  float speed = 10.f;
+  float speed = 1.f;
   if (std::fabs(dx) < 100 &&
       std::fabs(dy) < 100) {  // Don't why its not stable at startup
     hangle = mousespeed * (input->width() / 2.f - cursor.x);
@@ -142,7 +143,7 @@ Mat4x4f InputControl::viewer(Ptr<Window> input, Mat4x4f target) {
   float hangle = 0;
   float vangle = 0;
   float mousespeed = 0.002f;
-  float speed = 10.f;
+  float speed = 1.f;
   if (std::fabs(dx) < 100 &&
       std::fabs(dy) < 100) {  // Don't why its not stable at startup
     hangle = mousespeed * (input->width() / 2.f - cursor.x);

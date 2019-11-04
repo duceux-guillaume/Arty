@@ -53,4 +53,24 @@ Vec3f CollisionDetection::computeCenter(const Mesh& mesh) {
   return center;
 }
 
+Collision CollisionDetection::detect(const Mesh& mesh1, const Transform& tf1,
+                                     const Mesh& mesh2, const Transform& tf2) {
+  Collision col;
+  col.exist = false;
+
+  Sphere s1 = computeOuterCircle(mesh1);
+  Sphere s2 = computeOuterCircle(mesh2);
+  auto center1 = tf1 * s1.position;
+  auto center2 = tf2 * s2.position;
+  double dist = (center1 - center2).normsqr();
+  std::cout << "dist " << dist << std::endl;
+  std::cout << "vs " << s1.squaredRadius + s2.squaredRadius << std::endl;
+  if (dist > s1.squaredRadius + s2.squaredRadius) {
+    return col;
+  }
+  col.exist = true;
+  col.shape = Shape3f::edge(center1, center2);
+  return col;
+}
+
 }  // namespace arty

@@ -595,7 +595,7 @@ class Quat : public Vec4<T> {
     return Vec3<T>{v1new, v2new, v3new};
   }
 
-  Mat4x4f toMat() const {
+  Mat4x4f toMat4x4() const {
     Mat4x4f tf;
     float qx = this->x();
     float qy = this->y();
@@ -614,6 +614,27 @@ class Quat : public Vec4<T> {
     tf(1, 2) = 2 * qy * qz - 2 * qx * qw;
     tf(2, 2) = 1 - 2 * qx2 - 2 * qy2;
     tf(3, 3) = 1.f;
+    return tf;
+  }
+
+  Mat3x3f toMat3x3() const {
+    Mat3x3f tf;
+    float qx = this->x();
+    float qy = this->y();
+    float qz = this->z();
+    float qw = this->w();
+    float qx2 = qx * qx;
+    float qy2 = qy * qy;
+    float qz2 = qz * qz;
+    tf(0, 0) = 1.f - (2 * qy2 + 2 * qz2);
+    tf(1, 0) = 2 * qx * qy + 2 * qz * qw;
+    tf(2, 0) = 2 * qx * qz - 2 * qy * qw;
+    tf(0, 1) = 2 * qx * qy - 2 * qz * qw;
+    tf(1, 1) = 1 - 2 * qx2 - 2 * qz2;
+    tf(2, 1) = 2 * qy * qz + 2 * qx * qw;
+    tf(0, 2) = 2 * qx * qz + 2 * qy * qw;
+    tf(1, 2) = 2 * qy * qz - 2 * qx * qw;
+    tf(2, 2) = 1 - 2 * qx2 - 2 * qy2;
     return tf;
   }
 
@@ -725,7 +746,7 @@ inline Mat4x4<T> rotation(T const& a, T const& b, T const& c) {
 class Transform {
  public:
   Mat4x4f toMat() const {
-    Mat4x4f tf = _rotation.toMat();
+    Mat4x4f tf = _rotation.toMat4x4();
     tf(0, 3) = _position.x();
     tf(1, 3) = _position.y();
     tf(2, 3) = _position.z();
@@ -741,6 +762,10 @@ class Transform {
 
   Transform() : _position(), _rotation(), _scale() {}
   Transform(Vec3f pos) : _position(pos), _rotation(), _scale() {}
+
+  Vec3f operator*(Vec3f const& p) const {
+    return _rotation.toMat3x3() * p + _position;
+  }
 
  private:
   Vec3f _position;
