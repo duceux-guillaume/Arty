@@ -39,11 +39,11 @@ TEST(Blackboad, ClearProperties) {
   Entity player = board.createEntity("player");
   board.set(player, "position", Vec3f());
   auto prop = board.getProperties<Vec3f>("position");
+  ASSERT_TRUE(prop);
   ASSERT_EQ(prop->size(), 1);
   ASSERT_EQ(prop->at(0).entity, player);
-  board.clearProperties("position");
-  ASSERT_EQ(prop->size(), 0);
-  ASSERT_EQ(prop, board.getProperties<Vec3f>("position"));
+  ASSERT_TRUE(board.clearProperties("position"));
+  ASSERT_FALSE(board.getProperties<Vec3f>("position"));
 }
 
 TEST(Blackboard, Iterator) {
@@ -51,10 +51,25 @@ TEST(Blackboard, Iterator) {
   board.set(Entity("toto", 1), "position", Vec3f());
   board.set(Entity("toto", 10), "position", Vec3f());
   auto prop = board.getProperties<Vec3f>("position");
+  ASSERT_TRUE(prop);
   std::size_t count = 0;
   for (auto p : *prop) {
     ASSERT_TRUE(p.entity.isValid());
     count++;
   }
   ASSERT_EQ(count, 2);
+}
+
+TEST(Blackboard, Remove) {
+  Blackboard board;
+  Entity player = board.createEntity("player");
+  ASSERT_FALSE(board.remove(player, "position"));
+  ASSERT_FALSE(board.getProperties<Vec3f>("position"));
+  ASSERT_FALSE(board.getEntityProperty<Vec3f>(player, "position"));
+  ASSERT_TRUE(board.set(player, "position", Vec3f()));
+  ASSERT_TRUE(board.getProperties<Vec3f>("position"));
+  ASSERT_TRUE(board.getEntityProperty<Vec3f>(player, "position"));
+  ASSERT_TRUE(board.remove(player, "position"));
+  ASSERT_FALSE(board.getProperties<Vec3f>("position"));
+  ASSERT_FALSE(board.getEntityProperty<Vec3f>(player, "position"));
 }

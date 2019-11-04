@@ -12,7 +12,7 @@ Result CollisionRenderingSystem::process(const Ptr<Blackboard>& board) {
         _renderer->import(prop);
         board->set(prop.entity, DRAW_PROP, prop.value);
       }
-      check_result(board->clearProperties(IMPORT_PROP));
+      board->clearProperties(IMPORT_PROP);
     }
   }
 

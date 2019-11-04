@@ -27,7 +27,7 @@ Result OpenGlRenderer::process(const Ptr<Blackboard>& board) {
       board->set(prop.entity, "vbo", vbo);
       std::cout << "imported: " << prop.entity.name << std::endl;
     }
-    check_result(board->clearProperties("mesh2import"));
+    board->clearProperties("mesh2import");
   }
 
   // Get camera

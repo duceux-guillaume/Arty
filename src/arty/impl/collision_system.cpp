@@ -34,6 +34,8 @@ Result CollisionSystem::process(const Ptr<Blackboard> &board) {
         std::cout << "Found collision" << std::endl;
         board->set<Shape3f>(posIt->entity, CollisionRenderingSystem::DRAW_PROP,
                             col.shape);
+      } else {
+        board->remove(posIt->entity, CollisionRenderingSystem::DRAW_PROP);
       }
     }
   }

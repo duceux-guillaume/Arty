@@ -75,6 +75,7 @@ class IStorage {
   virtual void clear() = 0;
   virtual std::size_t size() const = 0;
   virtual bool empty() const = 0;
+  virtual bool remove(Entity const& entity) = 0;
 
  protected:
 };
@@ -185,6 +186,20 @@ class RealStorage : public IStorage {
   std::size_t size() const override { return _count; }
   bool empty() const override { return _count == 0; }
 
+  bool remove(Entity const& entity) override {
+    if (entity.id - 1 >= _buffer.size()) {
+      return false;
+    }
+    Entity& e = _buffer[entity.id - 1].entity;
+    if (!e.isValid()) {
+      return false;
+    }
+    // Set entity to invalid, leave data alone this is enough
+    _buffer[entity.id - 1].entity = Entity();
+    _count--;
+    return true;
+  }
+
  private:
   std::vector<Property<T>> _buffer;
   std::size_t _count;
@@ -215,18 +230,16 @@ class Blackboard {
    * @brief set value to property of entity
    */
   template <typename T>
-  void set(Entity const& entity, std::string const& property, T const& val) {
+  bool set(Entity const& entity, std::string const& property, T const& val) {
     if (_properties.count(property) == 0) {
       _properties[property] = BaseStorage(new RealStorage<T>());
-      std::cout << "creating property: " << property << std::endl;
     }
-    auto ptr = getProperties<T>(property);
+    auto ptr = pointer_cast<T>(_properties[property]);
     if (ptr) {
       ptr->set(entity, val);
-    } else {
-      std::cerr << "type is not corresponding to prop name for " << property
-                << std::endl;
+      return true;
     }
+    return false;
   }
 
   template <typename T>
@@ -243,15 +256,25 @@ class Blackboard {
     if (_properties.count(property) == 0) {
       return DerivedStorage<T>(nullptr);
     }
+    if (_properties[property]->size() == 0) {
+      return DerivedStorage<T>(nullptr);
+    }
     return pointer_cast<T>(_properties[property]);
   }
 
-  Result clearProperties(std::string const& property) {
+  bool clearProperties(std::string const& property) {
     if (_properties.count(property)) {
       _properties[property]->clear();
-      return ok();
+      return true;
     }
-    return error(std::string("unknown property: ") + property);
+    return false;
+  }
+
+  bool remove(Entity const& entity, std::string const& property) {
+    if (_properties.count(property) > 0) {
+      return _properties[property]->remove(entity);
+    }
+    return false;
   }
 
  private:
