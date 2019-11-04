@@ -9,16 +9,16 @@ namespace arty {
 class IShapeRenderer {
  public:
   virtual Result init() = 0;
-  virtual void draw(Property<Shape3f> const &s, const Mat4x4f &model,
+  virtual void draw(const Entity &e, const Shape3f &s, const Mat4x4f &model,
                     const Mat4x4f &view, const Mat4x4f &proj) = 0;
   virtual void release() = 0;
-  virtual void import(Property<Shape3f> const &s) = 0;
+  virtual void import(const Entity &e, const Shape3f &s) = 0;
 };
 
 class CollisionRenderingSystem : public System {
  public:
   static constexpr const char *IMPORT_PROP = "shape2import";
-  static constexpr const char *DRAW_PROP = "shape";
+  static constexpr const char *DRAW_PROP = "aabb";
 
  public:
   CollisionRenderingSystem(Ptr<IShapeRenderer> rend) : _renderer(rend) {}

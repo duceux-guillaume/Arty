@@ -137,6 +137,8 @@ class Iterator {
 template <typename T>
 class RealStorage : public IStorage {
  public:
+  using value_type = T;
+
   RealStorage() : _buffer(), _count(0) {}
 
   void set(Entity const& entity, T const& val) {

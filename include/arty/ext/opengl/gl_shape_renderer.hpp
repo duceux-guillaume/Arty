@@ -18,10 +18,10 @@ class GlShapeRenderer : public IShapeRenderer {
  public:
   GlShapeRenderer() = default;
   Result init() override;
-  void draw(const Property<Shape3f>& s, const Mat4x4f& model,
-            const Mat4x4f& view, const Mat4x4f& proj) override;
   void release() override;
-  void import(const Property<Shape3f>& s) override;
+  void import(const Entity &e, const Shape3f &s) override;
+  void draw(const Entity &e, const Shape3f &s, const Mat4x4f &model,
+            const Mat4x4f &view, const Mat4x4f &proj) override;
 };
 
 }  // namespace arty

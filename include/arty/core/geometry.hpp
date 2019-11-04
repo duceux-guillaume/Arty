@@ -183,11 +183,14 @@ class Triangle {
 using Trianglef = Triangle<float>;
 
 struct Sphere {
-  Vec3f position;
+  Vec3f center;
   float squaredRadius;
 };
 
-struct Box {};
+struct Box {
+  Vec3f center;
+  Vec3f halfLength;
+};
 
 template <typename T, int Dim>
 class Shape {
@@ -199,7 +202,7 @@ class Shape {
   std::vector<vec_type> _pts;
 
  public:
-  std::vector<Vec<T, Dim>> const& pts() const { return _pts; }
+  std::vector<vec_type> const& pts() const { return _pts; }
 
   static self_type edge(vec_type const& v1, vec_type const& v2) {
     self_type s;
@@ -213,12 +216,34 @@ class Shape {
     self_type s;
     s._pts.push_back(v1);
     s._pts.push_back(v2);
+    s._pts.push_back(v2);
     s._pts.push_back(v3);
+    s._pts.push_back(v3);
+    s._pts.push_back(v1);
     return s;
   }
 
-  static self_type box(vec_type const& center, vec_type const& halfl) {
+  static self_type box(Box const& b) {
     self_type s;
+    Vec3f sign = b.halfLength;
+    std::vector<vec_type> v;
+    for (int sx = -1; sx < 2; sx += 2) {
+      for (int sy = -1; sy < 2; sy += 2) {
+        for (int sz = -1; sz < 2; sz += 2) {
+          sign.x() = sx * b.halfLength.x();
+          sign.y() = sy * b.halfLength.y();
+          sign.z() = sz * b.halfLength.z();
+          v.push_back(b.center + sign);
+        }
+      }
+    }
+    for (std::size_t i = 0; i < v.size(); ++i) {
+      for (std::size_t j = i + 1; j < v.size(); ++j) {
+        s._pts.push_back(v[i]);
+        s._pts.push_back(v[j]);
+      }
+    }
+    return s;
   }
 };
 using Shape3f = Shape<float, 3>;

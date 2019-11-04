@@ -1,6 +1,7 @@
 #ifndef COLLISION_HPP
 #define COLLISION_HPP
 
+#include <arty/core/blackboard.h>
 #include <arty/core/math.h>
 
 #include <arty/core/geometry.hpp>
@@ -11,6 +12,8 @@ namespace arty {
 struct Collision {
   bool exist;
   Shape3f shape;
+  Entity e1;
+  Entity e2;
 };
 
 class CollisionDetection {
@@ -20,6 +23,7 @@ class CollisionDetection {
   Vec3f computeCenter(Mesh const& mesh);
   Collision detect(Mesh const& mesh1, Transform const& tf1, Mesh const& mesh2,
                    Transform const& tf2);
+  Box computeAxisAlignedBoundingBox(Mesh const& mesh);
 
  private:
 };

@@ -10,16 +10,18 @@ Result CollisionSystem::process(const Ptr<Blackboard> &board) {
     return error("missing properties");
   }
   auto meshIt = meshPtr->begin();
-  auto meshIt2 = meshPtr->begin();
   auto meshEnd = meshPtr->end();
-  auto meshEnd2 = meshPtr->end();
   auto posIt = posPtr->begin();
-  auto posIt2 = posPtr->begin();
   for (; meshIt != meshEnd; ++meshIt, ++posIt) {
     if (posIt->entity != meshIt->entity) {
       return error("transform doesn't match entity");
     }
-    for (; meshIt2 != meshEnd2; ++meshIt2, ++posIt2) {
+    auto aabb =
+        Shape3f::box(_collision.computeAxisAlignedBoundingBox(meshIt->value));
+    board->set(meshIt->entity, "aabb", aabb);
+    auto meshIt2 = meshIt;
+    auto posIt2 = posIt;
+    for (; meshIt2 != meshEnd; ++meshIt2, ++posIt2) {
       if (posIt2->entity != meshIt2->entity) {
         return error("transform doesn't match entity");
       }
@@ -32,10 +34,13 @@ Result CollisionSystem::process(const Ptr<Blackboard> &board) {
                                         meshIt2->value, posIt2->value);
       if (col.exist) {
         std::cout << "Found collision" << std::endl;
-        board->set<Shape3f>(posIt->entity, CollisionRenderingSystem::DRAW_PROP,
-                            col.shape);
+        col.e1 = meshIt->entity;
+        col.e2 = meshIt2->entity;
+        board->set(meshIt->entity, "collision", col);
+        board->set(meshIt2->entity, "collision", col);
       } else {
-        board->remove(posIt->entity, CollisionRenderingSystem::DRAW_PROP);
+        board->remove(meshIt->entity, "collision");
+        board->remove(meshIt2->entity, "collision");
       }
     }
   }

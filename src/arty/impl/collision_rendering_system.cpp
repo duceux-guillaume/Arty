@@ -9,7 +9,7 @@ Result CollisionRenderingSystem::process(const Ptr<Blackboard>& board) {
     auto ptr = board->getProperties<Shape3f>(IMPORT_PROP);
     if (ptr && ptr->size()) {
       for (auto const& prop : *ptr) {
-        _renderer->import(prop);
+        _renderer->import(prop.entity, prop.value);
         board->set(prop.entity, DRAW_PROP, prop.value);
       }
       board->clearProperties(IMPORT_PROP);
@@ -22,8 +22,9 @@ Result CollisionRenderingSystem::process(const Ptr<Blackboard>& board) {
   }
   auto cam = camPtr->at(0).value;
 
+  auto posPtr = board->getProperties<Transform>("transform");
   auto shapePtr = board->getProperties<Shape3f>(DRAW_PROP);
-  if (!shapePtr) {
+  if (!shapePtr || !posPtr) {
     return error("no shape properties");
   }
   if (shapePtr->empty()) {
@@ -32,10 +33,25 @@ Result CollisionRenderingSystem::process(const Ptr<Blackboard>& board) {
 
   auto shapeIt = shapePtr->begin();
   auto shapeEnd = shapePtr->end();
+  auto posIt = posPtr->begin();
 
-  for (; shapeIt != shapeEnd; ++shapeIt) {
-    std::cout << "draw shape" << std::endl;
-    _renderer->draw(*shapeIt, Mat4x4f::identity(), cam.view, cam.projection);
+  for (; shapeIt != shapeEnd; ++shapeIt, ++posIt) {
+    if (posIt->entity != shapeIt->entity) {
+      return error("transform doesn't match entity");
+    }
+    _renderer->draw(shapeIt->entity, shapeIt->value, posIt->value.toMat(),
+                    cam.view, cam.projection);
+  }
+
+  auto colPtr = board->getProperties<Collision>("collision");
+  if (!colPtr) {
+    return ok();
+  }
+  auto colIt = colPtr->begin();
+  auto colEnd = colPtr->end();
+  for (; colIt != colEnd; ++colIt) {
+    _renderer->draw(colIt->entity, colIt->value.shape, Mat4x4f::identity(),
+                    cam.view, cam.projection);
   }
   return ok();
 }

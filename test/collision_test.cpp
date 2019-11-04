@@ -21,13 +21,13 @@ TEST(CollisionDetection, computeCenter) {
 TEST(CollisionDetection, computeOuterCircle) {
   CollisionDetection detector;
   Sphere circle = detector.computeOuterCircle(makeCube());
-  ASSERT_EQ(circle.position, Vec3f());
+  ASSERT_EQ(circle.center, Vec3f());
   ASSERT_EQ(circle.squaredRadius, 3.f);
 }
 
 TEST(CollisionDetection, computeInnerCircle) {
   CollisionDetection detector;
   Sphere circle = detector.computeInnerCircle(makeCube());
-  ASSERT_EQ(circle.position, Vec3f());
+  ASSERT_EQ(circle.center, Vec3f());
   ASSERT_EQ(circle.squaredRadius, 1.f);
 }
