@@ -135,6 +135,9 @@ Result Loader::loadObj(const std::string &path, Mesh *out) {
 
 Result MeshLoaderSystem::process(const Ptr<Blackboard> &board) {
   auto ptr = board->getProperties<std::string>("model2load");
+  if (!ptr) {
+    return ok();
+  }
   for (auto const &prop : *ptr) {
     std::cout << "prop: " << prop.entity.name << " " << prop.value << std::endl;
     Mesh mesh;

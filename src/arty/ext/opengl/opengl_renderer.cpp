@@ -19,7 +19,7 @@ Result OpenGlRenderer::init(Ptr<Blackboard> const& /*board*/) {
 Result OpenGlRenderer::process(const Ptr<Blackboard>& board) {
   // Import meshes
   auto ptr = board->getProperties<Mesh>("mesh2import");
-  if (ptr->size()) {
+  if (ptr) {
     for (auto const& prop : *ptr) {
       MeshVbos vbo;
       _renderer.importStaticMeshNoTexture(prop.value, vbo);
