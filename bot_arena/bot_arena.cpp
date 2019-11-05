@@ -7,6 +7,7 @@
 #include <arty/ext/opengl/gl_shape_renderer.hpp>
 #include <arty/impl/camera_system.hpp>
 #include <arty/impl/collision_rendering_system.hpp>
+#include <arty/impl/collision_solver_system.hpp>
 #include <arty/impl/collision_system.hpp>
 #include <arty/impl/debug_hid_system.hpp>
 #include <arty/impl/mesh_loader_system.hpp>
@@ -28,6 +29,7 @@ int main(void) {
   Engine engine;
   engine.set_board(board)
       .set_window(window)
+      .add_system(Ptr<System>(new CollisionSolverSystem()))
       .add_system(Ptr<System>(new PhysicsSystem(world)))
       .add_system(Ptr<System>(new CameraSystem(window)))
       .add_system(Ptr<System>(new CollisionRenderingSystem(shapeRenderer)))

@@ -37,10 +37,8 @@ Result CollisionSystem::process(const Ptr<Blackboard> &board) {
         col.e1 = meshIt->entity;
         col.e2 = meshIt2->entity;
         board->set(meshIt->entity, "collision", col);
-        board->set(meshIt2->entity, "collision", col);
       } else {
         board->remove(meshIt->entity, "collision");
-        board->remove(meshIt2->entity, "collision");
       }
     }
   }
