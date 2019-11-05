@@ -10,6 +10,7 @@
 #include <arty/impl/collision_system.hpp>
 #include <arty/impl/debug_hid_system.hpp>
 #include <arty/impl/mesh_loader_system.hpp>
+#include <arty/impl/physics_system.hpp>
 #include <cstdio>
 #include <cstdlib>
 #include <iostream>
@@ -22,9 +23,12 @@ int main(void) {
   Ptr<Blackboard> board(new Blackboard);
   Ptr<ITextRenderer> textRenderer(new GlTextRenderer());
   Ptr<IShapeRenderer> shapeRenderer(new GlShapeRenderer());
+  WorldPhysics world;
+  world.gravity_strengh = 0.001f;
   Engine engine;
   engine.set_board(board)
       .set_window(window)
+      .add_system(Ptr<System>(new PhysicsSystem(world)))
       .add_system(Ptr<System>(new CameraSystem(window)))
       .add_system(Ptr<System>(new CollisionRenderingSystem(shapeRenderer)))
       .add_system(Ptr<System>(new DebugHidSystem(window, textRenderer)))
@@ -34,16 +38,15 @@ int main(void) {
 
   auto pyramid = board->createEntity("pyramid");
   board->set(pyramid, "model2load", std::string("../models/test_pyramid.obj"));
-  board->set(pyramid, "transform", Transform(Vec3f{3.f, 0.f, 0.f}));
-
-  //  auto arena = board->createEntity("arena");
-  //  board->set(arena, "model2load", std::string("../models/bot.obj"));
-  //  board->set(arena, "transform", Transform());
+  board->set(pyramid, "transform", Transform(Vec3f{3.f, 0.f, 10.f}));
+  board->set(pyramid, "physics", Physics());
 
   auto cube = board->createEntity("cube");
   board->set(cube, "model2load", std::string("../models/test_cube.obj"));
-  board->set(cube, "transform", Transform(Vec3f{-3.f, 0.f, 0.f}));
+  Mat4x4f tf = /*rotation(1.f, 0.f, 0.f) +*/ translation(-3.f, 0.f, 10.f);
+  board->set(cube, "transform", Transform::from(tf));
   board->set(cube, "camtarget", cube);
+  board->set(cube, "physics", Physics());
 
   check_result(engine.start());
   check_result(engine.run());

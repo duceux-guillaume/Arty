@@ -743,34 +743,38 @@ inline Mat4x4<T> rotation(T const& a, T const& b, T const& c) {
   return res;
 }
 
-class Transform {
- public:
+struct Transform {
   Mat4x4f toMat() const {
-    Mat4x4f tf = _rotation.toMat4x4();
-    tf(0, 3) = _position.x();
-    tf(1, 3) = _position.y();
-    tf(2, 3) = _position.z();
+    Mat4x4f tf = rotation.toMat4x4();
+    tf(0, 3) = translation.x();
+    tf(1, 3) = translation.y();
+    tf(2, 3) = translation.z();
     return tf;
   }
 
   void fromMat(Mat4x4f const& m) {
-    _position.x() = m(0, 3);
-    _position.y() = m(1, 3);
-    _position.z() = m(2, 3);
-    _rotation.fromMat(m);
+    translation.x() = m(0, 3);
+    translation.y() = m(1, 3);
+    translation.z() = m(2, 3);
+    rotation.fromMat(m);
   }
 
-  Transform() : _position(), _rotation(), _scale() {}
-  Transform(Vec3f pos) : _position(pos), _rotation(), _scale() {}
+  static Transform from(Mat4x4f const& m) {
+    Transform tf;
+    tf.fromMat(m);
+    return tf;
+  }
+
+  Transform() : translation(), rotation(), scale() {}
+  Transform(Vec3f pos) : translation(pos), rotation(), scale() {}
 
   Vec3f operator*(Vec3f const& p) const {
-    return _rotation.toMat3x3() * p + _position;
+    return rotation.toMat3x3() * p + translation;
   }
 
- private:
-  Vec3f _position;
-  Quatf _rotation;
-  Vec3f _scale;
+  Vec3f translation;
+  Quatf rotation;
+  Vec3f scale;
 };
 
 }  // namespace arty
