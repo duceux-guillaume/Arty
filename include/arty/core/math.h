@@ -184,6 +184,10 @@ class Mat {
     return *this;
   }
 
+  self_type operator-() const {
+    return this->apply([](T const& f) { return -f; });
+  }
+
   template <typename S>
   self_type& operator*=(S const& scalar) {
     for (int i = 0; i < size; ++i) {
@@ -259,6 +263,21 @@ class Mat {
         r(j, i) = (*this)(i, j);
       }
     }
+    return r;
+  }
+
+  // MAP function style
+  template <typename Func>
+  self_type apply(Func foo) const {
+    self_type r;
+    std::transform(arr, arr + size, r.arr, foo);
+    return r;
+  }
+
+  template <typename Func>
+  self_type apply_with(self_type const& other, Func foo) const {
+    self_type r;
+    std::transform(arr, arr + size, other.arr, r.arr, foo);
     return r;
   }
 

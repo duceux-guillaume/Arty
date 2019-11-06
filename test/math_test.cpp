@@ -114,3 +114,23 @@ TEST(Mat, Multiply2) {
   ASSERT_EQ(vec * vecT, Mat2x2f(1, 2, 2, 4));
   ASSERT_EQ(vecT * vec, Mat1f(5));
 }
+
+TEST(Mat, Apply) {
+  Vec2f vec(-1.f, -2.f);
+  Vec2f r1 = vec.apply([](float f) { return std::abs(f); });
+  ASSERT_EQ(r1, Vec2f(1.f, 2.f));
+}
+
+TEST(Mat, ApplyWith) {
+  Vec2f v1(1.f, 2.f);
+  Vec2f v2(2.f, 1.f);
+  Vec2f r1 =
+      v1.apply_with(v2, [](float f1, float f2) { return std::min(f1, f2); });
+  ASSERT_EQ(r1, Vec2f(1.f, 1.f));
+}
+
+TEST(Mat, SelfMinus) {
+  Vec2f vec(1.f, 2.f);
+  ASSERT_EQ(-vec, Vec2f(-1.f, -2.f));
+  ASSERT_EQ(-(-vec), vec);
+}
