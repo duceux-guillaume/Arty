@@ -200,14 +200,17 @@ class Shape {
 
  private:
   std::vector<vec_type> _pts;
+  vec_type _center;
 
  public:
   std::vector<vec_type> const& pts() const { return _pts; }
+  vec_type const& center() const { return _center; }
 
   static self_type edge(vec_type const& v1, vec_type const& v2) {
     self_type s;
     s._pts.push_back(v1);
     s._pts.push_back(v2);
+    s._center = (v1 + v2) * 0.5f;
     return s;
   }
 

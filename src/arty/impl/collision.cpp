@@ -87,21 +87,25 @@ Collision CollisionDetection::detect(const Mesh& mesh1, const Transform& tf1,
   Box b1 = computeAxisAlignedBoundingBox(mesh1);
   Box b2 = computeAxisAlignedBoundingBox(mesh2);
   double dx = std::abs(center1.x() - center2.x());
-  if (dx > b1.halfLength.x() + b2.halfLength.x()) {
+  double tx = b1.halfLength.x() + b2.halfLength.x();
+  if (dx > tx) {
     return col;
   }
   double dy = std::abs(center1.y() - center2.y());
-  if (dy > b1.halfLength.y() + b2.halfLength.y()) {
+  double ty = b1.halfLength.y() + b2.halfLength.y();
+  if (dy > ty) {
     return col;
   }
   double dz = std::abs(center1.z() - center2.z());
-  if (dz > b1.halfLength.z() + b2.halfLength.z()) {
+  double tz = b1.halfLength.z() + b2.halfLength.z();
+  if (dz > tz) {
     return col;
   }
 
   col.exist = true;
-  Vec3f z(0.f, 0.f, 3.f);
-  col.shape = Shape3f::edge(center1 + z, center2 + z);
+  Vec3f z(tx - dx, ty - dy, tz - dz);
+  Vec3f imp = (center1 + center2) * 0.5f;
+  col.shape = Shape3f::edge(imp, imp + z);
   return col;
 }
 

@@ -25,7 +25,9 @@ int main(void) {
   Ptr<ITextRenderer> textRenderer(new GlTextRenderer());
   Ptr<IShapeRenderer> shapeRenderer(new GlShapeRenderer());
   WorldPhysics world;
-  world.gravity_strengh = 0.001f;
+  world.gravity_strengh = 0.0f;
+  world.air_friction = 1.f;
+  world.ground_friction = 0.9f;
   Engine engine;
   engine.set_board(board)
       .set_window(window)
@@ -40,12 +42,12 @@ int main(void) {
 
   auto pyramid = board->createEntity("pyramid");
   board->set(pyramid, "model2load", std::string("../models/test_pyramid.obj"));
-  board->set(pyramid, "transform", Transform(Vec3f{3.f, 0.f, 10.f}));
+  board->set(pyramid, "transform", Transform(Vec3f{3.f, 0.f, 0.f}));
   board->set(pyramid, "physics", Physics());
 
   auto cube = board->createEntity("cube");
   board->set(cube, "model2load", std::string("../models/test_cube.obj"));
-  Mat4x4f tf = /*rotation(1.f, 0.f, 0.f) +*/ translation(-3.f, 0.f, 10.f);
+  Mat4x4f tf = /*rotation(1.f, 0.f, 0.f) +*/ translation(-3.f, 0.f, 0.f);
   board->set(cube, "transform", Transform::from(tf));
   board->set(cube, "camtarget", cube);
   board->set(cube, "physics", Physics());

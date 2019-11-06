@@ -28,15 +28,27 @@ void PhysicsSolver::update(Transform* tf, Physics* phy,
                            const WorldPhysics& world) {
   assert(tf);
   assert(phy);
-  tf->translation += phy->velocity.translation;
-  phy->velocity.translation += phy->acceleration.translation;
+  tf->translation += phy->velocity.translation * 0.016f;
+  phy->velocity.translation += phy->acceleration.translation * 0.016f;
+  phy->velocity.translation *= world.air_friction;
+  phy->velocity.translation *= world.ground_friction;
   // handle gravity
+  Vec3f gravity;
   if (tf->translation.z() > world.min_ground_level) {
-    auto tra = Vec3f(0.f, 0.f, -1.f) * world.gravity_strengh * 1.f / phy->mass;
-    phy->acceleration.translation = tra;
-  } else {
-    tf->translation.z() = 0.f;
+    gravity = Vec3f(0.f, 0.f, -1.f) * world.gravity_strengh;
   }
+  // handle forces
+  Vec3f force = gravity;
+  assert(phy->forces_pos.size() == phy->forces_dir.size());
+  for (std::size_t i = 0; i < phy->forces_pos.size(); ++i) {
+    // compute comp trans
+    /*Vec3f pos = phy->forces_pos[i];*/
+    force += phy->forces_dir[i];
+  }
+  auto tra = force * 1.f / phy->mass;
+  phy->acceleration.translation = tra;
+  phy->forces_dir.clear();
+  phy->forces_pos.clear();
 }
 
 }  // namespace arty

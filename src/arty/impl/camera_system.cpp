@@ -86,11 +86,11 @@ Mat4x4f InputControl::tps(Ptr<Window> input, Mat4x4f target) {
   if (input->keyHasBeenPressed(Key::DOWN) || input->keyHasBeenPressed(Key::S)) {
     target = target * translation(-deltaTime * speed, 0.f, 0.f);
   }
-  if (input->keyHasBeenPressed(Key::RIGHT) ||
-      input->keyHasBeenPressed(Key::A)) {
+  if (input->keyHasBeenPressed(Key::LEFT) || input->keyHasBeenPressed(Key::A)) {
     target = target * translation(0.f, deltaTime * speed, 0.f);
   }
-  if (input->keyHasBeenPressed(Key::LEFT) || input->keyHasBeenPressed(Key::D)) {
+  if (input->keyHasBeenPressed(Key::RIGHT) ||
+      input->keyHasBeenPressed(Key::D)) {
     target = target * translation(0.f, -deltaTime * speed, 0.f);
   }
   lastTime = currentTime;
