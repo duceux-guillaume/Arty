@@ -61,9 +61,11 @@ Result CameraSystem::process(const Ptr<Blackboard> &board) {
     _camFromWorld = origin;
   }
 
-  _projection = perspective(
-      radians(_fov), static_cast<float>(_window->width()) / _window->height(),
-      0.1f, 100.0f);
+  float ratio = static_cast<float>(_window->width()) / _window->height();
+  if (std::abs(ratio - std::numeric_limits<float>::epsilon()) <= 0.f) {
+    ratio = 16.f / 9.f;
+  }
+  _projection = perspective(radians(_fov), ratio, 0.1f, 100.0f);
 
   Camera camera;
   camera.projection = _projection;
