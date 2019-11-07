@@ -62,9 +62,10 @@ Result CameraSystem::process(const Ptr<Blackboard> &board) {
   }
 
   float ratio = static_cast<float>(_window->width()) / _window->height();
-  if (std::abs(ratio - std::numeric_limits<float>::epsilon()) <= 0.f) {
+  if (ratio - std::numeric_limits<float>::epsilon() <= 0.f) {
     ratio = 16.f / 9.f;
   }
+  std::cout << "ratio: " << ratio << std::endl;
   _projection = perspective(radians(_fov), ratio, 0.1f, 100.0f);
 
   Camera camera;
