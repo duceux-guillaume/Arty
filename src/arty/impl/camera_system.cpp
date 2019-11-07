@@ -18,7 +18,7 @@ CameraSystem::CameraSystem(const Ptr<Window> &w)
       _fov(45.0f),
       _speed(10.f),
       _mouseSpeed(0.002f),
-      _mode(CAM_TPS) {}
+      _mode(CAM_VIEWER) {}
 
 Result CameraSystem::init(const Ptr<Blackboard> &board) {
   _camera_entity = board->createEntity("camera");

@@ -40,14 +40,49 @@ int main(void) {
       .add_system(Ptr<System>(new OpenGlRenderer))
       .add_system(Ptr<System>(new CollisionSystem()));
 
-  auto pyramid = board->createEntity("pyramid");
-  board->set(pyramid, "model2load", std::string("../models/test_pyramid.obj"));
-  board->set(pyramid, "transform", Transform(Vec3f{3.f, 0.f, 0.f}));
-  board->set(pyramid, "physics", Physics());
+  auto core = board->createEntity("core");
+  board->set(core, "model2load", std::string("../models/Core.obj"));
+  board->set(core, "transform", Transform(Vec3f{0.f, 0.f, 0.f}));
+  board->set(core, "physics", Physics());
+
+  auto energy = board->createEntity("energy");
+  board->set(energy, "model2load", std::string("../models/energy.obj"));
+  board->set(energy, "transform", Transform(Vec3f{0.f, 0.f, 0.f}));
+  board->set(energy, "physics", Physics());
+
+  auto radar = board->createEntity("radar");
+  board->set(radar, "model2load", std::string("../models/radar.obj"));
+  board->set(radar, "transform", Transform(Vec3f{0.f, 0.f, 2.f}));
+  board->set(radar, "physics", Physics());
+
+  auto railgun = board->createEntity("railgun");
+  board->set(railgun, "model2load", std::string("../models/railgun.obj"));
+  board->set(railgun, "transform", Transform(Vec3f{0.f, 1.f, 1.f}));
+  board->set(railgun, "physics", Physics());
+
+  auto rocket = board->createEntity("rocket");
+  board->set(rocket, "model2load", std::string("../models/rocket.obj"));
+  board->set(rocket, "transform", Transform(Vec3f{0.f, 1.f, 1.f}));
+  board->set(rocket, "physics", Physics());
+
+  auto shield = board->createEntity("shield");
+  board->set(shield, "model2load", std::string("../models/shield.obj"));
+  board->set(shield, "transform", Transform(Vec3f{0.f, -1.f, 1.f}));
+  board->set(shield, "physics", Physics());
+
+  auto track = board->createEntity("track");
+  board->set(track, "model2load", std::string("../models/track.obj"));
+  board->set(track, "transform", Transform(Vec3f{0.f, 0.f, 0.f}));
+  board->set(track, "physics", Physics());
+
+  auto wheel = board->createEntity("wheel");
+  board->set(wheel, "model2load", std::string("../models/wheels.obj"));
+  board->set(wheel, "transform", Transform(Vec3f{0.f, 0.f, 0.f}));
+  board->set(wheel, "physics", Physics());
 
   auto cube = board->createEntity("cube");
   board->set(cube, "model2load", std::string("../models/test_cube.obj"));
-  Mat4x4f tf = /*rotation(1.f, 0.f, 0.f) +*/ translation(-3.f, 0.f, 0.f);
+  Mat4x4f tf = /*rotation(1.f, 0.f, 0.f) +*/ translation(0.f, 0.f, 20.f);
   board->set(cube, "transform", Transform::from(tf));
   board->set(cube, "camtarget", cube);
   board->set(cube, "physics", Physics());
