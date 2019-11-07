@@ -71,7 +71,7 @@ int main(void) {
   board->set(shield, "physics", Physics());
 
   auto track = board->createEntity("track");
-  board->set(track, "model2load", std::string("../models/track.obj"));
+  board->set(track, "model2load", std::string("../models/tracks.obj"));
   board->set(track, "transform", Transform(Vec3f{0.f, 0.f, 0.f}));
   board->set(track, "physics", Physics());
 

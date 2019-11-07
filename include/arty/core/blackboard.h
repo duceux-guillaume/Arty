@@ -110,7 +110,7 @@ class Iterator {
     }
     do {
       ++_vector_curr;
-    } while (!_vector_curr->entity.isValid() && _vector_curr != _vector_end);
+    } while (_vector_curr != _vector_end && !_vector_curr->entity.isValid());
   }
 
   Iterator& operator++() {
