@@ -28,8 +28,7 @@ Result CollisionSystem::process(const Ptr<Blackboard> &board) {
       if (posIt->entity == posIt2->entity) {
         continue;
       }
-      std::cout << "detection between: " << meshIt->entity.name << " "
-                << meshIt2->entity.name << std::endl;
+      /*
       Collision col = _collision.detect(meshIt->value, posIt->value,
                                         meshIt2->value, posIt2->value);
       if (col.exist) {
@@ -40,6 +39,7 @@ Result CollisionSystem::process(const Ptr<Blackboard> &board) {
       } else {
         board->remove(meshIt->entity, "collision");
       }
+      */
     }
   }
   return ok();

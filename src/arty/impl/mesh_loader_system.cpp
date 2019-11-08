@@ -15,7 +15,6 @@ Result Loader::loadObj(const std::string &path, Mesh *out) {
     return error("given empty path");
   }
   Mesh tmp;
-  std::cout << "loading mesh: " << path << std::endl;
   std::ifstream file;
   file.open(path);
   if (!file.is_open()) {
@@ -24,7 +23,6 @@ Result Loader::loadObj(const std::string &path, Mesh *out) {
 
   std::string line;
   while (std::getline(file, line)) {
-    std::cout << line << std::endl;
     if (line.empty()) {
       continue;
     }
@@ -109,27 +107,6 @@ Result Loader::loadObj(const std::string &path, Mesh *out) {
     out->normals.push_back(tmp.normals[vn - 1]);
     out->indices.push_back(id);
   }
-
-  std::cout << "mesh is ready! vertex: " << out->vertices.size()
-            << " normals: " << out->normals.size()
-            << " uvs: " << out->uvs.size()
-            << " indices: " << out->indices.size() << std::endl;
-  for (std::size_t i = 0; i < out->vertices.size(); ++i) {
-    std::cout << "v " << out->vertices[i].x() << " " << out->vertices[i].y()
-              << " " << out->vertices[i].z() << std::endl;
-  }
-  for (std::size_t i = 0; i < out->uvs.size(); ++i) {
-    std::cout << "vt " << out->uvs[i].x() << " " << out->uvs[i].y()
-              << std::endl;
-  }
-  for (std::size_t i = 0; i < out->normals.size(); ++i) {
-    std::cout << "vn " << out->normals[i].x() << " " << out->normals[i].y()
-              << " " << out->normals[i].z() << std::endl;
-  }
-  for (std::size_t i = 0; i < out->indices.size() - 2; i += 3) {
-    std::cout << "f " << out->indices[i] << " " << out->indices[i + 1] << " "
-              << out->indices[i + 2] << std::endl;
-  }
   return ok();
 }
 
@@ -139,7 +116,6 @@ Result MeshLoaderSystem::process(const Ptr<Blackboard> &board) {
     return ok();
   }
   for (auto const &prop : *ptr) {
-    std::cout << "prop: " << prop.entity.name << " " << prop.value << std::endl;
     Mesh mesh;
     check_result(loader.loadObj(prop.value, &mesh));
     board->set(prop.entity, "mesh2import", mesh);

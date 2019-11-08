@@ -13,6 +13,9 @@ struct WorldPhysics {
 };
 
 struct Physics {
+  Entity parent;
+  std::vector<Entity> childs;
+
   Transform velocity;
   Transform acceleration;
   std::vector<Vec3f> forces_dir;
@@ -20,7 +23,6 @@ struct Physics {
   float mass;
 
   Physics() : Physics(1.f) {}
-
   Physics(float mass)
       : velocity(), acceleration(), forces_dir(), forces_pos(), mass(mass) {}
 };
@@ -34,6 +36,9 @@ class PhysicsSolver {
 
 class PhysicsSystem : public System {
  public:
+  static constexpr const char* INPUT_PROP = "physics";
+  static constexpr const char* OUTPUT_PROP = "transform";
+
   PhysicsSystem(WorldPhysics const& world) : _solver(), _world(world) {}
 
  private:

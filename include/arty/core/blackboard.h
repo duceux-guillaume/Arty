@@ -40,6 +40,7 @@ struct Entity {
   Entity() : name(), id(0) {}
 
   bool operator<(Entity const& rhs) const { return id < rhs.id; }
+  bool operator>(Entity const& rhs) const { return id > rhs.id; }
   bool operator==(Entity const& rhs) const { return id == rhs.id; }
   bool operator!=(Entity const& rhs) const { return !(id == rhs.id); }
   bool isValid() const { return id != 0 && !name.empty(); }

@@ -62,6 +62,9 @@ target_include_directories(arty
 add_executable(bot_arena bot_arena/bot_arena.cpp)
 target_link_libraries(bot_arena PUBLIC arty ${ALL_LIBS})
 
+add_executable(bot_editor bot_editor/main.cpp)
+target_link_libraries(bot_editor PUBLIC arty ${ALL_LIBS})
+
 ################
 ## POST BUILD ##
 ################
@@ -70,6 +73,11 @@ add_custom_command(
    TARGET bot_arena POST_BUILD
    COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/bot_arena${CMAKE_EXECUTABLE_SUFFIX}" "${CMAKE_CURRENT_SOURCE_DIR}/bin/"
 )
+add_custom_command(
+   TARGET bot_editor POST_BUILD
+   COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/bot_editor${CMAKE_EXECUTABLE_SUFFIX}" "${CMAKE_CURRENT_SOURCE_DIR}/bin/"
+)
+
 
 ###########
 ## GTEST ##

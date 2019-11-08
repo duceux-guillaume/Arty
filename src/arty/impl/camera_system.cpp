@@ -65,7 +65,6 @@ Result CameraSystem::process(const Ptr<Blackboard> &board) {
   if (_window->height() == 0) {
     ratio = 16.f / 9.f;
   }
-  std::cout << "ratio: " << ratio << std::endl;
   _projection = perspective(radians(_fov), ratio, 0.1f, 100.0f);
 
   Camera camera;
@@ -146,7 +145,7 @@ Mat4x4f InputControl::viewer(Ptr<Window> input, Mat4x4f target) {
   float hangle = 0;
   float vangle = 0;
   float mousespeed = 0.002f;
-  float speed = 1.f;
+  float speed = 3.f;
   if (std::fabs(dx) < 100 &&
       std::fabs(dy) < 100) {  // Don't why its not stable at startup
     hangle = mousespeed * (input->width() / 2.f - cursor.x);
