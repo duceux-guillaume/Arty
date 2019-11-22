@@ -2,6 +2,7 @@
 #define ECS_H
 
 #include <arty/core/blackboard.h>
+#include <arty/core/input.h>
 #include <arty/core/result.h>
 
 #include <cstdint>
@@ -16,7 +17,11 @@ namespace arty {
 class System {
  public:
   virtual Result process(Ptr<Blackboard> const &board);
+  virtual Result process(Ptr<Blackboard> const &board,
+                         Ptr<Keyboard> const &keyboard);
   virtual Result init(Ptr<Blackboard> const &board);
+  virtual Result init(Ptr<Blackboard> const &board,
+                      Ptr<Keyboard> const &keyboard);
   virtual void release();
 
  protected:

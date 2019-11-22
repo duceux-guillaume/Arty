@@ -1,6 +1,7 @@
 #ifndef ENGINE_H
 #define ENGINE_H
 
+#include <arty/core/input.h>
 #include <arty/core/result.h>
 #include <arty/core/window.h>
 
@@ -13,6 +14,8 @@ class Engine {
   Engine() : _window(), _systems(), _state() {}
 
   Engine& set_window(Ptr<Window> const& ptr);
+
+  Engine& set_keyboard(Ptr<Keyboard> const& ptr);
 
   Engine& add_system(Ptr<System> const& system);
 
@@ -32,6 +35,7 @@ class Engine {
   Ptr<Window> _window;
   std::vector<Ptr<System>> _systems;
   Ptr<Blackboard> _state;
+  Ptr<Keyboard> _keyboard;
 };
 
 }  // namespace arty

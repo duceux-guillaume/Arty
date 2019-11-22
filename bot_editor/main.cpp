@@ -1,8 +1,8 @@
 #include <arty/ext/opengl/opengl_renderer.h>
-#include <arty/ext/opengl/opengl_window.h>
 #include <arty/impl/engine.h>
 
 #include <arty/core/mesh.hpp>
+#include <arty/ext/glfw/glfw_window.hpp>
 #include <arty/ext/opengl/2d_renderer.hpp>
 #include <arty/ext/opengl/gl_shape_renderer.hpp>
 #include <arty/impl/camera_system.hpp>
@@ -66,7 +66,7 @@ class BotFactory {
 };
 
 int main(void) {
-  Ptr<Window> window(new OpenGlWindow);
+  Ptr<Window> window(new GlfwWindow);
   Ptr<Blackboard> board(new Blackboard);
   Ptr<ITextRenderer> textRenderer(new GlTextRenderer());
   Ptr<IShapeRenderer> shapeRenderer(new GlShapeRenderer());
@@ -79,7 +79,7 @@ int main(void) {
       .set_window(window)
       .add_system(Ptr<System>(new PhysicsSystem(world)))
       .add_system(Ptr<System>(new CollisionSolverSystem()))
-      .add_system(Ptr<System>(new CameraSystem(window)))
+      .add_system(Ptr<System>(new FixedCameraSystem(window)))
       .add_system(Ptr<System>(new CollisionRenderingSystem(shapeRenderer)))
       .add_system(Ptr<System>(new DebugHidSystem(window, textRenderer)))
       .add_system(Ptr<System>(new MeshLoaderSystem))

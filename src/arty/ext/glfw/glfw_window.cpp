@@ -1,4 +1,6 @@
-#include <arty/ext/opengl/opengl_window.h>
+#include <GL/glew.h>
+
+#include <arty/ext/glfw/glfw_window.hpp>
 
 namespace arty {
 
@@ -13,7 +15,14 @@ static void GLAPIENTRY MessageCallback(GLenum /*source*/, GLenum type,
           message);
 }
 
-Result OpenGlWindow::init() {
+Ptr<Keyboard> _keyboard = std::make_shared<Keyboard>();
+static void keyboardCallback(GLFWwindow* /*window*/, int key, int /*scancode*/,
+                             int action, int /*mod*/) {
+  _keyboard->process(static_cast<Keyboard::Key>(key),
+                     static_cast<Keyboard::Action>(action));
+}
+
+Result GlfwWindow::init() {
   // Initialise GLFW
   if (!glfwInit()) {
     return Result("Failed to initialize GLFW\n");
@@ -73,32 +82,34 @@ Result OpenGlWindow::init() {
   glEnable(GL_DEBUG_OUTPUT);
   glDebugMessageCallback(MessageCallback, 0);
 
+  (void)glfwSetKeyCallback(_window, keyboardCallback);
+
   return ok();
 }
 
-void OpenGlWindow::clear() {
+void GlfwWindow::clear() {
   // Clear the screen. It's not mentioned before Tutorial 02, but it can cause
   // flickering, so it's there nonetheless.
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
-void OpenGlWindow::swapBuffer() {
+void GlfwWindow::swapBuffer() {
   // Swap buffers
   glfwSwapBuffers(_window);
   glfwPollEvents();
 }
 
-bool OpenGlWindow::isOk() {
+bool GlfwWindow::isOk() {
   return glfwGetKey(_window, GLFW_KEY_ESCAPE) != GLFW_PRESS &&
          glfwWindowShouldClose(_window) == 0;
 }
 
-void OpenGlWindow::close() {
+void GlfwWindow::close() {
   // Close OpenGL window and terminate GLFW
   glfwTerminate();
 }
 
-CursorPosition OpenGlWindow::getCursorPosition() {
+CursorPosition GlfwWindow::getCursorPosition() {
   // Get mouse position
   CursorPosition cursor;
   glfwGetCursorPos(_window, &cursor.x, &cursor.y);
@@ -107,26 +118,24 @@ CursorPosition OpenGlWindow::getCursorPosition() {
   return cursor;
 }
 
-void OpenGlWindow::setCursorPosition(const CursorPosition& cursor) {
+void GlfwWindow::setCursorPosition(const CursorPosition& cursor) {
   glfwSetCursorPos(_window, cursor.x, cursor.y);
 }
 
-double OpenGlWindow::getTime() { return glfwGetTime(); }
+double GlfwWindow::getTime() { return glfwGetTime(); }
 
-bool OpenGlWindow::keyHasBeenPressed(Key key) {
-  return glfwGetKey(_window, key) == GLFW_PRESS;
-}
-
-int OpenGlWindow::width() {
+int GlfwWindow::width() {
   int width, height;
   glfwGetWindowSize(_window, &width, &height);
   return width;
 }
 
-int OpenGlWindow::height() {
+int GlfwWindow::height() {
   int width, height;
   glfwGetWindowSize(_window, &width, &height);
   return height;
 }
+
+Ptr<Keyboard> GlfwWindow::provideKeyboard() { return _keyboard; }
 
 }  // namespace arty

@@ -7,6 +7,11 @@ Engine &Engine::set_window(const Ptr<Window> &ptr) {
   return *this;
 }
 
+Engine &Engine::set_keyboard(const Ptr<Keyboard> &ptr) {
+  _keyboard = ptr;
+  return *this;
+}
+
 Engine &Engine::add_system(const Ptr<System> &system) {
   _systems.push_back(system);
   return *this;
@@ -20,7 +25,7 @@ Engine &Engine::set_board(const Ptr<Blackboard> &board) {
 Result Engine::start() {
   check_result(_window->init());
   for (auto const &system : _systems) {
-    check_result(system->init(_state));
+    check_result(system->init(_state, _keyboard));
   }
   return ok();
 }
@@ -30,7 +35,7 @@ Result Engine::step() {
   _window->clear();
   for (auto system : _systems) {
     if (system) {
-      res = system->process(_state);
+      res = system->process(_state, _keyboard);
       if (!res) {
         std::cerr << res.message() << std::endl;
       }

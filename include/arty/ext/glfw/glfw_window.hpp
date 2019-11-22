@@ -1,22 +1,18 @@
-#ifndef OPENGLWINDOW_H
-#define OPENGLWINDOW_H
+#ifndef GLFW_WINDOW_HPP
+#define GLFW_WINDOW_HPP
 
-#include <arty/core/window.h>
-#include <stdio.h>
-#include <stdlib.h>
-
-#include <arty/core/system.hpp>
-
-// Include GLEW
-#include <GL/glew.h>
-
-// Include GLFW
 #include <GLFW/glfw3.h>
+#include <arty/core/input.h>
+#include <arty/core/window.h>
 
 namespace arty {
-class OpenGlWindow : public Window {
+
+class GlfwWindow : public Window, public Keyboard {
  private:
   GLFWwindow* _window;
+
+ public:
+  GlfwWindow() : _window() {}
 
   // Window interface
  public:
@@ -36,12 +32,12 @@ class OpenGlWindow : public Window {
 
   double getTime() override;
 
-  bool keyHasBeenPressed(Key key) override;
-
   int width() override;
 
   int height() override;
+
+  Ptr<Keyboard> provideKeyboard();
 };
 }  // namespace arty
 
-#endif
+#endif  // GLFW_WINDOW_HPP

@@ -1,8 +1,8 @@
 #include <arty/ext/opengl/opengl_renderer.h>
-#include <arty/ext/opengl/opengl_window.h>
 #include <arty/impl/engine.h>
 
 #include <arty/core/mesh.hpp>
+#include <arty/ext/glfw/glfw_window.hpp>
 #include <arty/ext/opengl/2d_renderer.hpp>
 #include <arty/ext/opengl/gl_shape_renderer.hpp>
 #include <arty/impl/camera_system.hpp>
@@ -12,6 +12,7 @@
 #include <arty/impl/debug_hid_system.hpp>
 #include <arty/impl/mesh_loader_system.hpp>
 #include <arty/impl/physics_system.hpp>
+#include <arty/impl/player_control.hpp>
 #include <cstdio>
 #include <cstdlib>
 #include <iostream>
@@ -20,7 +21,9 @@
 using namespace arty;
 
 int main(void) {
-  Ptr<Window> window(new OpenGlWindow);
+  GlfwWindow* window_impl = new GlfwWindow;
+  Ptr<Keyboard> keyboard = window_impl->provideKeyboard();
+  Ptr<Window> window(window_impl);
   Ptr<Blackboard> board(new Blackboard);
   Ptr<ITextRenderer> textRenderer(new GlTextRenderer());
   Ptr<IShapeRenderer> shapeRenderer(new GlShapeRenderer());
@@ -31,9 +34,11 @@ int main(void) {
   Engine engine;
   engine.set_board(board)
       .set_window(window)
+      .set_keyboard(keyboard)
+      .add_system(Ptr<System>(new PlayerControlSystem()))
       .add_system(Ptr<System>(new CollisionSolverSystem()))
       .add_system(Ptr<System>(new PhysicsSystem(world)))
-      .add_system(Ptr<System>(new CameraSystem(window)))
+      .add_system(Ptr<System>(new FixedCameraSystem(window)))
       .add_system(Ptr<System>(new CollisionRenderingSystem(shapeRenderer)))
       .add_system(Ptr<System>(new DebugHidSystem(window, textRenderer)))
       .add_system(Ptr<System>(new MeshLoaderSystem))
