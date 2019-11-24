@@ -42,8 +42,8 @@ file(GLOB_RECURSE ARTY_MATH_FILES include/arty/* src/arty/*)
 message(info ${ARTY_MATH_FILES})
 add_library(arty ${ARTY_MATH_FILES})
 target_link_libraries(arty PRIVATE ${ALL_LIBS})
-target_compile_features(arty PRIVATE cxx_std_17 cxx_constexpr)
-target_compile_options(arty PRIVATE -Werror -Wall -Wextra)
+target_compile_features(arty PUBLIC cxx_std_17)
+target_compile_options(arty PUBLIC -Werror -Wall -Wextra)
 target_include_directories(arty
     PUBLIC
         $<INSTALL_INTERFACE:include>
