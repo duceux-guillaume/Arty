@@ -7,7 +7,7 @@ bool Memory::newEnt(const std::string &name) {
 }
 
 bool Memory::newProp(const std::string &name) {
-  return _props.emplace(name, SparseStorage()).second;
+  return _props.emplace(name, Container()).second;
 }
 
 bool Memory::remove(const std::string &e, const std::string &p) {
@@ -15,12 +15,7 @@ bool Memory::remove(const std::string &e, const std::string &p) {
   if (prop == _props.end()) {
     return false;
   }
-  auto ent = prop->second.find(e);
-  if (ent == prop->second.end()) {
-    return false;
-  }
-  prop->second.erase(ent);
-  return true;
+  return prop->second.remove(e);
 }
 
 bool Memory::rmEnt(const std::string &e) {
@@ -29,7 +24,7 @@ bool Memory::rmEnt(const std::string &e) {
   }
   _entities.erase(e);
   for (auto &props : _props) {
-    props.second.erase(e);
+    props.second.remove(e);
   }
   return true;
 }
@@ -40,13 +35,6 @@ bool Memory::rmProp(const std::string &p) {
   }
   _props.erase(p);
   return true;
-}
-
-SparseStorage const *Memory::prop(const std::string &p) const {
-  if (!hasProp(p)) {
-    return nullptr;
-  }
-  return &_props.at(p);
 }
 
 bool Memory::hasEnt(const std::string &name) const {
@@ -60,6 +48,8 @@ bool Memory::hasProp(const std::string &name) const {
 void Memory::write(std::ostream &out) const {
   for (auto const &item : _props) {
     out << item.first << " ";
+    // item.second.write(out);
+    /*
     if (_writers.count(item.first) > 0) {
       auto writer = _writers.at(item.first);
       for (auto const &prop : item.second) {
@@ -67,10 +57,11 @@ void Memory::write(std::ostream &out) const {
         out << " ";
       }
     }
+    */
     out << std::endl;
   }
 }
-
+/*
 void MultiStorageIterator::next() {
   // We move first, and then we make other move if they are inferior
   // If firts is the one inferior to others, we next() again
@@ -109,7 +100,7 @@ arty::StorageWrapper::operator bool() const {
     return false;
   }
   return std::all_of(_storages.begin(), _storages.end(),
-                     [](SparseStorage const *ptr) { return ptr; });
+                     [](Container const *ptr) { return ptr; });
 }
 
 MultiStorageIterator StorageWrapper::begin() const {
@@ -127,5 +118,5 @@ MultiStorageIterator StorageWrapper::end() const {
   }
   return MultiStorageIterator();
 }
-
+*/
 }  // namespace arty

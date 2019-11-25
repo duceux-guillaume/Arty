@@ -45,9 +45,9 @@ TEST(Memory, get) {
   ASSERT_FALSE(mem.get<std::string>("bot", "physics"));
   ASSERT_TRUE(mem.newEnt("bot"));
   ASSERT_TRUE(mem.newProp("physics"));
-  ASSERT_TRUE(mem.set("bot", "physics", "whatever"));
-  ASSERT_FALSE(mem.get<int>("bot", "physics"));
-  ASSERT_TRUE(mem.get<std::string>("bot", "physics"));
+  ASSERT_TRUE(mem.set("bot", "physics", 10));
+  ASSERT_FALSE(mem.get<double>("bot", "physics"));
+  ASSERT_TRUE(mem.get<int>("bot", "physics"));
 }
 
 TEST(Memory, remove) {
@@ -87,17 +87,16 @@ TEST(Memory, IterateOverOneProp) {
   Memory mem;
   ASSERT_TRUE(mem.newEnt("bot"));
   ASSERT_TRUE(mem.newProp("physics"));
-  ASSERT_TRUE(mem.set("bot", "physics", std::string("whatever")));
-  auto storagePtr = mem.prop("physics");
-  ASSERT_TRUE(storagePtr);
-  auto storage = *storagePtr;
-  ASSERT_EQ(storage.size(), 1);
-  for (auto const& p : storage) {
-    ASSERT_EQ(p.key(), "bot");
-    ASSERT_EQ(p, std::string("whatever"));
+  ASSERT_TRUE(mem.set("bot", "physics", 10));
+  auto it = mem.iterator<int>("physics");
+  for (auto& p : it) {
+    ASSERT_EQ(p.first, "bot");
+    ASSERT_EQ(p.second, 10);
+    p.second = 15;
   }
+  ASSERT_EQ(*mem.get<int>("bot", "physics"), 15);
 }
-
+/*
 TEST(Memory, IterateOverTwoProps) {
   Memory mem;
   ASSERT_TRUE(mem.newEnt("bot"));
@@ -114,7 +113,6 @@ TEST(Memory, IterateOverTwoProps) {
     ASSERT_EQ(*p[1], std::string("myname"));
   }
 }
-
 TEST(Memory, IterateOverTwoPropsBadLuck) {
   Memory mem;
   ASSERT_TRUE(mem.newEnt("bot1"));
@@ -166,3 +164,4 @@ TEST(Memory, Write) {
   mem.write(ss);
   ASSERT_EQ(ss.str(), "name bot2:myname \nhealth bot1:10 bot2:10 \n");
 }
+*/

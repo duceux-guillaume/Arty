@@ -4,90 +4,258 @@
 #include <algorithm>
 #include <any>
 #include <iostream>
+#include <memory>
 #include <set>
 #include <unordered_map>
+#include <variant>
 #include <vector>
 
 namespace arty {
 
-class Any {
+using Entity = std::string;
+
+template <typename T>
+using Property = std::pair<std::string, T>;
+
+// helper type for the visitor
+template <class... Ts>
+struct overloaded : Ts... {
+  using Ts::operator()...;
+};
+template <class... Ts>
+overloaded(Ts...)->overloaded<Ts...>;
+
+class Container {
  public:
-  Any(std::string const& key) : _key(key), _val() {}
+  // CONTAINER PART
+  template <typename T>
+  using value_type = std::pair<std::string, T>;
+  template <typename T>
+  using sparse_storage_t = std::unordered_map<std::string, Property<T>>;
+  template <typename T>
+  using dense_storage_t = std::vector<Property<T>>;
+  using pointer_type = std::shared_ptr<std::any>;
+
+  enum ContainerType {
+    Dense,
+    Sparse,
+  };
+
+  Container() : _type(Sparse) {}
+
+  bool remove(Entity const& e) { return _remover(e); }
 
   template <typename T>
-  Any(std::string const& key, T const& v) : _key(key), _val(v) {}
-
-  std::string const& key() const { return _key; }
-  std::any const& val() const { return _val; }
-
-  bool operator==(Any const& other) const { return _key == other.key(); }
-  bool operator<(Any const& other) const { return _key < other.key(); }
-
-  template <typename T>
-  bool operator==(T const& other) const {
-    if (!check(other)) {
+  bool set(std::string const& e, T const& v) {
+    if (!_ptr) {
+      construct<T>();
+    }
+    if (!is<T>()) {
       return false;
     }
-    return std::any_cast<T>(_val) == other;
+    auto it = Container::iterator_type<T>(this, e);
+    if (it == it.end()) {
+      return it.add(e, v);
+    }
+    it->second = v;
+    return true;
   }
 
   template <typename T>
-  bool set(T val) {
-    std::any tmp(val);
-    if (_val.type().name() == tmp.type().name()) {
-      std::swap(_val, tmp);
-      return true;
+  T const* get(std::string const& e) const {
+    if (!is<T>() || !_ptr) {
+      return nullptr;
     }
-    return false;
-  }
-
-  template <typename T>
-  T get() {
-    try {
-      return std::any_cast<T>(_val);
-    } catch (std::bad_any_cast const& err) {
-      return T();
+    auto it = Iterator<T>(this, e);
+    if (it != it.end()) {
+      return &it->second;
+    } else {
+      return nullptr;
     }
   }
 
   template <typename T>
-  bool check(T val) const {
-    if (!_val.has_value()) {
-      return true;
-    }
-    std::any tmp(val);
-    return _val.type().name() == tmp.type().name();
+  bool is() const {
+    T v;
+    std::any helper(v);
+    return _type_name == helper.type().name();
   }
 
  private:
-  std::string _key;
-  std::any _val;
-};
-
-}  // namespace arty
-
-template <>
-class std::hash<arty::Any> {
- public:
-  size_t operator()(arty::Any const& s) const {
-    return std::hash<std::string>()(s.key());
-  }
-};
-
-namespace arty {
-
-struct TypeHelper {
   template <typename T>
-  static TypeHelper make();
+  void construct() {
+    if (_type_name.empty()) {
+      T v;
+      std::any helper(v);
+      _type_name = helper.type().name();
+    }
+    if (!_ptr && _type == Sparse) {
+      _ptr = std::make_shared<std::any>(sparse_storage_t<T>());
+    } else if (!_ptr && _type == Dense) {
+      _ptr = std::make_shared<std::any>(dense_storage_t<T>());
+    }
+    _remover = [&](Entity const& e) -> bool {
+      auto it = Iterator<T>(this, e);
+      return it.erase();
+    };
+  }
+
+ private:
+  ContainerType _type;
+  pointer_type _ptr;
+  std::string _type_name;
+  std::function<bool(Entity const&)> _remover;
+
+  // Iterator part
+ public:
+  template <typename T>
+  class Iterator {
+   public:
+    using self_type = Iterator<T>;
+    using value_type = std::pair<std::string, T>;
+    using reference = value_type&;
+    using pointer = value_type*;
+
+    Iterator(Container const* container) {
+      if (!container) {
+        return;
+      }
+      makePointer(container);
+      if (_var_ptr.index() == 0) {
+        _var_curr = std::get<real_sparse_storage_t*>(_var_ptr)->begin();
+      } else {
+        _var_curr = std::get<real_dense_storage_t*>(_var_ptr)->begin();
+      }
+    }
+
+    Iterator(Container* container) {
+      if (!container) {
+        return;
+      }
+      makePointer(container);
+      if (_var_ptr.index() == 0) {
+        _var_curr = std::get<real_sparse_storage_t*>(_var_ptr)->begin();
+      } else {
+        _var_curr = std::get<real_dense_storage_t*>(_var_ptr)->begin();
+      }
+    }
+
+    Iterator(Container const* container, Entity const& e)
+        : Iterator(container) {
+      seek(e);
+    }
+
+    Iterator(Container* container, Entity const& e) : Iterator(container) {
+      seek(e);
+    }
+
+    self_type begin() { return *this; }
+    self_type end() const { return Iterator(_var_ptr); }
+
+    bool operator!=(self_type const& other) const {
+      return _var_curr != other._var_curr;
+    }
+
+    bool operator==(self_type const& other) const { return !(*this != other); }
+
+    self_type& operator++() {
+      std::visit([](auto&& arg) { ++arg; }, _var_curr);
+      return *this;
+    }
+    reference operator*() {
+      return std::visit(
+          overloaded{
+              [](sparse_it_t const& arg) -> reference { return arg->second; },
+              [](dense_it_t const& arg) -> reference { return *arg; }},
+          _var_curr);
+    };
+    pointer operator->() { return &**this; }  // *** EDIT
+
+    bool add(Entity const& e, T const& v) {
+      if (_var_ptr.index() == 0) {
+        return std::get<real_sparse_storage_t*>(_var_ptr)
+            ->emplace(e, value_type(e, v))
+            .second;
+      } else {
+        std::get<real_dense_storage_t*>(_var_ptr)->emplace_back(e, v);
+        return true;
+      }
+    }
+
+    bool erase() {
+      if (*this == end()) {
+        return false;
+      }
+      if (_var_ptr.index() == 0) {
+        std::get<real_sparse_storage_t*>(_var_ptr)->erase(
+            std::get<sparse_it_t>(_var_curr));
+        return true;
+      } else {
+        std::get<real_dense_storage_t*>(_var_ptr)->erase(
+            std::get<dense_it_t>(_var_curr));
+        return true;
+      }
+    }
+
+   private:
+    using real_sparse_storage_t = typename Container::sparse_storage_t<T>;
+    using real_dense_storage_t = typename Container::dense_storage_t<T>;
+    using sparse_it_t = typename real_sparse_storage_t::iterator;
+    using dense_it_t = typename real_dense_storage_t::iterator;
+    using underlying_type = std::variant<sparse_it_t, dense_it_t>;
+    using variant_pointer =
+        std::variant<real_sparse_storage_t*, real_dense_storage_t*>;
+
+    Iterator(variant_pointer v) : _var_ptr(v) {
+      if (_var_ptr.index() == 0) {
+        _var_curr = std::get<real_sparse_storage_t*>(_var_ptr)->end();
+      } else {
+        _var_curr = std::get<real_dense_storage_t*>(_var_ptr)->end();
+      }
+    }
+
+    void makePointer(Container const* container) {
+      try {
+        if (container->type() == Sparse) {
+          _var_ptr = std::any_cast<typename Container::sparse_storage_t<T>>(
+              container->ptr().get());
+        } else {
+          _var_ptr = std::any_cast<typename Container::dense_storage_t<T>>(
+              container->ptr().get());
+        }
+      } catch (std::bad_any_cast const& err) {
+        std::cerr << err.what() << std::endl;
+      }
+    }
+
+    void seek(Entity const& e) {
+      if (_var_ptr.index() == 0) {
+        _var_curr = std::get<real_sparse_storage_t*>(_var_ptr)->find(e);
+      } else {
+        auto ptr = std::get<real_dense_storage_t*>(_var_ptr);
+        _var_curr = std::find_if(ptr->begin(), ptr->end(),
+                                 [e](auto&& p) { return p.first == e; });
+      }
+    }
+
+    underlying_type _var_curr;
+    variant_pointer _var_ptr;
+  };
+
+  ContainerType const& type() const { return _type; }
+  pointer_type const& ptr() const { return _ptr; }
+
+  template <typename T>
+  using const_iterator_type = Iterator<const T>;
+  template <typename T>
+  using iterator_type = Iterator<T>;
 };
 
-using SparseStorage = std::set<Any>;
-using PropMap = std::unordered_map<std::string, SparseStorage>;
-using HelperMap = std::unordered_map<std::string, TypeHelper>;
-
+using ContainerMap = std::unordered_map<std::string, Container>;
+/*
 class MultiStorageIterator {
  public:
-  using value_type = std::vector<SparseStorage::const_iterator>;
+  using value_type = std::vector<Container::iterator_type>;
   using reference = value_type&;
   using pointer = value_type*;
   using difference_type = std::ptrdiff_t;
@@ -109,10 +277,10 @@ class MultiStorageIterator {
  private:
   value_type _currs;
 };
-
-class StorageWrapper {
+template <typename T>
+class ContainerWrapper {
  public:
-  void add(SparseStorage const* storage) { _storages.push_back(storage); }
+  void add(Container container) { _storages.push_back(container); }
 
   MultiStorageIterator begin() const;
   MultiStorageIterator end() const;
@@ -120,8 +288,9 @@ class StorageWrapper {
   operator bool() const;
 
  private:
-  std::vector<SparseStorage const*> _storages;
+  std::vector<Container> _storages;
 };
+*/
 
 class Memory {
  public:
@@ -151,22 +320,7 @@ class Memory {
     if (!hasProp(p)) {
       return false;
     }
-    auto& storage = _props.at(p);
-    auto it = storage.find(e);
-    if (it == storage.end()) {
-      // first time, we need to set our io funcs
-      _writers.emplace(p, [](std::ostream& out, Any const& v) {
-        out << v.key() << ":" << std::any_cast<T>(v.val());
-      });
-      storage.emplace(e, v);
-      return true;
-    }
-    if (it->check(v)) {
-      storage.erase(e);
-      storage.emplace(e, v);
-      return true;
-    }
-    return false;
+    return _props.at(p).set(e, v);
   }
 
   bool set(std::string const& e, std::string const& p, const char* v) {
@@ -184,19 +338,7 @@ class Memory {
     if (!hasProp(p)) {
       return nullptr;
     }
-    try {
-      auto const& storage = _props.at(p);
-      auto it = storage.find(e);
-      if (it == storage.end()) {
-        return nullptr;
-      }
-      if (!it->check(T())) {
-        return nullptr;
-      }
-      return std::any_cast<T>(&it->val());
-    } catch (std::bad_any_cast const& err) {
-      return nullptr;
-    }
+    return _props.at(p).get<T>(e);
   }
 
   bool remove(std::string const& e, std::string const& p);
@@ -210,7 +352,17 @@ class Memory {
   void load(std::istream const& in);
 
   // PROPERTIES ITERATION HELPERS
-  SparseStorage const* prop(std::string const& p) const;
+  template <typename T>
+  Container::const_iterator_type<T> iterator(std::string const& p) const {
+    return Container::const_iterator_type<T>(&_props.at(p));
+  }
+
+  template <typename T>
+  Container::iterator_type<T> iterator(std::string const& p) {
+    return Container::iterator_type<T>(&_props.at(p));
+  }
+
+  /*
   template <typename... Args>
   StorageWrapper props(Args... args) const {
     StorageWrapper wrapper;
@@ -219,7 +371,7 @@ class Memory {
   }
 
  private:
-  void makeWrapper(StorageWrapper& /*wrapper*/) const {}
+  void makeWrapper(StorageWrapper& wrapper) const {}
   void makeWrapper(StorageWrapper& wrapper, std::string const& first) const {
     wrapper.add(prop(first));
   }
@@ -229,15 +381,13 @@ class Memory {
     wrapper.add(prop(first));
     makeWrapper(wrapper, args...);
   }
-
+*/
  private:
   std::set<std::string> _entities;
-  PropMap _props;
-  using WriterHelper = std::function<void(std::ostream&, Any const&)>;
-  using ParserHelper = std::function<Any(std::string const&)>;
-  std::unordered_map<std::string, WriterHelper> _writers;
-  std::unordered_map<std::string, WriterHelper> _parsers;
+  ContainerMap _props;
 };
+
+using Blackboard = Memory;
 
 }  // namespace arty
 
