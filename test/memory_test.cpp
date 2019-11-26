@@ -96,7 +96,6 @@ TEST(Memory, IterateOverOneProp) {
   }
   ASSERT_EQ(*mem.get<int>("bot", "physics"), 15);
 }
-/*
 TEST(Memory, IterateOverTwoProps) {
   Memory mem;
   ASSERT_TRUE(mem.newEnt("bot"));
@@ -104,15 +103,19 @@ TEST(Memory, IterateOverTwoProps) {
   ASSERT_TRUE(mem.newProp("name"));
   ASSERT_TRUE(mem.set("bot", "health", 10));
   ASSERT_TRUE(mem.set("bot", "name", std::string("myname")));
-  auto wrapper = mem.props("health", "name");
-  ASSERT_TRUE(wrapper);
+  auto it1 = mem.iterator<int>("health");
+  auto it2 = mem.iterator<std::string>("name");
+  MultiIterator wrapper(it1, it2);
   for (auto const& p : wrapper) {
-    ASSERT_EQ(p[0]->key(), "bot");
-    ASSERT_EQ(*p[0], 10);
-    ASSERT_EQ(p[1]->key(), "bot");
-    ASSERT_EQ(*p[1], std::string("myname"));
+    std::cout << std::get<0>(p)->first << std::endl;
+    std::cout << std::get<1>(p)->first << std::endl;
+    ASSERT_EQ(std::get<0>(p)->first, "bot");
+    ASSERT_EQ(std::get<0>(p)->second, 10);
+    ASSERT_EQ(std::get<1>(p)->first, "bot");
+    ASSERT_EQ(std::get<1>(p)->second, std::string("myname"));
   }
 }
+
 TEST(Memory, IterateOverTwoPropsBadLuck) {
   Memory mem;
   ASSERT_TRUE(mem.newEnt("bot1"));
@@ -121,16 +124,19 @@ TEST(Memory, IterateOverTwoPropsBadLuck) {
   ASSERT_TRUE(mem.newProp("name"));
   ASSERT_TRUE(mem.set("bot1", "health", 10));
   ASSERT_TRUE(mem.set("bot2", "name", std::string("myname")));
-  auto wrapper = mem.props("health", "name");
-  ASSERT_TRUE(wrapper);
+  auto it1 = mem.iterator<int>("health");
+  auto it2 = mem.iterator<std::string>("name");
+  MultiIterator wrapper(it1, it2);
   for (auto const& p : wrapper) {
+    std::cout << std::get<0>(p)->first << std::endl;
+    std::cout << std::get<1>(p)->first << std::endl;
     // no entity has both those props
     // we shouldn't iterate at all
     FAIL();
     (void)p;
   }
 }
-
+/*
 TEST(Memory, IterateOverTwoPropsSkipOne) {
   Memory mem;
   ASSERT_TRUE(mem.newEnt("bot1"));
@@ -149,19 +155,5 @@ TEST(Memory, IterateOverTwoPropsSkipOne) {
     ASSERT_EQ(p[1]->key(), "bot2");
     ASSERT_EQ(*p[1], std::string("myname"));
   }
-}
-
-TEST(Memory, Write) {
-  Memory mem;
-  ASSERT_TRUE(mem.newEnt("bot1"));
-  ASSERT_TRUE(mem.newProp("health"));
-  ASSERT_TRUE(mem.newEnt("bot2"));
-  ASSERT_TRUE(mem.newProp("name"));
-  ASSERT_TRUE(mem.set("bot1", "health", 10));
-  ASSERT_TRUE(mem.set("bot2", "health", 10));
-  ASSERT_TRUE(mem.set("bot2", "name", std::string("myname")));
-  std::stringstream ss;
-  mem.write(ss);
-  ASSERT_EQ(ss.str(), "name bot2:myname \nhealth bot1:10 bot2:10 \n");
 }
 */

@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <any>
 #include <iostream>
+#include <map>
 #include <memory>
 #include <set>
 #include <unordered_map>
@@ -25,13 +26,34 @@ struct overloaded : Ts... {
 template <class... Ts>
 overloaded(Ts...)->overloaded<Ts...>;
 
+template <class F, class... Args>
+constexpr F for_each_arg(F f, Args&&... args) {
+  std::initializer_list<int>{((void)f(std::forward<Args>(args)), 0)...};
+  return f;
+}
+
+template <class Tuple, class F, std::size_t... I>
+constexpr F for_each_impl(Tuple&& t, F&& f, std::index_sequence<I...>) {
+  return (void)std::initializer_list<int>{
+             (std::forward<F>(f)(std::get<I>(std::forward<Tuple>(t))), 0)...},
+         f;
+}
+
+template <class Tuple, class F>
+constexpr F for_each(Tuple&& t, F&& f) {
+  return for_each_impl(
+      std::forward<Tuple>(t), std::forward<F>(f),
+      std::make_index_sequence<
+          std::tuple_size<std::remove_reference_t<Tuple>>::value>{});
+}
+
 class Container {
  public:
   // CONTAINER PART
   template <typename T>
   using value_type = std::pair<std::string, T>;
   template <typename T>
-  using sparse_storage_t = std::unordered_map<std::string, Property<T>>;
+  using sparse_storage_t = std::map<std::string, Property<T>>;
   template <typename T>
   using dense_storage_t = std::vector<Property<T>>;
   using pointer_type = std::shared_ptr<std::any>;
@@ -162,14 +184,24 @@ class Container {
       std::visit([](auto&& arg) { ++arg; }, _var_curr);
       return *this;
     }
-    reference operator*() {
-      return std::visit(
-          overloaded{
-              [](sparse_it_t const& arg) -> reference { return arg->second; },
-              [](dense_it_t const& arg) -> reference { return *arg; }},
-          _var_curr);
-    };
-    pointer operator->() { return &**this; }  // *** EDIT
+
+    reference get() {
+      if (_var_curr.index() == 0) {
+        return std::get<sparse_it_t>(_var_curr)->second;
+      }
+      return *std::get<dense_it_t>(_var_curr);
+    }
+    reference get() const {
+      if (_var_curr.index() == 0) {
+        return std::get<sparse_it_t>(_var_curr)->second;
+      }
+      return *std::get<dense_it_t>(_var_curr);
+    }
+
+    reference operator*() { return get(); }
+    reference operator*() const { return get(); }
+    pointer operator->() { return &**this; }
+    pointer operator->() const { return &this->get(); }
 
     bool add(Entity const& e, T const& v) {
       if (_var_ptr.index() == 0) {
@@ -252,45 +284,92 @@ class Container {
 };
 
 using ContainerMap = std::unordered_map<std::string, Container>;
-/*
-class MultiStorageIterator {
+
+template <class... Args>
+class MultiIterator {
  public:
-  using value_type = std::vector<Container::iterator_type>;
+  using self_type = MultiIterator<Args...>;
+  using value_type = std::tuple<Args...>;
   using reference = value_type&;
   using pointer = value_type*;
-  using difference_type = std::ptrdiff_t;
-  using iterator_category = std::forward_iterator_tag;
 
-  MultiStorageIterator() = default;
-  MultiStorageIterator(value_type const& b) : _currs(b) {}
+  MultiIterator(Args... args) : _tuple(args...) {}
+  MultiIterator(std::tuple<Args...> const& tuple) : _tuple(tuple) {}
 
-  void next();
-
-  bool operator!=(MultiStorageIterator const& other) const;
-
-  MultiStorageIterator& operator++() {
-    next();
+  self_type begin() {
+    if (!check()) {
+      next();
+    }
     return *this;
   }
-  reference operator*() { return _currs; }
+  self_type end() const {
+    auto other =
+        std::make_tuple(std::get<0>(_tuple).end(), std::get<1>(_tuple).end());
+    return self_type(other);
+  }
+
+  bool operator!=(self_type const& other) const {
+    return std::get<0>(_tuple) != std::get<0>(other._tuple);
+  }
+  bool operator==(self_type const& other) const { return !(*this != other); }
+
+  bool step(Entity const& key) {
+    auto iterate = [key](auto&& it) {
+      if (it->first < key) {
+        ++it;
+      }
+    };
+    for_each(_tuple, iterate);
+    return true;
+  }
+
+  bool next() {
+    if constexpr (std::tuple_size<value_type>::value == 0) {
+      return true;
+    }
+    auto& it1 = std::get<0>(_tuple);
+    if (it1 != it1.end()) {
+      ++it1;
+    }
+    if (it1 == it1.end()) {
+      return true;
+    }
+    if constexpr (std::tuple_size<value_type>::value == 1) {
+      return true;
+    }
+    auto& it2 = std::get<1>(_tuple);
+    while (it2->first < it1->first && it2 != it2.end()) {
+      ++it2;
+    }
+    if (it2 == it2.end()) {
+      return true;
+    }
+    return it2->first == it1->first;
+  }
+
+  self_type& operator++() {
+    while (!next()) {
+    }
+    return *this;
+  }
+  reference operator*() { return _tuple; };
+  pointer operator->() { return &**this; }
 
  private:
-  value_type _currs;
+  bool check() const {
+    if constexpr (std::tuple_size<value_type>::value <= 1) {
+      return true;
+    }
+    auto const& it1 = std::get<0>(_tuple);
+    auto const& it2 = std::get<1>(_tuple);
+    if (it1 == it1.end() || it2 == it2.end()) {
+      return true;
+    }
+    return it1->first == it2->first;
+  }
+
+  value_type _tuple;
 };
-template <typename T>
-class ContainerWrapper {
- public:
-  void add(Container container) { _storages.push_back(container); }
-
-  MultiStorageIterator begin() const;
-  MultiStorageIterator end() const;
-
-  operator bool() const;
-
- private:
-  std::vector<Container> _storages;
-};
-*/
 
 class Memory {
  public:
@@ -347,9 +426,6 @@ class Memory {
 
   bool hasEnt(std::string const& name) const;
   bool hasProp(std::string const& name) const;
-
-  void write(std::ostream& out) const;
-  void load(std::istream const& in);
 
   // PROPERTIES ITERATION HELPERS
   template <typename T>

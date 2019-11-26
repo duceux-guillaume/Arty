@@ -45,22 +45,6 @@ bool Memory::hasProp(const std::string &name) const {
   return _props.find(name) != _props.end();
 }
 
-void Memory::write(std::ostream &out) const {
-  for (auto const &item : _props) {
-    out << item.first << " ";
-    // item.second.write(out);
-    /*
-    if (_writers.count(item.first) > 0) {
-      auto writer = _writers.at(item.first);
-      for (auto const &prop : item.second) {
-        writer(out, prop);
-        out << " ";
-      }
-    }
-    */
-    out << std::endl;
-  }
-}
 /*
 void MultiStorageIterator::next() {
   // We move first, and then we make other move if they are inferior
