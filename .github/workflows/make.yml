@@ -11,8 +11,10 @@ jobs:
     runs-on: ubuntu-latest
     container: nvidia/opengl:1.0-glvnd-devel-ubuntu18.04
     steps:
+      - name: install
+        run: apt-get install git
       - uses: actions/checkout@v2
-      - name: Checkout submodules
+      - name: checkout
         shell: bash
         run: |
             auth_header="$(git config --local --get http.https://github.com/.extraheader)"
