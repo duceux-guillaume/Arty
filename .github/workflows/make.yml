@@ -13,16 +13,14 @@ jobs:
     steps:
       - name: install
         run: apt-get update && apt-get install -y --no-install-recommends git
-      - uses: actions/checkout@v2
       - name: checkout
-        shell: bash
-        run: |
-            auth_header="$(git config --local --get http.https://github.com/.extraheader)"
-            git submodule sync --recursive
-            git -c "http.extraheader=$auth_header" -c protocol.version=2 submodule update --init --force --recursive --depth=1      
+        uses: actions/checkout@v2
       - name: configure
         run: mkdir build && cd build && cmake ..
       - name: build
         run: cmake --build build
+      - name: submodules
+        shell: bash
+        run: git submodule sync --recursive && git submodule update --init --force --recursive --depth=1      
       - name: test
         run: cd build && ctest
