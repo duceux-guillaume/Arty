@@ -1,11 +1,33 @@
 cmake_minimum_required (VERSION 3.0)
 project (Arty)
 
+###############
+## ARTY CORE ##
+###############
+
+file(GLOB_RECURSE ARTY_CORE_FILES
+  include/arty/core/*
+  include/arty/impl/*
+  src/arty/core/*
+  src/arty/impl/*
+  )
+
+add_library(arty_core ${ARTY_CORE_FILES})
+target_compile_features(arty_core PUBLIC cxx_std_17)
+target_compile_options(arty_core PUBLIC -Werror -Wall -Wextra)
+target_include_directories(arty_core
+    PUBLIC
+        $<INSTALL_INTERFACE:include>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/src
+)
+
 ##############
 ## EXTERNAL ##
 ##############
 
-find_package(OpenGL REQUIRED)
+#find_package(OpenGL REQUIRED)
 
 if( CMAKE_BINARY_DIR STREQUAL CMAKE_SOURCE_DIR )
     message( FATAL_ERROR "Please select another Build Directory ! (and give it a clever name, like bin_Visual2012_64bits/)" )
@@ -18,21 +40,21 @@ if( CMAKE_BINARY_DIR MATCHES " " )
 endif()
 
 # Compile external dependencies
-add_subdirectory (external)
+#add_subdirectory (external)
 
-set(ALL_LIBS
-        ${OPENGL_LIBRARY}
-        glfw
-        GLEW_1130
-)
+#set(ALL_LIBS
+#        ${OPENGL_LIBRARY}
+#        glfw
+#        GLEW_1130
+#)
 
-add_definitions(
-        -DTW_STATIC
-        -DTW_NO_LIB_PRAGMA
-        -DTW_NO_DIRECT3D
-        -DGLEW_STATIC
-        -D_CRT_SECURE_NO_WARNINGS
-)
+#add_definitions(
+#        -DTW_STATIC
+#        -DTW_NO_LIB_PRAGMA
+#        -DTW_NO_DIRECT3D
+#        -DGLEW_STATIC
+#        -D_CRT_SECURE_NO_WARNINGS
+#)
 
 ##########
 ## ARTY ##
