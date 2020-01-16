@@ -105,15 +105,8 @@ add_executable(playground playground/main.cpp)
 target_link_libraries(playground PUBLIC arty_core arty_gl)
 add_custom_command(
    TARGET playground POST_BUILD
-   COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/bot_arena${CMAKE_EXECUTABLE_SUFFIX}" "${CMAKE_CURRENT_SOURCE_DIR}/bin/"
+   COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/playground${CMAKE_EXECUTABLE_SUFFIX}" "${CMAKE_CURRENT_SOURCE_DIR}/bin/"
 )
-
-#add_executable(bot_editor bot_editor/main.cpp)
-#target_link_libraries(bot_editor PUBLIC arty_core arty_gl)
-#add_custom_command(
-#   TARGET bot_editor POST_BUILD
-#   COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/bot_editor${CMAKE_EXECUTABLE_SUFFIX}" "${CMAKE_CURRENT_SOURCE_DIR}/bin/"
-#)
 
 endif(OPENGL_FOUND)
 
