@@ -31,10 +31,8 @@ jobs:
         run: git submodule sync --recursive && git submodule update --init --force --recursive --depth=1      
       - name: mkdir
         run: mkdir build
-      - name: cd  
-        run: cd build
       - name: configure
-        run: cmake ..
+        run: cmake -S . -B build
       - name: build
         run: cmake --build build
       - name: test
