@@ -2,6 +2,20 @@ cmake_minimum_required (VERSION 3.0)
 project (Arty)
 
 ###############
+## ENV CHECK ##
+###############
+
+if( CMAKE_BINARY_DIR STREQUAL CMAKE_SOURCE_DIR )
+  message( FATAL_ERROR "Please select another Build Directory ! (and give it a clever name, like bin_Visual2012_64bits/)" )
+endif()
+if( CMAKE_SOURCE_DIR MATCHES " " )
+  message( "Your Source Directory contains spaces. If you experience problems when compiling, this can be the cause." )
+endif()
+if( CMAKE_BINARY_DIR MATCHES " " )
+  message( "Your Build Directory contains spaces. If you experience problems when compiling, this can be the cause." )
+endif()
+
+###############
 ## ARTY CORE ##
 ###############
 
@@ -27,34 +41,28 @@ target_include_directories(arty_core
 ## EXTERNAL ##
 ##############
 
-#find_package(OpenGL REQUIRED)
+find_package(OpenGL)
 
-if( CMAKE_BINARY_DIR STREQUAL CMAKE_SOURCE_DIR )
-    message( FATAL_ERROR "Please select another Build Directory ! (and give it a clever name, like bin_Visual2012_64bits/)" )
-endif()
-if( CMAKE_SOURCE_DIR MATCHES " " )
-        message( "Your Source Directory contains spaces. If you experience problems when compiling, this can be the cause." )
-endif()
-if( CMAKE_BINARY_DIR MATCHES " " )
-        message( "Your Build Directory contains spaces. If you experience problems when compiling, this can be the cause." )
-endif()
+if(OPENGL_FOUND)
 
 # Compile external dependencies
-#add_subdirectory (external)
+add_subdirectory (external)
 
-#set(ALL_LIBS
-#        ${OPENGL_LIBRARY}
-#        glfw
-#        GLEW_1130
-#)
+set(ALL_LIBS
+        ${OPENGL_LIBRARY}
+        glfw
+        GLEW_1130
+)
 
-#add_definitions(
-#        -DTW_STATIC
-#        -DTW_NO_LIB_PRAGMA
-#        -DTW_NO_DIRECT3D
-#        -DGLEW_STATIC
-#        -D_CRT_SECURE_NO_WARNINGS
-#)
+add_definitions(
+        -DTW_STATIC
+        -DTW_NO_LIB_PRAGMA
+        -DTW_NO_DIRECT3D
+        -DGLEW_STATIC
+        -D_CRT_SECURE_NO_WARNINGS
+)
+
+endif(OPENGL_FOUND)
 
 #############
 ## ARTY GL ##
@@ -64,7 +72,7 @@ if(OPENGL_FOUND)
 
 file(GLOB_RECURSE ARTY_GL_FILES include/arty/ext/* src/arty/ext/*)
 add_library(arty_gl ${ARTY_GL_FILES})
-target_link_libraries(arty_gl PUBLIC arty_core)
+target_link_libraries(arty_gl PUBLIC arty_core ${ALL_LIBS})
 target_compile_features(arty_gl PUBLIC cxx_std_17)
 target_compile_options(arty_gl PUBLIC -Werror -Wall -Wextra)
 target_include_directories(arty_gl
