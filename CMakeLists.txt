@@ -28,7 +28,9 @@ file(GLOB_RECURSE ARTY_CORE_FILES
 
 add_library(arty_core ${ARTY_CORE_FILES})
 target_compile_features(arty_core PUBLIC cxx_std_17)
-target_compile_options(arty_core PUBLIC -Werror -Wall -Wextra)
+if(CMAKE_COMPILER_IS_GNUCXX)
+  target_compile_options(arty_core PUBLIC -Werror -Wall -Wextra)
+endif(CMAKE_COMPILER_IS_GNUCXX)
 target_include_directories(arty_core
     PUBLIC
         $<INSTALL_INTERFACE:include>
@@ -74,7 +76,9 @@ file(GLOB_RECURSE ARTY_GL_FILES include/arty/ext/* src/arty/ext/*)
 add_library(arty_gl ${ARTY_GL_FILES})
 target_link_libraries(arty_gl PUBLIC arty_core ${ALL_LIBS})
 target_compile_features(arty_gl PUBLIC cxx_std_17)
-target_compile_options(arty_gl PUBLIC -Werror -Wall -Wextra)
+if(CMAKE_COMPILER_IS_GNUCXX)
+  target_compile_options(arty_gl PUBLIC -Werror -Wall -Wextra)
+endif(CMAKE_COMPILER_IS_GNUCXX)
 target_include_directories(arty_gl
     PUBLIC
         $<INSTALL_INTERFACE:include>

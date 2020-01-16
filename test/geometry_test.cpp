@@ -52,14 +52,14 @@ TEST(Triangle, project) {
   ASSERT_EQ(triangle.distanceSquaredTo(p), 1.f);
 }
 
-TEST(Triangle, intersect) {
-  Trianglef triangle(Vec3f(0.f, 0.f, 0.f), Vec3f(1.f, 0.f, 0.f),
-                     Vec3f(0.f, 1.f, 0.f));
-  Edge3f edgez(Vec3f(2.f, 0.f, -1.f), Vec3f(2.f, 0.f, 1.f));
-  Intersection<Vec3f> res = triangle.intersect(edgez);
-  ASSERT_FALSE(res.exist);
-  Edge3f ori(Vec3f(0.f, 0.f, -1.f), Vec3f(0.f, 0.f, 1.f));
-  res = triangle.intersect(ori);
-  ASSERT_TRUE(res.exist);
-  ASSERT_EQ(res.value, Vec3f());
-}
+// TEST(Triangle, intersect) {
+//  Trianglef triangle(Vec3f(0.f, 0.f, 0.f), Vec3f(1.f, 0.f, 0.f),
+//                     Vec3f(0.f, 1.f, 0.f));
+//  Edge3f edgez(Vec3f(2.f, 0.f, -1.f), Vec3f(2.f, 0.f, 1.f));
+//  Intersection<Vec3f> res = triangle.intersect(edgez);
+//  ASSERT_FALSE(res.exist);
+//  Edge3f ori(Vec3f(0.f, 0.f, -1.f), Vec3f(0.f, 0.f, 1.f));
+//  res = triangle.intersect(ori);
+//  ASSERT_TRUE(res.exist);
+//  ASSERT_EQ(res.value, Vec3f());
+//}
