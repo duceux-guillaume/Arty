@@ -9,10 +9,7 @@ on:
 jobs:
   build-ubuntu:
     runs-on: ubuntu-latest
-    container: nvidia/opengl:1.0-glvnd-devel-ubuntu18.04
     steps:
-      - name: install
-        run: apt-get update && apt-get install -y --no-install-recommends git
       - name: checkout
         uses: actions/checkout@v2
       - name: configure
