@@ -103,10 +103,13 @@ if(OPENGL_FOUND)
 
 add_executable(playground playground/main.cpp)
 target_link_libraries(playground PUBLIC arty_core arty_gl)
+
+if(CMAKE_COMPILER_IS_GNUCXX)
 add_custom_command(
    TARGET playground POST_BUILD
    COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/playground${CMAKE_EXECUTABLE_SUFFIX}" "${CMAKE_CURRENT_SOURCE_DIR}/bin/"
 )
+endif(CMAKE_COMPILER_IS_GNUCXX)
 
 endif(OPENGL_FOUND)
 
