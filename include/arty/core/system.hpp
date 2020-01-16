@@ -10,6 +10,8 @@ namespace arty {
 
 class System {
  public:
+  virtual ~System() {}
+
   virtual Result process(Ptr<Blackboard> const &board);
   virtual Result process(Ptr<Blackboard> const &board,
                          Ptr<Keyboard> const &keyboard);

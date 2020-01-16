@@ -1,8 +1,6 @@
 #ifndef GL_SHAPE_RENDERER_HPP
 #define GL_SHAPE_RENDERER_HPP
 
-#include <GL/glew.h>
-
 #include <arty/impl/collision_rendering_system.hpp>
 
 namespace arty {

@@ -13,13 +13,13 @@ class Engine {
  public:
   Engine() : _window(), _systems(), _state() {}
 
-  Engine& set_window(Ptr<Window> const& ptr);
+  Engine& setWindow(Ptr<Window> const& ptr);
 
-  Engine& set_keyboard(Ptr<Keyboard> const& ptr);
+  Engine& setKeyboard(Ptr<Keyboard> const& ptr);
 
-  Engine& add_system(Ptr<System> const& system);
+  Engine& addSystem(Ptr<System> const& system);
 
-  Engine& set_board(Ptr<Blackboard> const& board);
+  Engine& setBoard(Ptr<Blackboard> const& board);
 
   Result start();
 

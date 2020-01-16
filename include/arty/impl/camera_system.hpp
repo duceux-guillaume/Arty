@@ -5,7 +5,6 @@
 #include <arty/core/window.h>
 
 #include <arty/core/system.hpp>
-#include <cmath>
 
 namespace arty {
 

@@ -2,22 +2,22 @@
 
 namespace arty {
 
-Engine &Engine::set_window(const Ptr<Window> &ptr) {
+Engine &Engine::setWindow(const Ptr<Window> &ptr) {
   _window = ptr;
   return *this;
 }
 
-Engine &Engine::set_keyboard(const Ptr<Keyboard> &ptr) {
+Engine &Engine::setKeyboard(const Ptr<Keyboard> &ptr) {
   _keyboard = ptr;
   return *this;
 }
 
-Engine &Engine::add_system(const Ptr<System> &system) {
+Engine &Engine::addSystem(const Ptr<System> &system) {
   _systems.push_back(system);
   return *this;
 }
 
-Engine &Engine::set_board(const Ptr<Blackboard> &board) {
+Engine &Engine::setBoard(const Ptr<Blackboard> &board) {
   _state = board;
   return *this;
 }
