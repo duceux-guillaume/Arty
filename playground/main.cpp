@@ -29,13 +29,13 @@ int main(void) {
   auto cube = board->createEntity("cube");
   board->set(cube, HitBoxRenderingSystem::DRAW_PROP,
              Box(Vec3f(0.f, 0.f, 0.f), Vec3f(1.f, 1.f, 1.f)));
-  board->set(cube, "transform", Vec3f(0.f, 0.f, 0.f));
-  /*
-    auto floor = board->createEntity("floor");
-    board->set(floor, HitBoxRenderingSystem::DRAW_PROP,
-               Box(Vec3f(0.f, 0.f, -2.f), Vec3f(5.f, 5.f, 1.f)));
-    board->set(floor, "transform", Vec3f(0.f, 0.f, -2.f));
-  */
+  board->set(cube, "transform", Transform(Vec3f(0.f, 0.f, 0.f)));
+
+  auto floor = board->createEntity("floor");
+  board->set(floor, HitBoxRenderingSystem::DRAW_PROP,
+             Box(Vec3f(0.f, 0.f, -5.f), Vec3f(5.f, 5.f, 0.5f)));
+  board->set(floor, "transform", Transform(Vec3f(0.f, 0.f, -5.f)));
+
   check_result(engine.start());
   check_result(engine.run());
   return ok();

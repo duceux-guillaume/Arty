@@ -85,19 +85,19 @@ static void boxToLines(Box const& b, std::vector<Vec3f>& l) {
   l.push_back(next);
   // middle part
   prev = b.center + b.halfLength;
-  next = flip(prev, Vec3f(1.f, 1.f, -1.f));
+  next = b.center + flip(b.halfLength, Vec3f(1.f, 1.f, -1.f));
   l.push_back(prev);
   l.push_back(next);
   prev = b.center + flip(b.halfLength, Vec3f(1.f, -1.f, 1.f));
-  next = flip(prev, Vec3f(1.f, 1.f, -1.f));
+  next = b.center + flip(b.halfLength, Vec3f(1.f, -1.f, -1.f));
   l.push_back(prev);
   l.push_back(next);
   prev = b.center + flip(b.halfLength, Vec3f(-1.f, 1.f, 1.f));
-  next = flip(prev, Vec3f(1.f, 1.f, -1.f));
+  next = b.center + flip(b.halfLength, Vec3f(-1.f, 1.f, -1.f));
   l.push_back(prev);
   l.push_back(next);
   prev = b.center + flip(b.halfLength, Vec3f(-1.f, -1.f, 1.f));
-  next = flip(prev, Vec3f(1.f, 1.f, -1.f));
+  next = b.center + flip(b.halfLength, Vec3f(-1.f, -1.f, -1.f));
   l.push_back(prev);
   l.push_back(next);
 }
