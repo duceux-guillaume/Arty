@@ -7,6 +7,9 @@
 namespace arty {
 
 Result GlTextRenderer::initText2D(const char *texturePath) {
+  glGenVertexArrays(1, &_test2DVertexArrayID);
+  glBindVertexArray(_test2DVertexArrayID);
+
   // Initialize text'ure
   _text2DTextureID = loadDDS(texturePath);
   if (_text2DTextureID == 0) {

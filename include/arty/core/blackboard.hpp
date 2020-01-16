@@ -1,5 +1,5 @@
-#ifndef BLACKBOARD_H
-#define BLACKBOARD_H
+#ifndef BLACKBOARD_HPP
+#define BLACKBOARD_HPP
 
 #include <arty/core/math.h>
 #include <arty/core/result.h>
@@ -294,4 +294,4 @@ class Blackboard {
 
 }  // namespace arty
 
-#endif  // BLACKBOARD_H
+#endif  // BLACKBOARD_HPP

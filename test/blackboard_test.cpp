@@ -1,5 +1,6 @@
-#include <arty/core/blackboard.h>
 #include <gtest/gtest.h>
+
+#include <arty/core/blackboard.hpp>
 
 using namespace arty;
 

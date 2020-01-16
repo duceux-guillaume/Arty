@@ -1,5 +1,5 @@
-#ifndef ENGINE_H
-#define ENGINE_H
+#ifndef ENGINE_HPP
+#define ENGINE_HPP
 
 #include <arty/core/input.h>
 #include <arty/core/result.h>
@@ -40,4 +40,4 @@ class Engine {
 
 }  // namespace arty
 
-#endif  // ENGINE_H
+#endif  // ENGINE_HPP

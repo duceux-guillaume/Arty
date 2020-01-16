@@ -98,7 +98,7 @@ class Container {
 
   template <typename T>
   bool is() const {
-    T v;
+    T v{};
     std::any helper(v);
     return _type_name == helper.type().name();
   }
@@ -107,7 +107,7 @@ class Container {
   template <typename T>
   void construct() {
     if (_type_name.empty()) {
-      T v;
+      T v{};
       std::any helper(v);
       _type_name = helper.type().name();
     }

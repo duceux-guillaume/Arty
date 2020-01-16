@@ -11,11 +11,12 @@ class GlTextRenderer : public ITextRenderer {
   void printText2D(const char* text, int x, int y, int size);
 
  private:
+  unsigned int _test2DVertexArrayID;
   unsigned int _text2DTextureID;
   unsigned int _text2DVertexBufferID;
   unsigned int _text2DUVBufferID;
   unsigned int _text2DShaderID;
-  unsigned int _text2DUniformID;
+  int _text2DUniformID;
 
   // ITextRenderer interface
  public:

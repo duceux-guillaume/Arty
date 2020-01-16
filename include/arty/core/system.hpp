@@ -1,16 +1,10 @@
 #ifndef ECS_H
 #define ECS_H
 
-#include <arty/core/blackboard.h>
 #include <arty/core/input.h>
 #include <arty/core/result.h>
 
-#include <cstdint>
-#include <memory>
-#include <set>
-#include <string>
-#include <unordered_map>
-#include <vector>
+#include <arty/core/blackboard.hpp>
 
 namespace arty {
 
