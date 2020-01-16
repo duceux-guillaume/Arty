@@ -1,5 +1,5 @@
-#ifndef COLLISION_RENDERING_SYSTEM_HPP
-#define COLLISION_RENDERING_SYSTEM_HPP
+#ifndef HITBOX_RENDERING_SYSTEM_HPP
+#define HITBOX_RENDERING_SYSTEM_HPP
 
 #include <arty/core/geometry.hpp>
 #include <arty/core/system.hpp>
@@ -8,20 +8,19 @@ namespace arty {
 
 class IShapeRenderer {
  public:
+  virtual ~IShapeRenderer() {}
   virtual Result init() = 0;
-  virtual void draw(const Entity &e, const Shape3f &s, const Mat4x4f &model,
+  virtual void draw(const Entity &e, const Box &s, const Mat4x4f &model,
                     const Mat4x4f &view, const Mat4x4f &proj) = 0;
   virtual void release() = 0;
-  virtual void import(const Entity &e, const Shape3f &s) = 0;
 };
 
-class CollisionRenderingSystem : public System {
+class HitBoxRenderingSystem : public System {
  public:
-  static constexpr const char *IMPORT_PROP = "shape2import";
-  static constexpr const char *DRAW_PROP = "aabb";
+  static constexpr const char *DRAW_PROP = "hitbox";
 
  public:
-  CollisionRenderingSystem(Ptr<IShapeRenderer> rend) : _renderer(rend) {}
+  HitBoxRenderingSystem(Ptr<IShapeRenderer> rend) : _renderer(rend) {}
 
  private:
   Ptr<IShapeRenderer> _renderer;
@@ -31,6 +30,7 @@ class CollisionRenderingSystem : public System {
   Result init(const Ptr<Blackboard> &board) override;
   void release() override;
 };
+
 }  // namespace arty
 
-#endif  // COLLISION_RENDERING_SYSTEM_HPP
+#endif  // HITBOX_RENDERING_SYSTEM_HPP

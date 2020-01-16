@@ -3,9 +3,9 @@
 #include <arty/ext/opengl/2d_renderer.hpp>
 #include <arty/ext/opengl/gl_shape_renderer.hpp>
 #include <arty/impl/camera_system.hpp>
-#include <arty/impl/collision_rendering_system.hpp>
 #include <arty/impl/debug_hid_system.hpp>
 #include <arty/impl/engine.hpp>
+#include <arty/impl/hitbox_rendering_system.hpp>
 
 using namespace arty;
 
@@ -23,16 +23,19 @@ int main(void) {
       .setKeyboard(keyboard)
       .addSystem(Ptr<System>(new DebugHidSystem(window, textRenderer)))
       .addSystem(Ptr<FixedCameraSystem>(new FixedCameraSystem(window)))
-      .addSystem(Ptr<CollisionRenderingSystem>(
-          new CollisionRenderingSystem(shapeRenderer)));
+      .addSystem(
+          Ptr<HitBoxRenderingSystem>(new HitBoxRenderingSystem(shapeRenderer)));
 
   auto cube = board->createEntity("cube");
-  Box realcube;
-  realcube.center = Vec3f(0.f, 0.f, 0.f);
-  realcube.halfLength = Vec3f(1.f, 1.f, 1.f);
-  board->set(cube, CollisionRenderingSystem::DRAW_PROP, Shape3f::box(realcube));
-  board->set(cube, "transform", realcube.center);
-
+  board->set(cube, HitBoxRenderingSystem::DRAW_PROP,
+             Box(Vec3f(0.f, 0.f, 0.f), Vec3f(1.f, 1.f, 1.f)));
+  board->set(cube, "transform", Vec3f(0.f, 0.f, 0.f));
+  /*
+    auto floor = board->createEntity("floor");
+    board->set(floor, HitBoxRenderingSystem::DRAW_PROP,
+               Box(Vec3f(0.f, 0.f, -2.f), Vec3f(5.f, 5.f, 1.f)));
+    board->set(floor, "transform", Vec3f(0.f, 0.f, -2.f));
+  */
   check_result(engine.start());
   check_result(engine.run());
   return ok();

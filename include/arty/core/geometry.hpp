@@ -187,7 +187,12 @@ struct Sphere {
   float squaredRadius;
 };
 
-struct Box {
+class Box {
+ public:
+  Box() = default;
+  Box(Vec3f center, Vec3f halfLength)
+      : center(center), halfLength(halfLength) {}
+
   Vec3f center;
   Vec3f halfLength;
 };

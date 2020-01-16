@@ -1,5 +1,4 @@
 #include <arty/core/mesh.hpp>
-#include <arty/impl/collision_rendering_system.hpp>
 #include <arty/impl/collision_system.hpp>
 
 namespace arty {
