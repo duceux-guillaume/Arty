@@ -56,49 +56,54 @@ endif()
 #        -D_CRT_SECURE_NO_WARNINGS
 #)
 
-##########
-## ARTY ##
-##########
+#############
+## ARTY GL ##
+#############
 
-file(GLOB_RECURSE ARTY_MATH_FILES include/arty/* src/arty/*)
-message(info ${ARTY_MATH_FILES})
-add_library(arty ${ARTY_MATH_FILES})
-target_link_libraries(arty PRIVATE ${ALL_LIBS})
-target_compile_features(arty PUBLIC cxx_std_17)
-target_compile_options(arty PUBLIC -Werror -Wall -Wextra)
-target_include_directories(arty
+if(OPENGL_FOUND)
+
+file(GLOB_RECURSE ARTY_GL_FILES include/arty/ext/* src/arty/ext/*)
+add_library(arty_gl ${ARTY_GL_FILES})
+target_link_libraries(arty_gl PUBLIC arty_core)
+target_compile_features(arty_gl PUBLIC cxx_std_17)
+target_compile_options(arty_gl PUBLIC -Werror -Wall -Wextra)
+target_include_directories(arty_gl
     PUBLIC
         $<INSTALL_INTERFACE:include>
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/src
 )
-target_include_directories(arty
+target_include_directories(arty_gl
   SYSTEM PUBLIC
   external/glfw-3.1.2/include/
   external/glew-1.13.0/include/
   external/bullet-2.81-rev2613/src/
 )
 
+endif(OPENGL_FOUND)
+
+##############
+## ARTY EXE ##
+##############
+
+if(OPENGL_FOUND)
 
 add_executable(bot_arena bot_arena/bot_arena.cpp)
-target_link_libraries(bot_arena PUBLIC arty ${ALL_LIBS})
-
-add_executable(bot_editor bot_editor/main.cpp)
-target_link_libraries(bot_editor PUBLIC arty ${ALL_LIBS})
-
-################
-## POST BUILD ##
-################
-
+target_link_libraries(bot_arena PUBLIC arty_core arty_gl)
 add_custom_command(
    TARGET bot_arena POST_BUILD
    COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/bot_arena${CMAKE_EXECUTABLE_SUFFIX}" "${CMAKE_CURRENT_SOURCE_DIR}/bin/"
 )
+
+add_executable(bot_editor bot_editor/main.cpp)
+target_link_libraries(bot_editor PUBLIC arty_core arty_gl)
 add_custom_command(
    TARGET bot_editor POST_BUILD
    COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/bot_editor${CMAKE_EXECUTABLE_SUFFIX}" "${CMAKE_CURRENT_SOURCE_DIR}/bin/"
 )
+
+endif(OPENGL_FOUND)
 
 
 ###########

@@ -1,17 +1,17 @@
 add_executable(math_test math_test.cpp)
-target_link_libraries(math_test gtest_main arty)
+target_link_libraries(math_test gtest_main arty_core)
 add_test(NAME math_test COMMAND math_test)
 
 add_executable(blackboard_test blackboard_test.cpp)
-target_link_libraries(blackboard_test gtest_main arty)
+target_link_libraries(blackboard_test gtest_main arty_core)
 add_test(NAME blackboard_test COMMAND blackboard_test)
 
 add_executable(memory_test memory_test.cpp)
-target_link_libraries(memory_test gtest_main arty)
+target_link_libraries(memory_test gtest_main arty_core)
 add_test(NAME memory_test COMMAND memory_test)
 
 add_executable(collision_test collision_test.cpp)
-target_link_libraries(collision_test gtest_main arty)
+target_link_libraries(collision_test gtest_main arty_core)
 add_test(NAME collision_test COMMAND collision_test)
 add_custom_target(TARGET collision_test POST_BUILD
    COMMAND ${CMAKE_COMMAND} -E copy
@@ -20,5 +20,5 @@ add_custom_target(TARGET collision_test POST_BUILD
 )
 
 add_executable(geometry_test geometry_test.cpp)
-target_link_libraries(geometry_test gtest_main arty)
+target_link_libraries(geometry_test gtest_main arty_core)
 add_test(NAME geometry_test COMMAND geometry_test)
