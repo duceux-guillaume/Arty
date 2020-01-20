@@ -13,7 +13,7 @@ int main(void) {
   GlfwWindow* window_impl = new GlfwWindow;
   Ptr<Keyboard> keyboard = window_impl->provideKeyboard();
   Ptr<Window> window(window_impl);
-  Ptr<Blackboard> board(new Blackboard);
+  Ptr<Memory> board(new Memory);
   Ptr<ITextRenderer> textRenderer(new GlTextRenderer());
   Ptr<IShapeRenderer> shapeRenderer(new GlShapeRenderer());
 
@@ -31,9 +31,14 @@ int main(void) {
              Box(Vec3f(0.f, 0.f, 0.f), Vec3f(1.f, 1.f, 1.f)));
   board->set(cube, "transform", Transform(Vec3f(0.f, 0.f, 0.f)));
 
+  auto cube2 = board->createEntity("cube");
+  board->set(cube2, HitBoxRenderingSystem::DRAW_PROP,
+             Box(Vec3f(3.f, 0.f, 0.f), Vec3f(1.f, 1.f, 1.f)));
+  board->set(cube2, "transform", Transform(Vec3f(3.f, 0.f, 0.f)));
+
   auto floor = board->createEntity("floor");
   board->set(floor, HitBoxRenderingSystem::DRAW_PROP,
-             Box(Vec3f(0.f, 0.f, -5.f), Vec3f(5.f, 5.f, 0.5f)));
+             Box(Vec3f(0.f, 0.f, -5.f), Vec3f(10.f, 10.f, 0.5f)));
   board->set(floor, "transform", Transform(Vec3f(0.f, 0.f, -5.f)));
 
   check_result(engine.start());

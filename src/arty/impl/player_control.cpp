@@ -2,7 +2,7 @@
 
 namespace arty {
 
-Result PlayerControlSystem::process(const Ptr<Blackboard> & /*board*/,
+Result PlayerControlSystem::process(const Ptr<Memory> & /*board*/,
                                     const Ptr<Keyboard> &keyboard) {
   if (keyboard->hasOccured(_up)) {
     std::cout << "move up" << std::endl;
@@ -11,7 +11,7 @@ Result PlayerControlSystem::process(const Ptr<Blackboard> & /*board*/,
   return ok();
 }
 
-Result PlayerControlSystem::init(const Ptr<Blackboard> &board,
+Result PlayerControlSystem::init(const Ptr<Memory> &board,
                                  const Ptr<Keyboard> &keyboard) {
   auto playersPtr = board->getProperties<Entity>("players");
   if (!playersPtr) {

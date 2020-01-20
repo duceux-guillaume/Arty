@@ -210,11 +210,11 @@ class RealStorage : public IStorage {
 
 using BaseStorage = Ptr<IStorage>;
 template <typename T>
-using DerivedStorage = Ptr<RealStorage<T>>;
+using Container = Ptr<RealStorage<T>>;
 
-class Blackboard {
+class BlackboardImpl {
  public:
-  Blackboard() : _properties(), _entities(), _uuid(0) {}
+  BlackboardImpl() : _properties(), _entities(), _uuid(0) {}
 
   /**
    * @brief createEntity
@@ -255,12 +255,12 @@ class Blackboard {
   }
 
   template <typename T>
-  DerivedStorage<T> getProperties(std::string const& property) {
+  Container<T> getProperties(std::string const& property) {
     if (_properties.count(property) == 0) {
-      return DerivedStorage<T>(nullptr);
+      return Container<T>(nullptr);
     }
     if (_properties[property]->size() == 0) {
-      return DerivedStorage<T>(nullptr);
+      return Container<T>(nullptr);
     }
     return pointer_cast<T>(_properties[property]);
   }
@@ -286,10 +286,105 @@ class Blackboard {
   std::size_t _uuid;
 
   template <typename T>
-  DerivedStorage<T> pointer_cast(BaseStorage r) {
-    auto p = static_cast<typename DerivedStorage<T>::element_type*>(r.get());
-    return DerivedStorage<T>(r, p);
+  Container<T> pointer_cast(BaseStorage r) {
+    auto p = static_cast<typename Container<T>::element_type*>(r.get());
+    return Container<T>(r, p);
   }
+};
+
+class Memory {
+ public:
+  Memory() : _impl() {}
+
+  /**
+   * @brief createEntity
+   * @param name representing the entity
+   * @return the real id created
+   */
+  Entity createEntity(std::string const& name) {
+    return _impl.createEntity(name);
+  }
+
+  /**
+   * @brief set value to property of entity
+   */
+  template <typename T>
+  bool set(Entity const& entity, std::string const& property, T const& val) {
+    return _impl.set<T>(entity, property, val);
+  }
+
+  template <typename T>
+  T* getEntityProperty(Entity const& entity, std::string const& property) {
+    return _impl.getEntityProperty<T>(entity, property);
+  }
+
+  template <typename T>
+  Container<T> getProperties(std::string const& property) {
+    return _impl.getProperties<T>(property);
+  }
+
+  bool clearProperties(std::string const& property) {
+    return _impl.clearProperties(property);
+  }
+
+  bool remove(Entity const& entity, std::string const& property) {
+    return _impl.remove(entity, property);
+  }
+
+  template <typename T>
+  Result process(std::string const& component,
+                 Result updateFunc(Entity const& e, T const& comp)) {
+    auto componentContainer = _impl.getProperties<T>(component);
+    if (!componentContainer) {
+      return error("unknown component: " + component);
+    }
+    auto compIt = componentContainer->begin();
+    auto itEnd = componentContainer->end();
+    for (; compIt != itEnd; ++compIt) {
+      updateFunc(*compIt);
+    }
+    return ok();
+  }
+
+  template <typename T1, typename T2>
+  Result process(
+      std::string const& c1, std::string const& c2,
+      std::function<Result(Entity const& e, T1 const& comp1, T2 const& comp2)>
+          updateFunc) {
+    auto container1 = _impl.getProperties<T1>(c1);
+    if (!container1) {
+      return error("unknown component: " + c1);
+    }
+    auto c1It = container1->begin();
+    auto c1ItEnd = container1->end();
+
+    auto container2 = _impl.getProperties<T2>(c2);
+    if (!container2) {
+      return error("unknown component: " + c2);
+    }
+    auto c2It = container2->begin();
+    auto c2ItEnd = container2->end();
+
+    while (c1It != c1ItEnd && c2It != c2ItEnd) {
+      auto e1 = c1It->entity;
+      auto e2 = c2It->entity;
+      if (e1 < e2) {
+        ++c1It;
+        continue;
+      }
+      if (e2 < e1) {
+        ++c2It;
+        continue;
+      }
+      check_result(updateFunc(c1It->entity, c1It->value, c2It->value));
+      ++c1It;
+      ++c2It;
+    }
+    return ok();
+  }
+
+ private:
+  BlackboardImpl _impl;
 };
 
 }  // namespace arty

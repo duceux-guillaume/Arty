@@ -12,12 +12,11 @@ class System {
  public:
   virtual ~System() {}
 
-  virtual Result process(Ptr<Blackboard> const &board);
-  virtual Result process(Ptr<Blackboard> const &board,
+  virtual Result process(Ptr<Memory> const &board);
+  virtual Result process(Ptr<Memory> const &board,
                          Ptr<Keyboard> const &keyboard);
-  virtual Result init(Ptr<Blackboard> const &board);
-  virtual Result init(Ptr<Blackboard> const &board,
-                      Ptr<Keyboard> const &keyboard);
+  virtual Result init(Ptr<Memory> const &board);
+  virtual Result init(Ptr<Memory> const &board, Ptr<Keyboard> const &keyboard);
   virtual void release();
 
  protected:

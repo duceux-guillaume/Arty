@@ -17,9 +17,9 @@ class FixedCameraSystem : public System {
  public:
   FixedCameraSystem(Ptr<Window> const& w);
 
-  Result init(Ptr<Blackboard> const& board) override;
+  Result init(Ptr<Memory> const& board) override;
 
-  Result process(Ptr<Blackboard> const& board) override;
+  Result process(Ptr<Memory> const& board) override;
 
   void release() override;
 

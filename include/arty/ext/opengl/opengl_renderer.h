@@ -51,8 +51,8 @@ class OpenGlRenderer : public System {
   OpenGlRenderer();
   ~OpenGlRenderer();
 
-  Result init(Ptr<Blackboard> const& board) override;
-  Result process(Ptr<Blackboard> const& board) override;
+  Result init(Ptr<Memory> const& board) override;
+  Result process(Ptr<Memory> const& board) override;
   void release() override;
 
  private:

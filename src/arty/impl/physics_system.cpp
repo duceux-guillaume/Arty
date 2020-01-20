@@ -2,7 +2,7 @@
 
 namespace arty {
 
-Result PhysicsSystem::process(const Ptr<Blackboard>& board) {
+Result PhysicsSystem::process(const Ptr<Memory>& board) {
   auto phyPtr = board->getProperties<Physics>("physics");
   auto posPtr = board->getProperties<Transform>("transform");
   if (!phyPtr) {
@@ -33,7 +33,7 @@ Result PhysicsSystem::process(const Ptr<Blackboard>& board) {
   return ok();
 }
 
-Result PhysicsSystem::init(const Ptr<Blackboard>& /*board*/) { return ok(); }
+Result PhysicsSystem::init(const Ptr<Memory>& /*board*/) { return ok(); }
 
 void PhysicsSystem::release() {}
 

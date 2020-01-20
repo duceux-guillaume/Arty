@@ -11,12 +11,12 @@ OpenGlRenderer::OpenGlRenderer() : _renderer() {}
 
 OpenGlRenderer::~OpenGlRenderer() { std::cout << "ByeBye" << std::endl; }
 
-Result OpenGlRenderer::init(Ptr<Blackboard> const& /*board*/) {
+Result OpenGlRenderer::init(Ptr<Memory> const& /*board*/) {
   check_result(_renderer.init());
   return ok();
 }
 
-Result OpenGlRenderer::process(const Ptr<Blackboard>& board) {
+Result OpenGlRenderer::process(const Ptr<Memory>& board) {
   // Import meshes
   auto ptr = board->getProperties<Mesh>("mesh2import");
   if (ptr) {

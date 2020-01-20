@@ -2,7 +2,7 @@
 
 namespace arty {
 
-Result DebugHidSystem::process(Ptr<Blackboard> const& /*board*/) {
+Result DebugHidSystem::process(Ptr<Memory> const& /*board*/) {
   static double lastTime = _window->getTime();
   double currentTime = _window->getTime();
   double deltaTime = currentTime - lastTime;
@@ -13,7 +13,7 @@ Result DebugHidSystem::process(Ptr<Blackboard> const& /*board*/) {
   return ok();
 }
 
-Result DebugHidSystem::init(Ptr<Blackboard> const& /*board*/) {
+Result DebugHidSystem::init(Ptr<Memory> const& /*board*/) {
   return _renderer->initText2D("../models/Holstein.DDS");
 }
 

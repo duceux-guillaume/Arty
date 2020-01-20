@@ -19,8 +19,8 @@ class DebugHidSystem : public System {
 
   // System interface
  public:
-  Result process(const Ptr<Blackboard> &board);
-  Result init(const Ptr<Blackboard> &board);
+  Result process(const Ptr<Memory> &board);
+  Result init(const Ptr<Memory> &board);
   void release();
 };
 

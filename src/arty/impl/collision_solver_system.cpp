@@ -2,7 +2,7 @@
 
 namespace arty {
 
-Result CollisionSolverSystem::process(const Ptr<Blackboard> &board) {
+Result CollisionSolverSystem::process(const Ptr<Memory> &board) {
   auto colPtr = board->getProperties<Collision>("collision");
   if (!colPtr) {
     return ok();
@@ -31,7 +31,7 @@ Result CollisionSolverSystem::process(const Ptr<Blackboard> &board) {
   return ok();
 }
 
-Result CollisionSolverSystem::init(const Ptr<Blackboard> & /*board*/) {
+Result CollisionSolverSystem::init(const Ptr<Memory> & /*board*/) {
   return ok();
 }
 

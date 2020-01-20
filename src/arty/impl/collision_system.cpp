@@ -2,7 +2,7 @@
 #include <arty/impl/collision_system.hpp>
 
 namespace arty {
-Result CollisionSystem::process(const Ptr<Blackboard> &board) {
+Result CollisionSystem::process(const Ptr<Memory> &board) {
   auto meshPtr = board->getProperties<Mesh>("mesh");
   auto posPtr = board->getProperties<Transform>("transform");
   if (!meshPtr || !posPtr) {
@@ -44,7 +44,7 @@ Result CollisionSystem::process(const Ptr<Blackboard> &board) {
   return ok();
 }
 
-Result CollisionSystem::init(const Ptr<Blackboard> & /*board*/) { return ok(); }
+Result CollisionSystem::init(const Ptr<Memory> & /*board*/) { return ok(); }
 
 void CollisionSystem::release() {}
 

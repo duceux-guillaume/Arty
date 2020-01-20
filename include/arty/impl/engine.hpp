@@ -19,7 +19,7 @@ class Engine {
 
   Engine& addSystem(Ptr<System> const& system);
 
-  Engine& setBoard(Ptr<Blackboard> const& board);
+  Engine& setBoard(Ptr<Memory> const& board);
 
   Result start();
 
@@ -29,12 +29,12 @@ class Engine {
 
   void stop();
 
-  Ptr<Blackboard> board() const { return _state; }
+  Ptr<Memory> board() const { return _state; }
 
  private:
   Ptr<Window> _window;
   std::vector<Ptr<System>> _systems;
-  Ptr<Blackboard> _state;
+  Ptr<Memory> _state;
   Ptr<Keyboard> _keyboard;
 };
 

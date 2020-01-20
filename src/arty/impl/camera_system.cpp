@@ -15,12 +15,12 @@ FixedCameraSystem::FixedCameraSystem(const Ptr<Window> &w)
       _camFromWorld(origin),
       _fov(45.0f) {}
 
-Result FixedCameraSystem::init(const Ptr<Blackboard> &board) {
+Result FixedCameraSystem::init(const Ptr<Memory> &board) {
   _camera_entity = board->createEntity("camera");
   return ok();
 }
 
-Result FixedCameraSystem::process(const Ptr<Blackboard> &board) {
+Result FixedCameraSystem::process(const Ptr<Memory> &board) {
   float ratio = static_cast<float>(_window->width()) / _window->height();
   if (_window->height() == 0) {
     ratio = 16.f / 9.f;

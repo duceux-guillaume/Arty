@@ -12,9 +12,9 @@ class PlayerControlSystem : public System {
  public:
   // System interface
  public:
-  Result process(const Ptr<Blackboard> &board,
+  Result process(const Ptr<Memory> &board,
                  Ptr<Keyboard> const &keyboard) override;
-  Result init(const Ptr<Blackboard> &board,
+  Result init(const Ptr<Memory> &board,
               Ptr<Keyboard> const &keyboard) override;
   void release() override;
 };

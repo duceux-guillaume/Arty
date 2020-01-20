@@ -110,7 +110,7 @@ Result Loader::loadObj(const std::string &path, Mesh *out) {
   return ok();
 }
 
-Result MeshLoaderSystem::process(const Ptr<Blackboard> &board) {
+Result MeshLoaderSystem::process(const Ptr<Memory> &board) {
   auto ptr = board->getProperties<std::string>("model2load");
   if (!ptr) {
     return ok();
@@ -124,7 +124,7 @@ Result MeshLoaderSystem::process(const Ptr<Blackboard> &board) {
   return ok();
 }
 
-Result MeshLoaderSystem::init(const Ptr<Blackboard> & /*board*/) {
+Result MeshLoaderSystem::init(const Ptr<Memory> & /*board*/) {
   return ok();
 }
 

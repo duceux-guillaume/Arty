@@ -3,7 +3,7 @@
 
 namespace arty {
 
-Result MouseSystem::process(const Ptr<Blackboard> & /*board*/) {
+Result MouseSystem::process(const Ptr<Memory> & /*board*/) {
   /*
   CursorPosition cursor = _window->getCursorPosition();
   Vec3f direction(cursor.x, cursor.y, 0.f);
@@ -17,6 +17,6 @@ Result MouseSystem::process(const Ptr<Blackboard> & /*board*/) {
   return ok();
 }
 
-Result MouseSystem::init(const Ptr<Blackboard> & /*board*/) { return ok(); }
+Result MouseSystem::init(const Ptr<Memory> & /*board*/) { return ok(); }
 
 }  // namespace arty

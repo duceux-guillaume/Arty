@@ -17,7 +17,7 @@ Engine &Engine::addSystem(const Ptr<System> &system) {
   return *this;
 }
 
-Engine &Engine::setBoard(const Ptr<Blackboard> &board) {
+Engine &Engine::setBoard(const Ptr<Memory> &board) {
   _state = board;
   return *this;
 }

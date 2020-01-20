@@ -23,8 +23,8 @@ class MeshLoaderSystem : public System {
 
   // System interface
  public:
-  Result process(const Ptr<Blackboard>& board) override;
-  Result init(const Ptr<Blackboard>& board) override;
+  Result process(const Ptr<Memory>& board) override;
+  Result init(const Ptr<Memory>& board) override;
   void release() override;
 };
 
