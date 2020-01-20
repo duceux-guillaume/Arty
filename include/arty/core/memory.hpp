@@ -158,10 +158,12 @@ class Memory {
   }
 
   template <typename T1, typename T2>
-  Result process(
-      std::string const& c1, std::string const& c2,
-      std::function<Result(Entity const& e, T1 const& comp1, T2 const& comp2)>
-          updateFunc) {
+  using ProcessFunc2 =
+      std::function<Result(Entity const&, T1 const&, T2 const&)>;
+
+  template <typename T1, typename T2>
+  Result process(std::string const& c1, std::string const& c2,
+                 ProcessFunc2<T1, T2> updateFunc) {
     auto container1 = _components[c1];
     if (container1.size() == 0) {
       return error("unknown component: " + c1);
@@ -199,6 +201,57 @@ class Memory {
         return error(e.what());
       }
       check_result(updateFunc(c1It->first, *v1, *v2));
+      ++c1It;
+      ++c2It;
+    }
+    return ok();
+  }
+
+  template <typename T1, typename T2>
+  using UpdateFunc2 = std::function<Result(Entity const&, T1&, T2&)>;
+
+  template <typename T1, typename T2>
+  Result update(std::string const& c1, std::string const& c2,
+                UpdateFunc2<T1, T2> updateFunc) {
+    auto container1 = _components[c1];
+    if (container1.size() == 0) {
+      return error("unknown component: " + c1);
+    }
+    auto c1It = container1.begin();
+    auto c1ItEnd = container1.end();
+
+    auto container2 = _components[c2];
+    if (container2.size() == 0) {
+      return error("unknown component: " + c2);
+    }
+    auto c2It = container2.begin();
+    auto c2ItEnd = container2.end();
+    while (c1It != c1ItEnd && c2It != c2ItEnd) {
+      auto e1 = c1It->first;
+      auto e2 = c2It->first;
+      if (e1 < e2) {
+        ++c1It;
+        continue;
+      }
+      if (e2 < e1) {
+        ++c2It;
+        continue;
+      }
+      T1 v1;
+      T2 v2;
+      try {
+        v1 = std::any_cast<T1>(c1It->second);
+      } catch (const std::bad_any_cast& e) {
+        return error(e.what());
+      }
+      try {
+        v2 = std::any_cast<T2>(c2It->second);
+      } catch (const std::bad_any_cast& e) {
+        return error(e.what());
+      }
+      check_result(updateFunc(c1It->first, v1, v2));
+      write(e1, c1, v1);
+      write(e1, c2, v2);
       ++c1It;
       ++c2It;
     }

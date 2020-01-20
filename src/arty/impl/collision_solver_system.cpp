@@ -36,15 +36,15 @@ Result CollisionSolverSystem::init(const Ptr<Memory> & /*board*/) {
 
 void CollisionSolverSystem::release() {}
 
-void CollisionSolver::update(Physics *phy, Transform *tf, const Collision &c,
-                             int entity) {
-  phy->forces_pos.push_back((c.shape.pts()[1] + c.shape.pts()[0]) * 0.5f);
+void CollisionSolver::update(Physics * /*phy*/, Transform *tf,
+                             const Collision &c, int entity) {
+  // phy->forces_pos.push_back((c.shape.pts()[1] + c.shape.pts()[0]) * 0.5f);
   Vec3f dir = c.shape.pts()[0] - c.shape.pts()[1];
   if (entity == 1) {
     dir = c.shape.pts()[1] - c.shape.pts()[0];
   }
   tf->translation += dir * 0.5f;
-  phy->forces_dir.push_back(dir);
+  // phy->forces_dir.push_back(dir);
 }
 
 }  // namespace arty

@@ -6,8 +6,18 @@
 #include <arty/impl/debug_hid_system.hpp>
 #include <arty/impl/engine.hpp>
 #include <arty/impl/hitbox_rendering_system.hpp>
+#include <arty/impl/physics_system.hpp>
 
 using namespace arty;
+
+void makeCube(std::string const& name, Transform const& pos,
+              Vec3f const& length, float mass, Ptr<Memory> mem) {
+  auto entity = mem->createEntity(name);
+  mem->write(entity, PhysicsSystem::OUTPUT_PROP, pos);
+  mem->write(entity, HitBoxRenderingSystem::DRAW_PROP,
+             Box(Vec3f(0.f, 0.f, 0.f), length));
+  mem->write(entity, PhysicsSystem::INPUT_PROP, Physics(mass));
+}
 
 int main(void) {
   GlfwWindow* window_impl = new GlfwWindow;
@@ -17,6 +27,9 @@ int main(void) {
   Ptr<ITextRenderer> textRenderer(new GlTextRenderer());
   Ptr<IShapeRenderer> shapeRenderer(new GlShapeRenderer());
 
+  WorldPhysics world;
+  world.gravity_strengh = 9.8f;
+
   Engine engine;
   engine.setBoard(board)
       .setWindow(window)
@@ -24,22 +37,14 @@ int main(void) {
       .addSystem(Ptr<System>(new DebugHidSystem(window, textRenderer)))
       .addSystem(Ptr<FixedCameraSystem>(new FixedCameraSystem(window)))
       .addSystem(
-          Ptr<HitBoxRenderingSystem>(new HitBoxRenderingSystem(shapeRenderer)));
+          Ptr<HitBoxRenderingSystem>(new HitBoxRenderingSystem(shapeRenderer)))
+      .addSystem(Ptr<PhysicsSystem>(new PhysicsSystem(world)));
 
-  auto cube = board->createEntity("cube");
-  board->write(cube, HitBoxRenderingSystem::DRAW_PROP,
-               Box(Vec3f(0.f, 0.f, 0.f), Vec3f(1.f, 1.f, 1.f)));
-  board->write(cube, "transform", Transform(Vec3f(0.f, 0.f, 0.f)));
-
-  auto cube2 = board->createEntity("cube");
-  board->write(cube2, HitBoxRenderingSystem::DRAW_PROP,
-               Box(Vec3f(3.f, 0.f, 0.f), Vec3f(1.f, 1.f, 1.f)));
-  board->write(cube2, "transform", Transform(Vec3f(3.f, 0.f, 0.f)));
-
-  auto floor = board->createEntity("floor");
-  board->write(floor, HitBoxRenderingSystem::DRAW_PROP,
-               Box(Vec3f(0.f, 0.f, -5.f), Vec3f(10.f, 10.f, 0.5f)));
-  board->write(floor, "transform", Transform(Vec3f(0.f, 0.f, -5.f)));
+  makeCube("unit", Transform(), Vec3f(1.f, 1.f, 1.f), 1.f, board);
+  makeCube("cube", Transform(Vec3f(0.f, 0.f, 3.f)), Vec3f(0.5f, 0.5f, 0.5f),
+           1.f, board);
+  makeCube("floor", Transform(Vec3f(0.f, 0.f, -5.f)), Vec3f(10.f, 10.f, 0.5f),
+           0.f, board);
 
   check_result(engine.start());
   check_result(engine.run());

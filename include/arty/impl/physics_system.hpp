@@ -13,18 +13,17 @@ struct WorldPhysics {
 };
 
 struct Physics {
-  Entity parent;
-  std::vector<Entity> childs;
-
   Transform velocity;
   Transform acceleration;
-  std::vector<Vec3f> forces_dir;
-  std::vector<Vec3f> forces_pos;
   float mass;
+  bool dynamic;
 
-  Physics() : Physics(1.f) {}
-  Physics(float mass)
-      : velocity(), acceleration(), forces_dir(), forces_pos(), mass(mass) {}
+  Physics() : Physics(0.f) {}
+  Physics(float mass) : velocity(), acceleration(), mass(mass), dynamic(true) {
+    if (mass <= 0.f) {
+      dynamic = false;
+    }
+  }
 };
 
 class PhysicsSolver {
@@ -39,16 +38,14 @@ class PhysicsSystem : public System {
   static constexpr const char* INPUT_PROP = "physics";
   static constexpr const char* OUTPUT_PROP = "transform";
 
-  PhysicsSystem(WorldPhysics const& world) : _solver(), _world(world) {}
+  PhysicsSystem(WorldPhysics const& world) : _world(world), _solver() {}
 
  private:
-  PhysicsSolver _solver;
   WorldPhysics _world;
+  PhysicsSolver _solver;
   // System interface
  public:
   Result process(const Ptr<Memory>& board) override;
-  Result init(const Ptr<Memory>& board) override;
-  void release() override;
 };
 
 }  // namespace arty
