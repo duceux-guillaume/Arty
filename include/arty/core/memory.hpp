@@ -5,11 +5,9 @@
 #include <arty/core/result.h>
 
 #include <any>
+#include <functional>
 #include <map>
-#include <set>
 #include <string>
-#include <unordered_map>
-#include <vector>
 
 namespace arty {
 
