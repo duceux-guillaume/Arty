@@ -2,9 +2,9 @@ add_executable(math_test math_test.cpp)
 target_link_libraries(math_test gtest_main arty_core)
 add_test(NAME math_test COMMAND math_test)
 
-add_executable(blackboard_test blackboard_test.cpp)
-target_link_libraries(blackboard_test gtest_main arty_core)
-add_test(NAME blackboard_test COMMAND blackboard_test)
+add_executable(memory_test memory_test.cpp)
+target_link_libraries(memory_test gtest_main arty_core)
+add_test(NAME memory_test COMMAND memory_test)
 
 #add_executable(collision_test collision_test.cpp)
 #target_link_libraries(collision_test gtest_main arty_core)

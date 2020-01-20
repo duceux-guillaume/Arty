@@ -2,34 +2,36 @@
 
 namespace arty {
 
-Result PhysicsSystem::process(const Ptr<Memory>& board) {
-  auto phyPtr = board->getProperties<Physics>("physics");
-  auto posPtr = board->getProperties<Transform>("transform");
-  if (!phyPtr) {
-    return error("no physics");
-  }
-  auto phyIt = phyPtr->begin();
-  auto phyEnd = phyPtr->end();
-  if (!posPtr) {
-    // no transforms yet
-    for (; phyIt != phyEnd; ++phyIt) {
-      board->set(phyIt->entity, OUTPUT_PROP, Transform());
+Result PhysicsSystem::process(const Ptr<Memory>&) {
+  /*
+    auto phyPtr = board->getProperties<Physics>("physics");
+    auto posPtr = board->getProperties<Transform>("transform");
+    if (!phyPtr) {
+      return error("no physics");
     }
-    return ok();
-  }
-  auto posIt = posPtr->begin();
-  for (; phyIt != phyEnd; ++phyIt, ++posIt) {
-    // I've got physics but not transform, let's add one
-    while (posIt->entity > phyIt->entity) {
-      board->set(phyIt->entity, OUTPUT_PROP, Transform());
-      ++phyIt;
+    auto phyIt = phyPtr->begin();
+    auto phyEnd = phyPtr->end();
+    if (!posPtr) {
+      // no transforms yet
+      for (; phyIt != phyEnd; ++phyIt) {
+        board->set(phyIt->entity, OUTPUT_PROP, Transform());
+      }
+      return ok();
     }
-    // I've got transform but no physics, it's ok
-    if (posIt->entity < phyIt->entity) {
-      continue;
+    auto posIt = posPtr->begin();
+    for (; phyIt != phyEnd; ++phyIt, ++posIt) {
+      // I've got physics but not transform, let's add one
+      while (posIt->entity > phyIt->entity) {
+        board->set(phyIt->entity, OUTPUT_PROP, Transform());
+        ++phyIt;
+      }
+      // I've got transform but no physics, it's ok
+      if (posIt->entity < phyIt->entity) {
+        continue;
+      }
+      _solver.update(&posIt->value, &phyIt->value, _world);
     }
-    _solver.update(&posIt->value, &phyIt->value, _world);
-  }
+    */
   return ok();
 }
 

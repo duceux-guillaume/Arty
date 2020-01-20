@@ -3,8 +3,8 @@
 
 #include <arty/core/math.h>
 
-#include <arty/core/blackboard.hpp>
 #include <arty/core/geometry.hpp>
+#include <arty/core/memory.hpp>
 #include <arty/core/mesh.hpp>
 
 namespace arty {

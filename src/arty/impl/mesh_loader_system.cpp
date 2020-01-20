@@ -110,23 +110,23 @@ Result Loader::loadObj(const std::string &path, Mesh *out) {
   return ok();
 }
 
-Result MeshLoaderSystem::process(const Ptr<Memory> &board) {
-  auto ptr = board->getProperties<std::string>("model2load");
-  if (!ptr) {
-    return ok();
-  }
-  for (auto const &prop : *ptr) {
-    Mesh mesh;
-    check_result(loader.loadObj(prop.value, &mesh));
-    board->set(prop.entity, "mesh2import", mesh);
-  }
-  board->clearProperties("model2load");
+Result MeshLoaderSystem::process(const Ptr<Memory> &) {
+  /*
+    auto ptr = board->getProperties<std::string>("model2load");
+    if (!ptr) {
+      return ok();
+    }
+    for (auto const &prop : *ptr) {
+      Mesh mesh;
+      check_result(loader.loadObj(prop.value, &mesh));
+      board->set(prop.entity, "mesh2import", mesh);
+    }
+    board->clearProperties("model2load");
+  */
   return ok();
 }
 
-Result MeshLoaderSystem::init(const Ptr<Memory> & /*board*/) {
-  return ok();
-}
+Result MeshLoaderSystem::init(const Ptr<Memory> & /*board*/) { return ok(); }
 
 void MeshLoaderSystem::release() {}
 

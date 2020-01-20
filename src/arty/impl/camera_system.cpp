@@ -15,11 +15,6 @@ FixedCameraSystem::FixedCameraSystem(const Ptr<Window> &w)
       _camFromWorld(origin),
       _fov(45.0f) {}
 
-Result FixedCameraSystem::init(const Ptr<Memory> &board) {
-  _camera_entity = board->createEntity("camera");
-  return ok();
-}
-
 Result FixedCameraSystem::process(const Ptr<Memory> &board) {
   float ratio = static_cast<float>(_window->width()) / _window->height();
   if (_window->height() == 0) {
@@ -30,11 +25,9 @@ Result FixedCameraSystem::process(const Ptr<Memory> &board) {
   Camera camera;
   camera.projection = _projection;
   camera.view = _camFromWorld;
-  board->set(_camera_entity, "camera", camera);
+  board->write("camera", camera);
 
   return ok();
 }
-
-void FixedCameraSystem::release() {}
 
 }  // namespace arty

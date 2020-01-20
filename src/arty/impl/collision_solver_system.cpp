@@ -2,32 +2,31 @@
 
 namespace arty {
 
-Result CollisionSolverSystem::process(const Ptr<Memory> &board) {
-  auto colPtr = board->getProperties<Collision>("collision");
-  if (!colPtr) {
-    return ok();
-  }
+Result CollisionSolverSystem::process(const Ptr<Memory> &) {
+  /*
+   auto colPtr = board->getProperties<Collision>("collision");
+   if (!colPtr) {
+     return ok();
+   }
 
-  for (auto const &col : *colPtr) {
-    {
-      Physics *phy = board->getEntityProperty<Physics>(col.value.e1, "physics");
-      Transform *tf =
-          board->getEntityProperty<Transform>(col.value.e1, "transform");
-      if (!phy || !tf) {
-        error("collision with nothing");
-      }
-      _solver.update(phy, tf, col.value, 0);
-    }
-    {
-      Physics *phy = board->getEntityProperty<Physics>(col.value.e2, "physics");
-      Transform *tf =
-          board->getEntityProperty<Transform>(col.value.e2, "transform");
-      if (!phy || !tf) {
-        error("collision with nothing");
-      }
-      _solver.update(phy, tf, col.value, 1);
-    }
-  }
+   for (auto const &col : *colPtr) {
+     {
+       auto phy = board->read<Physics>(col.value.e1, "physics");
+       auto tf = board->read<Transform>(col.value.e1, "transform");
+       if (!phy || !tf) {
+         error("collision with nothing");
+       }
+       _solver.update(phy, tf, col.value, 0);
+     }
+     {
+       Physics *phy = board->getEntityProperty<Physics>(col.value.e2,
+   "physics"); Transform *tf = board->getEntityProperty<Transform>(col.value.e2,
+   "transform"); if (!phy || !tf) { error("collision with nothing");
+       }
+       _solver.update(phy, tf, col.value, 1);
+     }
+   }
+   */
   return ok();
 }
 

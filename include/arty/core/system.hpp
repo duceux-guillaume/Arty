@@ -4,7 +4,7 @@
 #include <arty/core/input.h>
 #include <arty/core/result.h>
 
-#include <arty/core/blackboard.hpp>
+#include <arty/core/memory.hpp>
 
 namespace arty {
 

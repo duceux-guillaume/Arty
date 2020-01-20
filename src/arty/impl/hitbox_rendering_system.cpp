@@ -4,11 +4,7 @@
 
 namespace arty {
 Result HitBoxRenderingSystem::process(const Ptr<Memory>& board) {
-  auto camPtr = board->getProperties<Camera>("camera");
-  if (!camPtr || camPtr->empty()) {
-    return error("no camera provided");
-  }
-  auto cam = camPtr->at(0).value;
+  auto cam = board->read<Camera>("camera");
 
   auto work = [=](Entity const& e, Transform const& t, Box const& b) -> Result {
     _renderer->draw(e, b, t.toMat(), cam.view, cam.projection);

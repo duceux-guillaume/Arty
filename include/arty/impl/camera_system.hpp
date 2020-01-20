@@ -17,11 +17,7 @@ class FixedCameraSystem : public System {
  public:
   FixedCameraSystem(Ptr<Window> const& w);
 
-  Result init(Ptr<Memory> const& board) override;
-
   Result process(Ptr<Memory> const& board) override;
-
-  void release() override;
 
  private:
   Ptr<Window> _window;
@@ -29,7 +25,6 @@ class FixedCameraSystem : public System {
   Mat4x4f _projection;
   Mat4x4f _camFromWorld;
   float _fov;
-  Entity _camera_entity;
 };
 
 }  // namespace arty

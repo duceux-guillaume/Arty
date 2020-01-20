@@ -27,19 +27,19 @@ int main(void) {
           Ptr<HitBoxRenderingSystem>(new HitBoxRenderingSystem(shapeRenderer)));
 
   auto cube = board->createEntity("cube");
-  board->set(cube, HitBoxRenderingSystem::DRAW_PROP,
-             Box(Vec3f(0.f, 0.f, 0.f), Vec3f(1.f, 1.f, 1.f)));
-  board->set(cube, "transform", Transform(Vec3f(0.f, 0.f, 0.f)));
+  board->write(cube, HitBoxRenderingSystem::DRAW_PROP,
+               Box(Vec3f(0.f, 0.f, 0.f), Vec3f(1.f, 1.f, 1.f)));
+  board->write(cube, "transform", Transform(Vec3f(0.f, 0.f, 0.f)));
 
   auto cube2 = board->createEntity("cube");
-  board->set(cube2, HitBoxRenderingSystem::DRAW_PROP,
-             Box(Vec3f(3.f, 0.f, 0.f), Vec3f(1.f, 1.f, 1.f)));
-  board->set(cube2, "transform", Transform(Vec3f(3.f, 0.f, 0.f)));
+  board->write(cube2, HitBoxRenderingSystem::DRAW_PROP,
+               Box(Vec3f(3.f, 0.f, 0.f), Vec3f(1.f, 1.f, 1.f)));
+  board->write(cube2, "transform", Transform(Vec3f(3.f, 0.f, 0.f)));
 
   auto floor = board->createEntity("floor");
-  board->set(floor, HitBoxRenderingSystem::DRAW_PROP,
-             Box(Vec3f(0.f, 0.f, -5.f), Vec3f(10.f, 10.f, 0.5f)));
-  board->set(floor, "transform", Transform(Vec3f(0.f, 0.f, -5.f)));
+  board->write(floor, HitBoxRenderingSystem::DRAW_PROP,
+               Box(Vec3f(0.f, 0.f, -5.f), Vec3f(10.f, 10.f, 0.5f)));
+  board->write(floor, "transform", Transform(Vec3f(0.f, 0.f, -5.f)));
 
   check_result(engine.start());
   check_result(engine.run());

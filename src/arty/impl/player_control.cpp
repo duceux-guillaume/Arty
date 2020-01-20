@@ -11,8 +11,8 @@ Result PlayerControlSystem::process(const Ptr<Memory> & /*board*/,
   return ok();
 }
 
-Result PlayerControlSystem::init(const Ptr<Memory> &board,
-                                 const Ptr<Keyboard> &keyboard) {
+Result PlayerControlSystem::init(const Ptr<Memory> &, const Ptr<Keyboard> &) {
+  /*
   auto playersPtr = board->getProperties<Entity>("players");
   if (!playersPtr) {
     return error("no players");
@@ -26,6 +26,7 @@ Result PlayerControlSystem::init(const Ptr<Memory> &board,
   if (!keyboard->registerKeyEvent(Keyboard::W, Keyboard::Action::PRESS, _up)) {
     return error("could'nt register event");
   }
+  */
   return ok();
 }
 

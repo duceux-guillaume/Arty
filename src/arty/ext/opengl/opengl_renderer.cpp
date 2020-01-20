@@ -16,7 +16,8 @@ Result OpenGlRenderer::init(Ptr<Memory> const& /*board*/) {
   return ok();
 }
 
-Result OpenGlRenderer::process(const Ptr<Memory>& board) {
+Result OpenGlRenderer::process(const Ptr<Memory>&) {
+  /*
   // Import meshes
   auto ptr = board->getProperties<Mesh>("mesh2import");
   if (ptr) {
@@ -54,6 +55,7 @@ Result OpenGlRenderer::process(const Ptr<Memory>& board) {
     _renderer.drawStaticMeshNoTexture(meshIt->value, posIt->value.toMat(),
                                       cam.view, cam.projection, vboIt->value);
   }
+  */
   return ok();
 }
 

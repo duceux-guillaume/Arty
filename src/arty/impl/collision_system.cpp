@@ -2,7 +2,8 @@
 #include <arty/impl/collision_system.hpp>
 
 namespace arty {
-Result CollisionSystem::process(const Ptr<Memory> &board) {
+Result CollisionSystem::process(const Ptr<Memory> &) {
+  /*
   auto meshPtr = board->getProperties<Mesh>("mesh");
   auto posPtr = board->getProperties<Transform>("transform");
   if (!meshPtr || !posPtr) {
@@ -27,7 +28,6 @@ Result CollisionSystem::process(const Ptr<Memory> &board) {
       if (posIt->entity == posIt2->entity) {
         continue;
       }
-      /*
       Collision col = _collision.detect(meshIt->value, posIt->value,
                                         meshIt2->value, posIt2->value);
       if (col.exist) {
@@ -38,9 +38,9 @@ Result CollisionSystem::process(const Ptr<Memory> &board) {
       } else {
         board->remove(meshIt->entity, "collision");
       }
-      */
-    }
-  }
+}
+}
+*/
   return ok();
 }
 
