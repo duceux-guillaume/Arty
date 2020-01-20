@@ -3,6 +3,7 @@
 #include <arty/ext/opengl/2d_renderer.hpp>
 #include <arty/ext/opengl/gl_shape_renderer.hpp>
 #include <arty/impl/camera_system.hpp>
+#include <arty/impl/collision_system.hpp>
 #include <arty/impl/debug_hid_system.hpp>
 #include <arty/impl/engine.hpp>
 #include <arty/impl/hitbox_rendering_system.hpp>
@@ -13,10 +14,10 @@ using namespace arty;
 void makeCube(std::string const& name, Transform const& pos,
               Vec3f const& length, float mass, Ptr<Memory> mem) {
   auto entity = mem->createEntity(name);
-  mem->write(entity, PhysicsSystem::OUTPUT_PROP, pos);
+  mem->write(entity, PhysicsSystem::INOUT_1, pos);
   mem->write(entity, HitBoxRenderingSystem::DRAW_PROP,
              Box(Vec3f(0.f, 0.f, 0.f), length));
-  mem->write(entity, PhysicsSystem::INPUT_PROP, Physics(mass));
+  mem->write(entity, PhysicsSystem::INOUT_2, Physics(mass));
 }
 
 int main(void) {
@@ -38,7 +39,8 @@ int main(void) {
       .addSystem(Ptr<FixedCameraSystem>(new FixedCameraSystem(window)))
       .addSystem(
           Ptr<HitBoxRenderingSystem>(new HitBoxRenderingSystem(shapeRenderer)))
-      .addSystem(Ptr<PhysicsSystem>(new PhysicsSystem(world)));
+      .addSystem(Ptr<PhysicsSystem>(new PhysicsSystem(world)))
+      .addSystem(Ptr<CollisionSystem>(new CollisionSystem));
 
   makeCube("unit", Transform(), Vec3f(1.f, 1.f, 1.f), 1.f, board);
   makeCube("cube", Transform(Vec3f(0.f, 0.f, 3.f)), Vec3f(0.5f, 0.5f, 0.5f),

@@ -139,4 +139,27 @@ Box CollisionDetection::computeAxisAlignedBoundingBox(const Mesh& mesh) {
   return b;
 }
 
+Collision CollisionDetection::detect(const Transform& tf1, const Box& b1,
+                                     const Transform& tf2, const Box& b2) {
+  Collision col;
+  col.exist = false;
+
+  Sphere s1(tf1.translation + b1.center, b1.halfLength.normsqr());
+  Sphere s2(tf2.translation + b2.center, b2.halfLength.normsqr());
+  if (!s1.intersect(s2)) {
+    return col;
+  }
+
+  Box rb1(tf1.translation + b1.center, b1.halfLength);
+  Box rb2(tf2.translation + b2.center, b2.halfLength);
+  if (!rb1.intersect(rb2)) {
+    return col;
+  }
+
+  col.exist = true;
+  Vec3f imp = (rb1.center + rb2.center) * 0.5f;
+  col.shape = Shape3f::edge(imp, imp + rb1.halfLength);
+  return col;
+}
+
 }  // namespace arty

@@ -3,15 +3,16 @@
 namespace arty {
 
 Result PhysicsSystem::process(const Ptr<Memory>& mem) {
-  auto work = [this](Entity const& e, Transform& t, Physics& p) -> Result {
-    std::cout << "updated " << e.name() << " " << t.translation.z()
-              << std::endl;
-    _solver.update(&t, &p, _world);
-    std::cout << "updated " << e.name() << " " << t.translation.z()
-              << std::endl;
+  auto work = [mem, this](Entity const& e, Transform const& t,
+                          Physics const& p) -> Result {
+    auto newTf = t;
+    auto newPhy = p;
+    _solver.update(&newTf, &newPhy, _world);
+    mem->write(e, INOUT_1, newTf);
+    mem->write(e, INOUT_2, newPhy);
     return ok();
   };
-  mem->update<Transform, Physics>("transform", "physics", work);
+  mem->process<Transform, Physics>(INOUT_1, INOUT_2, work);
   return ok();
 }
 

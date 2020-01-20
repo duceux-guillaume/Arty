@@ -185,6 +185,14 @@ using Trianglef = Triangle<float>;
 struct Sphere {
   Vec3f center;
   float squaredRadius;
+
+  Sphere() = default;
+  Sphere(Vec3f const& c, float r) : center(c), squaredRadius(r) {}
+
+  bool intersect(Sphere const& other) {
+    float dist = (center - other.center).normsqr();
+    return dist <= squaredRadius + other.squaredRadius;
+  }
 };
 
 class Box {
@@ -195,6 +203,25 @@ class Box {
 
   Vec3f center;
   Vec3f halfLength;
+
+  bool intersect(Box const& other) {
+    double dx = std::abs(center.x() - other.center.x());
+    double tx = halfLength.x() + other.halfLength.x();
+    if (dx > tx) {
+      return false;
+    }
+    double dy = std::abs(center.y() - other.center.y());
+    double ty = halfLength.y() + other.halfLength.y();
+    if (dy > ty) {
+      return false;
+    }
+    double dz = std::abs(center.z() - other.center.z());
+    double tz = halfLength.z() + other.halfLength.z();
+    if (dz > tz) {
+      return false;
+    }
+    return true;
+  }
 };
 
 template <typename T, int Dim>

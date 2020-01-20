@@ -24,6 +24,8 @@ class CollisionDetection {
   Collision detect(Mesh const& mesh1, Transform const& tf1, Mesh const& mesh2,
                    Transform const& tf2);
   Box computeAxisAlignedBoundingBox(Mesh const& mesh);
+  Collision detect(Transform const& tf1, Box const& b1, Transform const& tf2,
+                   Box const& b2);
 
  private:
 };

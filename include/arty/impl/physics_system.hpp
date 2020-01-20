@@ -35,8 +35,8 @@ class PhysicsSolver {
 
 class PhysicsSystem : public System {
  public:
-  static constexpr const char* INPUT_PROP = "physics";
-  static constexpr const char* OUTPUT_PROP = "transform";
+  static constexpr const char* INOUT_1 = "transform";
+  static constexpr const char* INOUT_2 = "physics";
 
   PhysicsSystem(WorldPhysics const& world) : _world(world), _solver() {}
 

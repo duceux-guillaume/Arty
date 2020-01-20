@@ -2,50 +2,29 @@
 #include <arty/impl/collision_system.hpp>
 
 namespace arty {
-Result CollisionSystem::process(const Ptr<Memory> &) {
-  /*
-  auto meshPtr = board->getProperties<Mesh>("mesh");
-  auto posPtr = board->getProperties<Transform>("transform");
-  if (!meshPtr || !posPtr) {
-    return error("missing properties");
-  }
-  auto meshIt = meshPtr->begin();
-  auto meshEnd = meshPtr->end();
-  auto posIt = posPtr->begin();
-  for (; meshIt != meshEnd; ++meshIt, ++posIt) {
-    if (posIt->entity != meshIt->entity) {
-      return error("transform doesn't match entity");
-    }
-    auto aabb =
-        Shape3f::box(_collision.computeAxisAlignedBoundingBox(meshIt->value));
-    board->set(meshIt->entity, "aabb", aabb);
-    auto meshIt2 = meshIt;
-    auto posIt2 = posIt;
-    for (; meshIt2 != meshEnd; ++meshIt2, ++posIt2) {
-      if (posIt2->entity != meshIt2->entity) {
-        return error("transform doesn't match entity");
+Result CollisionSystem::process(Ptr<Memory> const& mem) {
+  mem->remove(OUTPUT);
+  auto first_loop = [mem, this](Entity const& e, Transform const& t,
+                                Box const& b) -> Result {
+    auto second_loop = [mem, this, e, t, b](Entity const& e2,
+                                            Transform const& t2,
+                                            Box const& b2) -> Result {
+      if (e >= e2) {
+        return ok();
       }
-      if (posIt->entity == posIt2->entity) {
-        continue;
-      }
-      Collision col = _collision.detect(meshIt->value, posIt->value,
-                                        meshIt2->value, posIt2->value);
+
+      Collision col = _collision.detect(t, b, t2, b2);
       if (col.exist) {
-        std::cout << "Found collision" << std::endl;
-        col.e1 = meshIt->entity;
-        col.e2 = meshIt2->entity;
-        board->set(meshIt->entity, "collision", col);
-      } else {
-        board->remove(meshIt->entity, "collision");
+        std::cout << "found collision between " << e.name() << " and "
+                  << e2.name() << std::endl;
+        mem->write(e, OUTPUT, col);
+        mem->write(e2, OUTPUT, col);
       }
+      return ok();
+    };
+    return mem->process<Transform, Box>(INPUT_1, INPUT_2, second_loop);
+  };
+  return mem->process<Transform, Box>(INPUT_1, INPUT_2, first_loop);
 }
-}
-*/
-  return ok();
-}
-
-Result CollisionSystem::init(const Ptr<Memory> & /*board*/) { return ok(); }
-
-void CollisionSystem::release() {}
 
 }  // namespace arty
