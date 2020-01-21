@@ -2,7 +2,7 @@
 #include <arty/impl/collision_system.hpp>
 
 namespace arty {
-Result CollisionSystem::process(Ptr<Memory> const& mem) {
+Result CollisionDetectionSystem::process(Ptr<Memory> const& mem) {
   mem->remove(OUTPUT);
   auto first_loop = [mem, this](Entity const& e, Transform const& t,
                                 Box const& b) -> Result {

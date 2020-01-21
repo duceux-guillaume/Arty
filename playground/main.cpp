@@ -4,6 +4,7 @@
 #include <arty/ext/opengl/gl_shape_renderer.hpp>
 #include <arty/impl/camera_system.hpp>
 #include <arty/impl/collision_rendering_system.hpp>
+#include <arty/impl/collision_solver_system.hpp>
 #include <arty/impl/collision_system.hpp>
 #include <arty/impl/debug_hid_system.hpp>
 #include <arty/impl/engine.hpp>
@@ -40,8 +41,9 @@ int main(void) {
       .makeSystem<FixedCameraSystem>(window)
       .makeSystem<HitBoxRenderingSystem>(shapeRenderer)
       .makeSystem<PhysicsSystem>(world)
-      .makeSystem<CollisionSystem>()
-      .makeSystem<CollisionRenderingSystem>(shapeRenderer);
+      .makeSystem<CollisionDetectionSystem>()
+      .makeSystem<CollisionRenderingSystem>(shapeRenderer)
+      .makeSystem<CollisionSolverSystem>();
 
   makeCube("unit", Transform(), Vec3f(1.f, 1.f, 1.f), 1.f, board);
   makeCube("cube", Transform(Vec3f(0.f, 0.f, 3.f)), Vec3f(0.5f, 0.5f, 0.5f),

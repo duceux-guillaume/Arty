@@ -2,42 +2,30 @@
 
 namespace arty {
 
-Result CollisionSolverSystem::process(const Ptr<Memory> &) {
-  /*
-   auto colPtr = board->getProperties<Collision>("collision");
-   if (!colPtr) {
-     return ok();
-   }
-
-   for (auto const &col : *colPtr) {
-     {
-       auto phy = board->read<Physics>(col.value.e1, "physics");
-       auto tf = board->read<Transform>(col.value.e1, "transform");
-       if (!phy || !tf) {
-         error("collision with nothing");
-       }
-       _solver.update(phy, tf, col.value, 0);
-     }
-     {
-       Physics *phy = board->getEntityProperty<Physics>(col.value.e2,
-   "physics"); Transform *tf = board->getEntityProperty<Transform>(col.value.e2,
-   "transform"); if (!phy || !tf) { error("collision with nothing");
-       }
-       _solver.update(phy, tf, col.value, 1);
-     }
-   }
-   */
-  return ok();
+Result CollisionSolverSystem::process(Ptr<Memory> const& mem) {
+  auto work = [&](Entity const& e, std::vector<Collision> const& b) -> Result {
+    for (auto const& col : b) {
+      auto tf = mem->read<Transform>(e, PhysicsSystem::INOUT_1);
+      auto phy = mem->read<Physics>(e, PhysicsSystem::INOUT_2);
+      _solver.update(&phy, &tf, col, e == col.e2);
+      mem->write(e, PhysicsSystem::INOUT_1, tf);
+    }
+    return ok();
+  };
+  return mem->process<std::vector<Collision>>(INPUT, work);
 }
 
-Result CollisionSolverSystem::init(const Ptr<Memory> & /*board*/) {
+Result CollisionSolverSystem::init(const Ptr<Memory>& /*board*/) {
   return ok();
 }
 
 void CollisionSolverSystem::release() {}
 
-void CollisionSolver::update(Physics * /*phy*/, Transform *tf,
-                             const Collision &c, int entity) {
+void CollisionSolver::update(Physics* phy, Transform* tf, const Collision& c,
+                             int entity) {
+  if (!phy->dynamic) {
+    return;
+  }
   // phy->forces_pos.push_back((c.shape.pts()[1] + c.shape.pts()[0]) * 0.5f);
   Vec3f dir = c.shape.pts()[0] - c.shape.pts()[1];
   if (entity == 1) {

@@ -6,7 +6,7 @@
 
 namespace arty {
 
-class CollisionSystem : public System {
+class CollisionDetectionSystem : public System {
  public:
   static constexpr const char* INPUT_1 = "transform";
   static constexpr const char* INPUT_2 = "hitbox";

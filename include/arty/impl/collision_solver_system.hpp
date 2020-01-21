@@ -14,6 +14,8 @@ class CollisionSolver {
 
 class CollisionSolverSystem : public System {
  private:
+  static constexpr const char* INPUT = "collision";
+
   CollisionSolver _solver;
   // System interface
  public:
