@@ -36,14 +36,12 @@ int main(void) {
   engine.setBoard(board)
       .setWindow(window)
       .setKeyboard(keyboard)
-      .addSystem(Ptr<System>(new DebugHidSystem(window, textRenderer)))
-      .addSystem(Ptr<FixedCameraSystem>(new FixedCameraSystem(window)))
-      .addSystem(
-          Ptr<HitBoxRenderingSystem>(new HitBoxRenderingSystem(shapeRenderer)))
-      .addSystem(Ptr<PhysicsSystem>(new PhysicsSystem(world)))
-      .addSystem(Ptr<CollisionSystem>(new CollisionSystem))
-      .addSystem(Ptr<CollisionRenderingSystem>(
-          new CollisionRenderingSystem(shapeRenderer)));
+      .makeSystem<DebugHidSystem>(window, textRenderer)
+      .makeSystem<FixedCameraSystem>(window)
+      .makeSystem<HitBoxRenderingSystem>(shapeRenderer)
+      .makeSystem<PhysicsSystem>(world)
+      .makeSystem<CollisionSystem>()
+      .makeSystem<CollisionRenderingSystem>(shapeRenderer);
 
   makeCube("unit", Transform(), Vec3f(1.f, 1.f, 1.f), 1.f, board);
   makeCube("cube", Transform(Vec3f(0.f, 0.f, 3.f)), Vec3f(0.5f, 0.5f, 0.5f),

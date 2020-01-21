@@ -19,6 +19,16 @@ class Engine {
 
   Engine& addSystem(Ptr<System> const& system);
 
+  template <class DerivedSystem>
+  Engine& makeSystem() {
+    return this->addSystem(Ptr<DerivedSystem>(new DerivedSystem));
+  }
+
+  template <class DerivedSystem, typename... Args>
+  Engine& makeSystem(Args... args) {
+    return this->addSystem(Ptr<DerivedSystem>(new DerivedSystem(args...)));
+  }
+
   Engine& setBoard(Ptr<Memory> const& board);
 
   Result start();
