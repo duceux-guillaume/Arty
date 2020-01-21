@@ -71,46 +71,49 @@ Vec3f CollisionDetection::computeCenter(const Mesh& mesh) {
   return (maxval + minval) * 0.5f;
 }
 
-Collision CollisionDetection::detect(const Mesh& mesh1, const Transform& tf1,
-                                     const Mesh& mesh2, const Transform& tf2) {
+Collision CollisionDetection::detect(const Mesh&, const Transform&, const Mesh&,
+                                     const Transform&) {
   Collision col;
-  col.exist = false;
+  /*
+   col.exist = false;
 
-  Sphere s1 = computeOuterCircle(mesh1);
-  Sphere s2 = computeOuterCircle(mesh2);
-  auto center1 = tf1 * s1.center;
-  auto center2 = tf2 * s2.center;
-  double dist = (center1 - center2).normsqr();
-  if (dist > s1.squaredRadius + s2.squaredRadius) {
-    return col;
-  }
-  Box b1 = computeAxisAlignedBoundingBox(mesh1);
-  Box b2 = computeAxisAlignedBoundingBox(mesh2);
-  double dx = std::abs(center1.x() - center2.x());
-  double tx = b1.halfLength.x() + b2.halfLength.x();
-  if (dx > tx) {
-    return col;
-  }
-  double dy = std::abs(center1.y() - center2.y());
-  double ty = b1.halfLength.y() + b2.halfLength.y();
-  if (dy > ty) {
-    return col;
-  }
-  double dz = std::abs(center1.z() - center2.z());
-  double tz = b1.halfLength.z() + b2.halfLength.z();
-  if (dz > tz) {
-    return col;
-  }
+   Sphere s1 = computeOuterCircle(mesh1);
+   Sphere s2 = computeOuterCircle(mesh2);
+   auto center1 = tf1 * s1.center;
+   auto center2 = tf2 * s2.center;
+   double dist = (center1 - center2).normsqr();
+   if (dist > s1.squaredRadius + s2.squaredRadius) {
+     return col;
+   }
+   AABox b1 = computeAxisAlignedBoundingBox(mesh1);
+   AABox b2 = computeAxisAlignedBoundingBox(mesh2);
+   double dx = std::abs(center1.x() - center2.x());
+   double tx = b1._.x() + b2._.x();
+   if (dx > tx) {
+     return col;
+   }
+   double dy = std::abs(center1.y() - center2.y());
+   double ty = b1._.y() + b2._.y();
+   if (dy > ty) {
+     return col;
+   }
+   double dz = std::abs(center1.z() - center2.z());
+   double tz = b1._.z() + b2._.z();
+   if (dz > tz) {
+     return col;
+   }
 
-  col.exist = true;
-  Vec3f z(tx - dx, ty - dy, tz - dz);
-  Vec3f imp = (center1 + center2) * 0.5f;
-  col.shape = Polygon3f::edge(imp, imp + z);
+   col.exist = true;
+   Vec3f z(tx - dx, ty - dy, tz - dz);
+   Vec3f imp = (center1 + center2) * 0.5f;
+   col.shape = Polygon3f::edge(imp, imp + z);
+   */
   return col;
 }
 
-Box CollisionDetection::computeAxisAlignedBoundingBox(const Mesh& mesh) {
-  Box b;
+AABox3f CollisionDetection::computeAxisAlignedBoundingBox(const Mesh&) {
+  AABox3f b;
+  /*
   Vec3f maxval;
   static const float max = std::numeric_limits<float>::max();
   Vec3f minval(max, max, max);
@@ -134,30 +137,25 @@ Box CollisionDetection::computeAxisAlignedBoundingBox(const Mesh& mesh) {
       minval.z() = pt.z();
     }
   }
-  b.center = (maxval + minval) * 0.5f;
-  b.halfLength = (maxval - minval) * 0.5f;
+  b._center = (maxval + minval) * 0.5f;
+  b._ = (maxval - minval) * 0.5f;
+  */
   return b;
 }
 
-Collision CollisionDetection::detect(const Transform& tf1, const Box& b1,
-                                     const Transform& tf2, const Box& b2) {
+Collision CollisionDetection::detect(const Transform& tf1, const AABox3f& b1,
+                                     const Transform& tf2, const AABox3f& b2) {
   Collision col;
   col.exist = false;
 
-  Sphere s1(tf1.translation + b1.center, b1.halfLength.normsqr());
-  Sphere s2(tf2.translation + b2.center, b2.halfLength.normsqr());
-  if (!s1.intersect(s2)) {
-    return col;
-  }
-
-  Box rb1(tf1.translation + b1.center, b1.halfLength);
-  Box rb2(tf2.translation + b2.center, b2.halfLength);
+  AABox3f rb1 = b1.move(tf1);
+  AABox3f rb2 = b2.move(tf2);
   if (!rb1.intersect(rb2)) {
     return col;
   }
 
   col.exist = true;
-  col.shape = Polygon3f::edge(rb1.center, rb2.center);
+  col.shape = Polygon3f::edge(rb1.center(), rb2.center());
   return col;
 }
 

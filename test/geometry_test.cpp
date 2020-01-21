@@ -63,3 +63,10 @@ TEST(Triangle, project) {
 //  ASSERT_TRUE(res.exist);
 //  ASSERT_EQ(res.value, Vec3f());
 //}
+
+TEST(AABox2f, intersect) {
+  AABox2f unit(Vec2f(), Vec2f(1.f, 1.f));
+  AABox2f random(Vec2f(1.5f, 0.f), Vec2f(1.f, 1.f));
+  ASSERT_TRUE(unit.intersect(random));
+  ASSERT_TRUE(random.intersect(unit));
+}

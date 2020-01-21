@@ -47,63 +47,64 @@ static Vec3f flip(Vec3f const& l, Vec3f const& r) {
   return l.apply_with(r, [](float l, float r) { return l * r; });
 }
 
-static void boxToLines(Box const& b, std::vector<Vec3f>& l) {
+static void boxToLines(AABox3f const& b, std::vector<Vec3f>& l) {
   l.clear();
   // sup part
-  Vec3f prev = b.center + b.halfLength;
-  Vec3f next = b.center + flip(b.halfLength, Vec3f(-1.f, 1.f, 1.f));
+  Vec3f prev = b.center() + b.halfLength();
+  Vec3f next = b.center() + flip(b.halfLength(), Vec3f(-1.f, 1.f, 1.f));
   l.push_back(prev);
   l.push_back(next);
   prev = next;
-  next = b.center + flip(b.halfLength, Vec3f(-1.f, -1.f, 1.f));
+  next = b.center() + flip(b.halfLength(), Vec3f(-1.f, -1.f, 1.f));
   l.push_back(prev);
   l.push_back(next);
   prev = next;
-  next = b.center + flip(b.halfLength, Vec3f(1.f, -1.f, 1.f));
+  next = b.center() + flip(b.halfLength(), Vec3f(1.f, -1.f, 1.f));
   l.push_back(prev);
   l.push_back(next);
   prev = next;
-  next = b.center + flip(b.halfLength, Vec3f(1.f, 1.f, 1.f));
+  next = b.center() + flip(b.halfLength(), Vec3f(1.f, 1.f, 1.f));
   l.push_back(prev);
   l.push_back(next);
   // inf part
-  prev = b.center + flip(b.halfLength, Vec3f(1.f, 1.f, -1.f));
-  next = b.center + flip(b.halfLength, Vec3f(-1.f, 1.f, -1.f));
+  prev = b.center() + flip(b.halfLength(), Vec3f(1.f, 1.f, -1.f));
+  next = b.center() + flip(b.halfLength(), Vec3f(-1.f, 1.f, -1.f));
   l.push_back(prev);
   l.push_back(next);
   prev = next;
-  next = b.center + flip(b.halfLength, Vec3f(-1.f, -1.f, -1.f));
+  next = b.center() + flip(b.halfLength(), Vec3f(-1.f, -1.f, -1.f));
   l.push_back(prev);
   l.push_back(next);
   prev = next;
-  next = b.center + flip(b.halfLength, Vec3f(1.f, -1.f, -1.f));
+  next = b.center() + flip(b.halfLength(), Vec3f(1.f, -1.f, -1.f));
   l.push_back(prev);
   l.push_back(next);
   prev = next;
-  next = b.center + flip(b.halfLength, Vec3f(1.f, 1.f, -1.f));
+  next = b.center() + flip(b.halfLength(), Vec3f(1.f, 1.f, -1.f));
   l.push_back(prev);
   l.push_back(next);
   // middle part
-  prev = b.center + b.halfLength;
-  next = b.center + flip(b.halfLength, Vec3f(1.f, 1.f, -1.f));
+  prev = b.center() + b.halfLength();
+  next = b.center() + flip(b.halfLength(), Vec3f(1.f, 1.f, -1.f));
   l.push_back(prev);
   l.push_back(next);
-  prev = b.center + flip(b.halfLength, Vec3f(1.f, -1.f, 1.f));
-  next = b.center + flip(b.halfLength, Vec3f(1.f, -1.f, -1.f));
+  prev = b.center() + flip(b.halfLength(), Vec3f(1.f, -1.f, 1.f));
+  next = b.center() + flip(b.halfLength(), Vec3f(1.f, -1.f, -1.f));
   l.push_back(prev);
   l.push_back(next);
-  prev = b.center + flip(b.halfLength, Vec3f(-1.f, 1.f, 1.f));
-  next = b.center + flip(b.halfLength, Vec3f(-1.f, 1.f, -1.f));
+  prev = b.center() + flip(b.halfLength(), Vec3f(-1.f, 1.f, 1.f));
+  next = b.center() + flip(b.halfLength(), Vec3f(-1.f, 1.f, -1.f));
   l.push_back(prev);
   l.push_back(next);
-  prev = b.center + flip(b.halfLength, Vec3f(-1.f, -1.f, 1.f));
-  next = b.center + flip(b.halfLength, Vec3f(-1.f, -1.f, -1.f));
+  prev = b.center() + flip(b.halfLength(), Vec3f(-1.f, -1.f, 1.f));
+  next = b.center() + flip(b.halfLength(), Vec3f(-1.f, -1.f, -1.f));
   l.push_back(prev);
   l.push_back(next);
 }
 
-void GlShapeRenderer::draw(const Entity& e, const Box& s, const Mat4x4f& model,
-                           const Mat4x4f& view, const Mat4x4f& proj) {
+void GlShapeRenderer::draw(const Entity& e, const AABox3f& s,
+                           const Mat4x4f& model, const Mat4x4f& view,
+                           const Mat4x4f& proj) {
   std::vector<Vec3f> lines;
   boxToLines(s, lines);
   draw(e, lines, model, view, proj);

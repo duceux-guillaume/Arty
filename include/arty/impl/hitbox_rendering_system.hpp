@@ -10,7 +10,7 @@ class IShapeRenderer {
  public:
   virtual ~IShapeRenderer();
   virtual Result init() = 0;
-  virtual void draw(const Entity &e, const Box &s, const Mat4x4f &model,
+  virtual void draw(const Entity &e, const AABox3f &s, const Mat4x4f &model,
                     const Mat4x4f &view, const Mat4x4f &proj) = 0;
   virtual void draw(const Entity &e, const std::vector<Vec3f> &s,
                     const Mat4x4f &model, const Mat4x4f &view,

@@ -22,8 +22,8 @@ void PhysicsSolver::update(Transform* tf, Physics* phy,
   assert(phy);
   if (phy->dynamic) {
     float deltaTime = 0.016f;
-    tf->translation += phy->velocity.translation * deltaTime;
-    phy->velocity.translation += phy->acceleration.translation * deltaTime;
+    tf->translation() += phy->velocity.translation() * deltaTime;
+    phy->velocity.translation() += phy->acceleration.translation() * deltaTime;
     // handle gravity
     Vec3f gravity = Vec3f(0.f, 0.f, -1.f) * world.gravity_strengh;
     phy->acceleration = gravity;

@@ -194,34 +194,40 @@ struct Sphere {
   }
 };
 
-class Box {
+template <typename T, int Dim>
+class AABox {
  public:
-  Box() = default;
-  Box(Vec3f center, Vec3f halfLength)
-      : center(center), halfLength(halfLength) {}
+  using vector_type = Vec<T, Dim>;
+  using self_type = AABox<T, Dim>;
 
-  Vec3f center;
-  Vec3f halfLength;
+  AABox() = default;
+  AABox(vector_type const& center, vector_type const& halfLength)
+      : _center(center), _halfLength(halfLength) {}
 
-  bool intersect(Box const& other) {
-    float dx = std::abs(center.x() - other.center.x());
-    float tx = halfLength.x() + other.halfLength.x();
-    if (dx > tx) {
-      return false;
-    }
-    float dy = std::abs(center.y() - other.center.y());
-    float ty = halfLength.y() + other.halfLength.y();
-    if (dy > ty) {
-      return false;
-    }
-    float dz = std::abs(center.z() - other.center.z());
-    float tz = halfLength.z() + other.halfLength.z();
-    if (dz > tz) {
-      return false;
+  vector_type const& center() const { return _center; }
+  vector_type const& halfLength() const { return _halfLength; }
+
+  bool intersect(AABox const& other) {
+    for (std::size_t i = 0; i < vector_type::size; ++i) {
+      float delta = std::abs(_center[i] - other._center[i]);
+      float th = _halfLength[i] + other._halfLength[i];
+      if (delta > th) {
+        return false;
+      }
     }
     return true;
   }
+
+  self_type move(Transform const& tf) const {
+    return self_type(tf * _center, _halfLength);
+  }
+
+ private:
+  vector_type _center;
+  vector_type _halfLength;
 };
+using AABox2f = AABox<float, 2>;
+using AABox3f = AABox<float, 3>;
 
 template <typename T, int Dim>
 class Polygon {

@@ -18,7 +18,7 @@ void makeCube(std::string const& name, Transform const& pos,
   auto entity = mem->createEntity(name);
   mem->write(entity, PhysicsSystem::INOUT_1, pos);
   mem->write(entity, HitBoxRenderingSystem::DRAW_PROP,
-             Box(Vec3f(0.f, 0.f, 0.f), length));
+             AABox(Vec3f(0.f, 0.f, 0.f), length));
   mem->write(entity, PhysicsSystem::INOUT_2, Physics(mass));
 }
 

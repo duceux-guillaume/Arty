@@ -764,18 +764,18 @@ inline Mat4x4<T> rotation(T const& a, T const& b, T const& c) {
 
 struct Transform {
   Mat4x4f toMat() const {
-    Mat4x4f tf = rotation.toMat4x4();
-    tf(0, 3) = translation.x();
-    tf(1, 3) = translation.y();
-    tf(2, 3) = translation.z();
+    Mat4x4f tf = _rotation.toMat4x4();
+    tf(0, 3) = _translation.x();
+    tf(1, 3) = _translation.y();
+    tf(2, 3) = _translation.z();
     return tf;
   }
 
   void fromMat(Mat4x4f const& m) {
-    translation.x() = m(0, 3);
-    translation.y() = m(1, 3);
-    translation.z() = m(2, 3);
-    rotation.fromMat(m);
+    _translation.x() = m(0, 3);
+    _translation.y() = m(1, 3);
+    _translation.z() = m(2, 3);
+    _rotation.fromMat(m);
   }
 
   static Transform from(Mat4x4f const& m) {
@@ -784,16 +784,20 @@ struct Transform {
     return tf;
   }
 
-  Transform() : translation(), rotation(), scale() {}
-  Transform(Vec3f pos) : translation(pos), rotation(), scale() {}
+  Transform() : _translation(), _rotation() {}
+  Transform(Vec3f pos) : _translation(pos), _rotation() {}
 
   Vec3f operator*(Vec3f const& p) const {
-    return rotation.toMat3x3() * p + translation;
+    return _rotation.toMat3x3() * p + _translation;
   }
 
-  Vec3f translation;
-  Quatf rotation;
-  Vec3f scale;
+  Vec3f const& translation() const { return _translation; }
+  Vec3f& translation() { return _translation; }
+  Quatf const& rotation() const { return _rotation; }
+
+ private:
+  Vec3f _translation;
+  Quatf _rotation;
 };
 
 }  // namespace arty

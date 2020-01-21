@@ -31,7 +31,7 @@ void CollisionSolver::update(Physics* phy, Transform* tf, const Collision& c,
   if (entity == 1) {
     dir = c.shape.pts()[1] - c.shape.pts()[0];
   }
-  tf->translation += dir * 0.5f;
+  tf->translation() += dir * 0.5f;
   // phy->forces_dir.push_back(dir);
 }
 

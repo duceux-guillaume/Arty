@@ -17,7 +17,7 @@ class GlShapeRenderer : public IShapeRenderer {
   GlShapeRenderer() = default;
   Result init() override;
   void release() override;
-  void draw(const Entity &e, const Box &s, const Mat4x4f &model,
+  void draw(const Entity &e, const AABox3f &s, const Mat4x4f &model,
             const Mat4x4f &view, const Mat4x4f &proj) override;
   void draw(const Entity &e, const std::vector<Vec3f> &s, const Mat4x4f &model,
             const Mat4x4f &view, const Mat4x4f &proj) override;
