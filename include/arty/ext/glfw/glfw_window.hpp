@@ -2,8 +2,9 @@
 #define GLFW_WINDOW_HPP
 
 #include <GLFW/glfw3.h>
-#include <arty/core/input.h>
-#include <arty/core/window.h>
+
+#include <arty/core/input.hpp>
+#include <arty/core/window.hpp>
 
 namespace arty {
 

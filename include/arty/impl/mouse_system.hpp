@@ -1,9 +1,8 @@
 #ifndef MOUSE_SYSTEM_HPP
 #define MOUSE_SYSTEM_HPP
 
-#include <arty/core/window.h>
-
 #include <arty/core/system.hpp>
+#include <arty/core/window.hpp>
 
 namespace arty {
 

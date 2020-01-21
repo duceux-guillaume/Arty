@@ -1,6 +1,6 @@
 #include <GL/glew.h>
-#include <arty/ext/opengl/gl_loader.h>
 
+#include <arty/ext/opengl/gl_loader.hpp>
 #include <arty/ext/opengl/gl_shape_renderer.hpp>
 
 namespace arty {

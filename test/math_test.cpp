@@ -1,5 +1,6 @@
-#include <arty/core/math.h>
 #include <gtest/gtest.h>
+
+#include <arty/core/math.hpp>
 
 using namespace arty;
 

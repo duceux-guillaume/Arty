@@ -1,8 +1,7 @@
 #ifndef MESH_HPP
 #define MESH_HPP
 
-#include <arty/core/math.h>
-
+#include <arty/core/math.hpp>
 #include <string>
 #include <vector>
 

@@ -1,4 +1,4 @@
-#include <arty/core/input.h>
+#include <arty/core/input.hpp>
 
 namespace arty {
 

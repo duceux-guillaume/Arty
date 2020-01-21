@@ -1,8 +1,8 @@
 #include <GL/glew.h>
-#include <arty/core/math.h>
-#include <arty/ext/opengl/gl_loader.h>
 
+#include <arty/core/math.hpp>
 #include <arty/ext/opengl/2d_renderer.hpp>
+#include <arty/ext/opengl/gl_loader.hpp>
 
 namespace arty {
 

@@ -1,8 +1,7 @@
-#include <arty/core/math.h>
-#include <arty/ext/opengl/gl_loader.h>
-#include <arty/ext/opengl/opengl_renderer.h>
-
+#include <arty/core/math.hpp>
 #include <arty/core/mesh.hpp>
+#include <arty/ext/opengl/gl_loader.hpp>
+#include <arty/ext/opengl/opengl_renderer.hpp>
 #include <arty/impl/camera_system.hpp>
 
 namespace arty {

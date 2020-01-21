@@ -1,11 +1,10 @@
 #ifndef ENGINE_HPP
 #define ENGINE_HPP
 
-#include <arty/core/input.h>
-#include <arty/core/result.h>
-#include <arty/core/window.h>
-
+#include <arty/core/input.hpp>
+#include <arty/core/result.hpp>
 #include <arty/core/system.hpp>
+#include <arty/core/window.hpp>
 
 namespace arty {
 

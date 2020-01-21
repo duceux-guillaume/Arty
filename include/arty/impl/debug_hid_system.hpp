@@ -1,10 +1,9 @@
 #ifndef DEBUG_HID_SYSTEM_HPP
 #define DEBUG_HID_SYSTEM_HPP
 
-#include <arty/core/window.h>
-
 #include <arty/core/renderer.hpp>
 #include <arty/core/system.hpp>
+#include <arty/core/window.hpp>
 
 namespace arty {
 

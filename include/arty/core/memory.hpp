@@ -1,10 +1,9 @@
 #ifndef MEMORY_HPP
 #define MEMORY_HPP
 
-#include <arty/core/math.h>
-#include <arty/core/result.h>
-
 #include <any>
+#include <arty/core/math.hpp>
+#include <arty/core/result.hpp>
 #include <functional>
 #include <map>
 #include <string>

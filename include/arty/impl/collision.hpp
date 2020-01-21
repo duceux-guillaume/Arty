@@ -1,9 +1,8 @@
 #ifndef COLLISION_HPP
 #define COLLISION_HPP
 
-#include <arty/core/math.h>
-
 #include <arty/core/geometry.hpp>
+#include <arty/core/math.hpp>
 #include <arty/core/memory.hpp>
 #include <arty/core/mesh.hpp>
 

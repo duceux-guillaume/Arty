@@ -2,8 +2,8 @@
 #define OPENGL_RENDERER_H
 
 #include <GL/glew.h>
-#include <arty/core/math.h>
 
+#include <arty/core/math.hpp>
 #include <arty/core/mesh.hpp>
 #include <arty/core/system.hpp>
 

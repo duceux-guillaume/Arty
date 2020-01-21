@@ -1,4 +1,4 @@
-#include <arty/core/result.h>
+#include <arty/core/result.hpp>
 
 std::ostream &operator<<(std::ostream &os, const arty::Result &r) {
   os << r.message();

@@ -1,10 +1,9 @@
 #ifndef GL_LOADER_H
 #define GL_LOADER_H
 
-#include <arty/core/math.h>
-#include <arty/core/result.h>
-
+#include <arty/core/math.hpp>
 #include <arty/core/mesh.hpp>
+#include <arty/core/result.hpp>
 #include <cstring>
 #include <fstream>
 #include <sstream>

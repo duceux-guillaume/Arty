@@ -1,10 +1,9 @@
-#ifndef ECS_H
-#define ECS_H
+#ifndef SYSTEM_HPP
+#define SYSTEM_HPP
 
-#include <arty/core/input.h>
-#include <arty/core/result.h>
-
+#include <arty/core/input.hpp>
 #include <arty/core/memory.hpp>
+#include <arty/core/result.hpp>
 
 namespace arty {
 
@@ -24,4 +23,4 @@ class System {
 
 };  // namespace arty
 
-#endif  // ECS_H
+#endif  // SYSTEM_HPP

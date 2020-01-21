@@ -1,10 +1,9 @@
 #ifndef CAMERA_SYSTEM_HPP
 #define CAMERA_SYSTEM_HPP
 
-#include <arty/core/math.h>
-#include <arty/core/window.h>
-
+#include <arty/core/math.hpp>
 #include <arty/core/system.hpp>
+#include <arty/core/window.hpp>
 
 namespace arty {
 

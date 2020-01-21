@@ -1,8 +1,7 @@
 #ifndef RENDERER_HPP
 #define RENDERER_HPP
 
-#include <arty/core/result.h>
-
+#include <arty/core/result.hpp>
 #include <string>
 
 namespace arty {

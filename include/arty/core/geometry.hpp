@@ -1,8 +1,7 @@
 #ifndef GEOMETRY_HPP
 #define GEOMETRY_HPP
 
-#include <arty/core/math.h>
-
+#include <arty/core/math.hpp>
 #include <variant>
 
 namespace arty {
