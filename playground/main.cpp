@@ -3,6 +3,7 @@
 #include <arty/ext/opengl/2d_renderer.hpp>
 #include <arty/ext/opengl/gl_shape_renderer.hpp>
 #include <arty/impl/camera_system.hpp>
+#include <arty/impl/collision_rendering_system.hpp>
 #include <arty/impl/collision_system.hpp>
 #include <arty/impl/debug_hid_system.hpp>
 #include <arty/impl/engine.hpp>
@@ -40,7 +41,9 @@ int main(void) {
       .addSystem(
           Ptr<HitBoxRenderingSystem>(new HitBoxRenderingSystem(shapeRenderer)))
       .addSystem(Ptr<PhysicsSystem>(new PhysicsSystem(world)))
-      .addSystem(Ptr<CollisionSystem>(new CollisionSystem));
+      .addSystem(Ptr<CollisionSystem>(new CollisionSystem))
+      .addSystem(Ptr<CollisionRenderingSystem>(
+          new CollisionRenderingSystem(shapeRenderer)));
 
   makeCube("unit", Transform(), Vec3f(1.f, 1.f, 1.f), 1.f, board);
   makeCube("cube", Transform(Vec3f(0.f, 0.f, 3.f)), Vec3f(0.5f, 0.5f, 0.5f),

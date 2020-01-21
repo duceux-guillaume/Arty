@@ -105,7 +105,7 @@ Collision CollisionDetection::detect(const Mesh& mesh1, const Transform& tf1,
   col.exist = true;
   Vec3f z(tx - dx, ty - dy, tz - dz);
   Vec3f imp = (center1 + center2) * 0.5f;
-  col.shape = Shape3f::edge(imp, imp + z);
+  col.shape = Polygon3f::edge(imp, imp + z);
   return col;
 }
 
@@ -157,8 +157,7 @@ Collision CollisionDetection::detect(const Transform& tf1, const Box& b1,
   }
 
   col.exist = true;
-  Vec3f imp = (rb1.center + rb2.center) * 0.5f;
-  col.shape = Shape3f::edge(imp, imp + rb1.halfLength);
+  col.shape = Polygon3f::edge(rb1.center, rb2.center);
   return col;
 }
 

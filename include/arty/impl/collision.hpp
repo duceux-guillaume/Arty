@@ -11,7 +11,7 @@ namespace arty {
 
 struct Collision {
   bool exist;
-  Shape3f shape;
+  Polygon3f shape;
   Entity e1;
   Entity e2;
 };

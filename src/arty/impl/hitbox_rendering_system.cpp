@@ -1,5 +1,4 @@
 #include <arty/impl/camera_system.hpp>
-#include <arty/impl/collision.hpp>
 #include <arty/impl/hitbox_rendering_system.hpp>
 
 namespace arty {
@@ -19,5 +18,6 @@ Result HitBoxRenderingSystem::init(const Ptr<Memory>& /*board*/) {
   return ok();
 }
 
-void HitBoxRenderingSystem::release() {}
+IShapeRenderer::~IShapeRenderer() {}
+
 }  // namespace arty

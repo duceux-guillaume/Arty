@@ -17,8 +17,13 @@ Result CollisionSystem::process(Ptr<Memory> const& mem) {
       if (col.exist) {
         std::cout << "found collision between " << e.name() << " and "
                   << e2.name() << std::endl;
-        mem->write(e, OUTPUT, col);
-        mem->write(e2, OUTPUT, col);
+        auto cols1 = mem->read<std::vector<Collision>>(e, OUTPUT);
+        cols1.push_back(col);
+        mem->write(e, OUTPUT, cols1);
+
+        auto cols2 = mem->read<std::vector<Collision>>(e2, OUTPUT);
+        cols2.push_back(col);
+        mem->write(e2, OUTPUT, cols2);
       }
       return ok();
     };

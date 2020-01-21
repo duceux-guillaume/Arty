@@ -205,18 +205,18 @@ class Box {
   Vec3f halfLength;
 
   bool intersect(Box const& other) {
-    double dx = std::abs(center.x() - other.center.x());
-    double tx = halfLength.x() + other.halfLength.x();
+    float dx = std::abs(center.x() - other.center.x());
+    float tx = halfLength.x() + other.halfLength.x();
     if (dx > tx) {
       return false;
     }
-    double dy = std::abs(center.y() - other.center.y());
-    double ty = halfLength.y() + other.halfLength.y();
+    float dy = std::abs(center.y() - other.center.y());
+    float ty = halfLength.y() + other.halfLength.y();
     if (dy > ty) {
       return false;
     }
-    double dz = std::abs(center.z() - other.center.z());
-    double tz = halfLength.z() + other.halfLength.z();
+    float dz = std::abs(center.z() - other.center.z());
+    float tz = halfLength.z() + other.halfLength.z();
     if (dz > tz) {
       return false;
     }
@@ -225,24 +225,21 @@ class Box {
 };
 
 template <typename T, int Dim>
-class Shape {
+class Polygon {
  public:
   using vec_type = Vec<T, Dim>;
-  using self_type = Shape<T, Dim>;
+  using self_type = Polygon<T, Dim>;
 
  private:
   std::vector<vec_type> _pts;
-  vec_type _center;
 
  public:
   std::vector<vec_type> const& pts() const { return _pts; }
-  vec_type const& center() const { return _center; }
 
   static self_type edge(vec_type const& v1, vec_type const& v2) {
     self_type s;
     s._pts.push_back(v1);
     s._pts.push_back(v2);
-    s._center = (v1 + v2) * 0.5f;
     return s;
   }
 
@@ -257,31 +254,8 @@ class Shape {
     s._pts.push_back(v1);
     return s;
   }
-
-  static self_type box(Box const& b) {
-    self_type s;
-    Vec3f sign = b.halfLength;
-    std::vector<vec_type> v;
-    for (int sx = -1; sx < 2; sx += 2) {
-      for (int sy = -1; sy < 2; sy += 2) {
-        for (int sz = -1; sz < 2; sz += 2) {
-          sign.x() = sx * b.halfLength.x();
-          sign.y() = sy * b.halfLength.y();
-          sign.z() = sz * b.halfLength.z();
-          v.push_back(b.center + sign);
-        }
-      }
-    }
-    for (std::size_t i = 0; i < v.size(); ++i) {
-      for (std::size_t j = i + 1; j < v.size(); ++j) {
-        s._pts.push_back(v[i]);
-        s._pts.push_back(v[j]);
-      }
-    }
-    return s;
-  }
 };
-using Shape3f = Shape<float, 3>;
+using Polygon3f = Polygon<float, 3>;
 
 }  // namespace arty
 
