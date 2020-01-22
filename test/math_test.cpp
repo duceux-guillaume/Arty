@@ -125,8 +125,7 @@ TEST(Mat, Apply) {
 TEST(Mat, ApplyWith) {
   Vec2f v1(1.f, 2.f);
   Vec2f v2(2.f, 1.f);
-  Vec2f r1 =
-      v1.apply_with(v2, [](float f1, float f2) { return std::min(f1, f2); });
+  Vec2f r1 = v1.apply(v2, [](float f1, float f2) { return std::min(f1, f2); });
   ASSERT_EQ(r1, Vec2f(1.f, 1.f));
 }
 
@@ -134,4 +133,10 @@ TEST(Mat, SelfMinus) {
   Vec2f vec(1.f, 2.f);
   ASSERT_EQ(-vec, Vec2f(-1.f, -2.f));
   ASSERT_EQ(-(-vec), vec);
+}
+
+TEST(Mat, verify) {
+  Vec2f vec(1.f, 2.f);
+  ASSERT_TRUE(vec.verify([](float f) { return f > 0.f; }));
+  ASSERT_FALSE(vec.verify([](float f) { return f <= 0.f; }));
 }

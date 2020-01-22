@@ -6,12 +6,23 @@
 
 namespace arty {
 
-template <typename T>
-struct Intersection {
-  bool exist;
-  T value;
+template <class T>
+class Intersection {
+ private:
+  bool _exist;
+  T _value;
 
-  Intersection() : exist(false), value() {}
+ public:
+  using value_type = T;
+
+  Intersection() : Intersection(false) {}
+  Intersection(bool e) : Intersection(e, value_type()) {}
+  Intersection(T const& val) : Intersection(true, val) {}
+  Intersection(bool e, T const& val) : _exist(e), _value(val) {}
+
+  bool empty() const { return !_exist; }
+  bool exist() const { return _exist; }
+  T const& value() const { return _value; }
 };
 
 template <typename T, int Dim>
@@ -168,8 +179,8 @@ class Triangle {
     }
     Vec3<T> n = cross(_p2 - _p1, _p3 - _p1);
     T coeff = -e.p1().dot(n - _p1) / e.p1().dot(e.p2() - e.p1());
-    intersection.value = e.p1() + (e.p1() - e.p2()) * coeff;
-    intersection.exist = true;
+    intersection._value = e.p1() + (e.p1() - e.p2()) * coeff;
+    intersection._exist = true;
     return intersection;
   }
 
@@ -216,6 +227,25 @@ class AABox {
       }
     }
     return true;
+  }
+
+  vector_type max() const { return _center + _halfLength; }
+
+  vector_type min() const { return _center - _halfLength; }
+
+  Intersection<self_type> intersection(self_type const& other) const {
+    vector_type distance = _center.apply(
+        other._center, [](float l, float r) { return std::abs(l - r); });
+    vector_type threshold = _halfLength + other._halfLength;
+    vector_type volume = (threshold - distance) * 0.5f;
+    if (!volume.verify([](float f) { return f >= 0.f; })) {
+      return false;
+    }
+    vector_type pt_max = max().apply(
+        other.max(), [](float l, float r) { return std::min(l, r); });
+    vector_type pt_min = min().apply(
+        other.min(), [](float l, float r) { return std::max(l, r); });
+    return self_type((pt_min + pt_max) * 0.5f, volume);
   }
 
   self_type move(Transform const& tf) const {

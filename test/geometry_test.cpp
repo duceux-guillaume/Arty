@@ -70,3 +70,22 @@ TEST(AABox2f, intersect) {
   ASSERT_TRUE(unit.intersect(random));
   ASSERT_TRUE(random.intersect(unit));
 }
+
+TEST(AABox2f, intersection) {
+  {
+    AABox2f unit(Vec2f(), Vec2f(1.f, 1.f));
+    AABox2f random(Vec2f(1.5f, 0.f), Vec2f(1.f, 1.f));
+    auto intersection = unit.intersection(random);
+    ASSERT_TRUE(intersection.exist());
+    ASSERT_EQ(intersection.value().halfLength(), Vec2f(0.25f, 1.f));
+    ASSERT_EQ(intersection.value().center(), Vec2f(0.75f, 0.f));
+  }
+  {
+    AABox2f unit(Vec2f(), Vec2f(1.f, 1.f));
+    AABox2f random(Vec2f(-1.5f, 1.f), Vec2f(1.f, 0.5f));
+    auto intersection = unit.intersection(random);
+    ASSERT_TRUE(intersection.exist());
+    ASSERT_EQ(intersection.value().halfLength(), Vec2f(0.25f, 0.25f));
+    ASSERT_EQ(intersection.value().center(), Vec2f(-0.75f, 0.75f));
+  }
+}

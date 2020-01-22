@@ -32,19 +32,21 @@ class Mat {
   using transpose_type = Mat<T, Cols, Rows>;
   using col_type = Mat<T, Rows, 1>;
   using row_type = Mat<T, 1, Cols>;
+  using iterator_type = value_type*;
+  using const_iterator_type = value_type const*;
 
  protected:
-  T arr[size];
+  T _arr[size];
 
  public:
-  Mat() : arr{0} {}
+  Mat() : _arr{0} {}
   Mat(std::initializer_list<T> l) {
     assert(l.size() == size);
     auto it = l.begin();
     auto end = l.end();
     int i = 0;
     for (; it != end; ++i, ++it) {
-      arr[i] = *it;
+      _arr[i] = *it;
     }
   }
   Mat(MAT_TYPE const& o) = default;
@@ -67,23 +69,23 @@ class Mat {
   T const& operator()(size_t i, size_t j) const {
     assert(i < rows);
     assert(j < cols);
-    return arr[i * cols + j];
+    return _arr[i * cols + j];
   }
 
   T& operator()(size_t i, size_t j) {
     assert(i < rows);
     assert(j < cols);
-    return arr[i * cols + j];
+    return _arr[i * cols + j];
   }
 
   T const& operator[](size_t i) const {
     assert(i < size);
-    return arr[i];
+    return _arr[i];
   }
 
   T& operator[](size_t i) {
     assert(i < size);
-    return arr[i];
+    return _arr[i];
   }
 
   // BLOCKS
@@ -124,11 +126,11 @@ class Mat {
   void setAt(std::size_t /*i*/) {}
   void setAt(std::size_t i, T const& first) {
     assert(i < size);
-    arr[i] = first;
+    _arr[i] = first;
   }
   template <typename... Args>
   void setAt(std::size_t i, T const& first, Args... args) {
-    arr[i] = first;
+    _arr[i] = first;
     setAt(i + 1, args...);
   }
 
@@ -172,14 +174,14 @@ class Mat {
   // OPERATORS
   self_type& operator+=(self_type const& other) {
     for (int i = 0; i < size; ++i) {
-      arr[i] += other.arr[i];
+      _arr[i] += other._arr[i];
     }
     return *this;
   }
 
   self_type& operator-=(self_type const& other) {
     for (int i = 0; i < size; ++i) {
-      arr[i] -= other.arr[i];
+      _arr[i] -= other._arr[i];
     }
     return *this;
   }
@@ -191,7 +193,7 @@ class Mat {
   template <typename S>
   self_type& operator*=(S const& scalar) {
     for (int i = 0; i < size; ++i) {
-      arr[i] *= scalar;
+      _arr[i] *= scalar;
     }
     return *this;
   }
@@ -200,7 +202,7 @@ class Mat {
   self_type& operator/=(S const& scalar) {
     assert(scalar != static_cast<S>(0));
     for (int i = 0; i < size; ++i) {
-      arr[i] /= scalar;
+      _arr[i] /= scalar;
     }
     return *this;
   }
@@ -214,7 +216,7 @@ class Mat {
         }
       }
     }
-    std::memcpy(this->arr, res.arr, sizeof(this->arr));
+    std::memcpy(this->_arr, res._arr, sizeof(this->_arr));
     return *this;
   }
 
@@ -231,10 +233,10 @@ class Mat {
     return res;
   }
 
-  T const* ptr() const { return &arr[0]; }
+  T const* ptr() const { return &_arr[0]; }
 
   bool operator==(self_type const& r) const {
-    return std::memcmp(this->arr, r.arr, sizeof(this->arr)) == 0;
+    return std::memcmp(this->_arr, r._arr, sizeof(this->_arr)) == 0;
   }
 
   bool operator!=(self_type const& r) const { return !(*this == r); }
@@ -242,7 +244,7 @@ class Mat {
   T dot(self_type const& r) const {
     T res(0);
     for (int i = 0; i < size; ++i) {
-      res += arr[i] * r[i];
+      res += _arr[i] * r[i];
     }
     return res;
   }
@@ -270,55 +272,65 @@ class Mat {
   template <typename Func>
   self_type apply(Func foo) const {
     self_type r;
-    std::transform(arr, arr + size, r.arr, foo);
+    std::transform(_arr, _arr + size, r._arr, foo);
     return r;
   }
 
   template <typename Func>
-  self_type apply_with(self_type const& other, Func foo) const {
+  self_type apply(self_type const& other, Func foo) const {
     self_type r;
-    std::transform(arr, arr + size, other.arr, r.arr, foo);
+    std::transform(_arr, _arr + size, other._arr, r._arr, foo);
     return r;
+  }
+
+  template <typename Func>
+  bool verify(Func foo) const {
+    for (auto const& el : *this) {
+      if (!foo(el)) {
+        return false;
+      }
+    }
+    return true;
   }
 
   // VECTORS STUFF
   T const& x() const {
     static_assert(rows == 1 || cols == 1, "operation reserved to vectors");
-    return arr[0];
+    return _arr[0];
   }
   T const& y() const {
     static_assert(size >= 2, "size is too small for this operation");
     static_assert(is_vector, "operation reserved to vectors");
-    return arr[1];
+    return _arr[1];
   }
   T const& z() const {
     static_assert(size >= 3, "size is too small for this operation");
     static_assert(is_vector, "operation reserved to vectors");
-    return arr[2];
+    return _arr[2];
   }
   T const& w() const {
     static_assert(size >= 4, "size is too small for this operation");
     static_assert(is_vector, "operation reserved to vectors");
-    return arr[3];
+    return _arr[3];
   }
   T& x() {
     static_assert(rows == 1 || cols == 1, "operation reserved to vectors");
-    return arr[0];
+    return _arr[0];
   }
   T& y() {
     static_assert(size >= 2, "size is too small for this operation");
     static_assert(is_vector, "operation reserved to vectors");
-    return arr[1];
+    return _arr[1];
   }
   T& z() {
     static_assert(size >= 3, "size is too small for this operation");
     static_assert(is_vector, "operation reserved to vectors");
-    return arr[2];
+    return _arr[2];
   }
   T& w() {
     static_assert(size >= 4, "size is too small for this operation");
     static_assert(is_vector, "operation reserved to vectors");
-    return arr[3];
+    return _arr[3];
   }
 
   // SQUARE MAT STUFF
@@ -334,6 +346,12 @@ class Mat {
   T det() const;
 
   self_type inv() const;
+
+  // ITERATOR STUFF
+  const_iterator_type begin() const { return _arr; }
+  iterator_type begin() { return _arr; }
+  const_iterator_type end() const { return _arr + size; }
+  iterator_type end() { return _arr + size; }
 
 };  // namespace arty
 
@@ -596,15 +614,15 @@ class Quat : public Vec4<T> {
   Quat(Args const&... args) : Base({args...}) {}
 
   Vec3<T> operator*(Vec3<T> const& v) {
-    T t2 = Base::arr[0] * Base::arr[1];
-    T t3 = Base::arr[0] * Base::arr[2];
-    T t4 = Base::arr[0] * Base::arr[3];
-    T t5 = -Base::arr[1] * Base::arr[1];
-    T t6 = Base::arr[1] * Base::arr[2];
-    T t7 = Base::arr[1] * Base::arr[3];
-    T t8 = -Base::arr[2] * Base::arr[2];
-    T t9 = Base::arr[2] * Base::arr[3];
-    T t10 = -Base::arr[3] * Base::arr[3];
+    T t2 = Base::_arr[0] * Base::_arr[1];
+    T t3 = Base::_arr[0] * Base::_arr[2];
+    T t4 = Base::_arr[0] * Base::_arr[3];
+    T t5 = -Base::_arr[1] * Base::_arr[1];
+    T t6 = Base::_arr[1] * Base::_arr[2];
+    T t7 = Base::_arr[1] * Base::_arr[3];
+    T t8 = -Base::_arr[2] * Base::_arr[2];
+    T t9 = Base::_arr[2] * Base::_arr[3];
+    T t10 = -Base::_arr[3] * Base::_arr[3];
     T v1new =
         2 * ((t8 + t10) * v[0] + (t6 - t4) * v[1] + (t3 + t7) * v[2]) + v[0];
     T v2new =

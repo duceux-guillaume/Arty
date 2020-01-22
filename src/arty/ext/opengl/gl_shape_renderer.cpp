@@ -44,7 +44,7 @@ void GlShapeRenderer::draw(Entity const& e, const std::vector<Vec3f>& s,
 }
 
 static Vec3f flip(Vec3f const& l, Vec3f const& r) {
-  return l.apply_with(r, [](float l, float r) { return l * r; });
+  return l.apply(r, [](float l, float r) { return l * r; });
 }
 
 static void boxToLines(AABox3f const& b, std::vector<Vec3f>& l) {
