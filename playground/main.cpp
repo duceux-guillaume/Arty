@@ -13,7 +13,7 @@
 
 using namespace arty;
 
-void makeCube(std::string const& name, Transform const& pos,
+void makeCube(std::string const& name, Tf3f const& pos,
               Vec3f const& length, float mass, Ptr<Memory> mem) {
   auto entity = mem->createEntity(name);
   mem->write(entity, PhysicsSystem::INOUT_1, pos);
@@ -45,10 +45,10 @@ int main(void) {
       .makeSystem<CollisionRenderingSystem>(shapeRenderer)
       .makeSystem<CollisionSolverSystem>();
 
-  makeCube("unit", Transform(), Vec3f(1.f, 1.f, 1.f), 1.f, board);
-  makeCube("cube", Transform(Vec3f(0.f, 0.f, 3.f)), Vec3f(0.5f, 0.5f, 0.5f),
+  makeCube("unit", Tf3f(), Vec3f(1.f, 1.f, 1.f), 1.f, board);
+  makeCube("cube", Tf3f(Vec3f(0.f, 0.f, 3.f)), Vec3f(0.5f, 0.5f, 0.5f),
            1.f, board);
-  makeCube("floor", Transform(Vec3f(0.f, 0.f, -5.f)), Vec3f(10.f, 10.f, 0.5f),
+  makeCube("floor", Tf3f(Vec3f(0.f, 0.f, -5.f)), Vec3f(10.f, 10.f, 0.5f),
            0.f, board);
 
   check_result(engine.start());

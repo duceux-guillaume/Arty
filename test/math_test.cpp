@@ -140,3 +140,16 @@ TEST(Mat, verify) {
   ASSERT_TRUE(vec.verify([](float f) { return f > 0.f; }));
   ASSERT_FALSE(vec.verify([](float f) { return f <= 0.f; }));
 }
+
+TEST(Mat, block) {
+  auto id4 = Mat4x4f::identity();
+  auto block = id4.block<2, 2>(0, 0);
+  ASSERT_EQ(block, Mat2x2f::identity());
+}
+
+TEST(Mat, setBlock) {
+  Mat4x4f block;
+  block.setBlock(0, 0, Mat2x2f::identity());
+  block.setBlock(2, 2, Mat2x2f::identity());
+  ASSERT_EQ(block, Mat4x4f::identity());
+}

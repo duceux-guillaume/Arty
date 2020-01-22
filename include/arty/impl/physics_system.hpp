@@ -1,6 +1,7 @@
 #ifndef PHYSICS_SYSTEM_HPP
 #define PHYSICS_SYSTEM_HPP
 
+#include <arty/core/geometry.hpp>
 #include <arty/core/system.hpp>
 
 namespace arty {
@@ -13,8 +14,8 @@ struct WorldPhysics {
 };
 
 struct Physics {
-  Transform velocity;
-  Transform acceleration;
+  Tf3f velocity;
+  Tf3f acceleration;
   float mass;
   bool dynamic;
 
@@ -28,7 +29,7 @@ struct Physics {
 
 class PhysicsSolver {
  public:
-  void update(Transform* tf, Physics* phy, WorldPhysics const& world);
+  void update(Tf3f* tf, Physics* phy, WorldPhysics const& world);
 
  private:
 };

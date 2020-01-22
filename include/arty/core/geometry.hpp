@@ -2,9 +2,60 @@
 #define GEOMETRY_HPP
 
 #include <arty/core/math.hpp>
-#include <variant>
 
 namespace arty {
+
+template <typename T, int Dim>
+class Transform {
+  static_assert(Dim > 1, "transform in small space doesn't make any sense");
+
+ public:
+  static constexpr int dimension = Dim;
+  using value_type = T;
+  using translation_type = Vec<T, Dim>;
+  using rotation_type = Mat<T, Dim, Dim>;
+  using matrix_type = Mat<T, Dim + 1, Dim + 1>;
+  using self_type = Transform<T, Dim>;
+
+  Transform() : _translation(), _rotation(rotation_type::identity()) {}
+  Transform(translation_type const& pos)
+      : _translation(pos), _rotation(rotation_type::identity()) {}
+  Transform(translation_type const& pos, rotation_type const& rot)
+      : _translation(pos), _rotation(rot) {}
+
+  matrix_type toMat() const {
+    matrix_type tf;
+    tf.setBlock(0, 0, _rotation);
+    tf.setBlock(0, dimension, _translation);
+    tf(dimension, dimension) = value_type(1);
+    return tf;
+  }
+
+  void fromMat(matrix_type const& m) {
+    _translation = m.block(0, dimension);
+    _rotation = m.block(0, 0);
+  }
+
+  static self_type from(Mat4x4f const& m) {
+    self_type tf;
+    tf.fromMat(m);
+    return tf;
+  }
+
+  translation_type operator*(translation_type const& p) const {
+    return _rotation * p + _translation;
+  }
+
+  translation_type const& translation() const { return _translation; }
+  translation_type& translation() { return _translation; }
+  rotation_type const& rotation() const { return _rotation; }
+  rotation_type& rotation() { return _rotation; }
+
+ private:
+  translation_type _translation;
+  rotation_type _rotation;
+};
+using Tf3f = Transform<float, 3>;
 
 template <class T>
 class Intersection {
@@ -248,7 +299,7 @@ class AABox {
     return self_type((pt_min + pt_max) * 0.5f, volume);
   }
 
-  self_type move(Transform const& tf) const {
+  self_type move(Tf3f const& tf) const {
     return self_type(tf * _center, _halfLength);
   }
 

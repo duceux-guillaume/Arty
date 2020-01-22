@@ -89,3 +89,41 @@ TEST(AABox2f, intersection) {
     ASSERT_EQ(intersection.value().center(), Vec2f(-0.75f, 0.75f));
   }
 }
+
+TEST(Tf3f, toMat) {
+  {
+    Tf3f tf;
+    Mat4x4f identity{
+        1.f, 0.f, 0.f, 0.f,  //
+        0.f, 1.f, 0.f, 0.f,  //
+        0.f, 0.f, 1.f, 0.f,  //
+        0.f, 0.f, 0.f, 1.f   //
+    };
+    ASSERT_EQ(tf.toMat(), identity);
+  }
+  {
+    Tf3f tf(Vec3f{1.f, 2.f, 3.f});
+    Mat4x4f translation{
+        1.f, 0.f, 0.f, 1.f,  //
+        0.f, 1.f, 0.f, 2.f,  //
+        0.f, 0.f, 1.f, 3.f,  //
+        0.f, 0.f, 0.f, 1.f   //
+    };
+    ASSERT_EQ(tf.toMat(), translation);
+  }
+  {
+    Mat3x3f rotation{
+        0.f, -1.f, 0.f,  //
+        1.f, 0.f,  0.f,  //
+        0.f, 0.f,  1.f   //
+    };
+    Tf3f tf(Vec3f{1.f, 2.f, 3.f}, rotation);
+    Mat4x4f transform{
+        0.f, -1.f, 0.f, 1.f,  //
+        1.f, 0.f,  0.f, 2.f,  //
+        0.f, 0.f,  1.f, 3.f,  //
+        0.f, 0.f,  0.f, 1.f   //
+    };
+    ASSERT_EQ(tf.toMat(), transform);
+  }
+}

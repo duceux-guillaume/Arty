@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#include <arty/core/math.hpp>
 #include <arty/core/memory.hpp>
 
 using namespace arty;

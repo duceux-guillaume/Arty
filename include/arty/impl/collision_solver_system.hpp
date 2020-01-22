@@ -9,7 +9,7 @@ namespace arty {
 
 class CollisionSolver {
  public:
-  void update(Physics* phy, Transform* tf, Collision const& c, int entity);
+  void update(Physics* phy, Tf3f* tf, Collision const& c, int entity);
 };
 
 class CollisionSolverSystem : public System {

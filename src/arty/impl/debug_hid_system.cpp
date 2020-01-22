@@ -1,4 +1,5 @@
 #include <arty/impl/debug_hid_system.hpp>
+#include <cmath>
 
 namespace arty {
 

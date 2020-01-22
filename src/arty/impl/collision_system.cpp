@@ -4,10 +4,9 @@
 namespace arty {
 Result CollisionDetectionSystem::process(Ptr<Memory> const& mem) {
   mem->remove(OUTPUT);
-  auto first_loop = [mem, this](Entity const& e, Transform const& t,
+  auto first_loop = [mem, this](Entity const& e, Tf3f const& t,
                                 AABox3f const& b) -> Result {
-    auto second_loop = [mem, this, e, t, b](Entity const& e2,
-                                            Transform const& t2,
+    auto second_loop = [mem, this, e, t, b](Entity const& e2, Tf3f const& t2,
                                             AABox3f const& b2) -> Result {
       if (e >= e2) {
         return ok();
@@ -27,9 +26,9 @@ Result CollisionDetectionSystem::process(Ptr<Memory> const& mem) {
       }
       return ok();
     };
-    return mem->process<Transform, AABox3f>(INPUT_1, INPUT_2, second_loop);
+    return mem->process<Tf3f, AABox3f>(INPUT_1, INPUT_2, second_loop);
   };
-  return mem->process<Transform, AABox3f>(INPUT_1, INPUT_2, first_loop);
+  return mem->process<Tf3f, AABox3f>(INPUT_1, INPUT_2, first_loop);
 }
 
 }  // namespace arty

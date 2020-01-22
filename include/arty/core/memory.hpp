@@ -2,7 +2,6 @@
 #define MEMORY_HPP
 
 #include <any>
-#include <arty/core/math.hpp>
 #include <arty/core/result.hpp>
 #include <functional>
 #include <map>

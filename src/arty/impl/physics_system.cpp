@@ -3,7 +3,7 @@
 namespace arty {
 
 Result PhysicsSystem::process(const Ptr<Memory>& mem) {
-  auto work = [mem, this](Entity const& e, Transform const& t,
+  auto work = [mem, this](Entity const& e, Tf3f const& t,
                           Physics const& p) -> Result {
     auto newTf = t;
     auto newPhy = p;
@@ -12,12 +12,11 @@ Result PhysicsSystem::process(const Ptr<Memory>& mem) {
     mem->write(e, INOUT_2, newPhy);
     return ok();
   };
-  mem->process<Transform, Physics>(INOUT_1, INOUT_2, work);
+  mem->process<Tf3f, Physics>(INOUT_1, INOUT_2, work);
   return ok();
 }
 
-void PhysicsSolver::update(Transform* tf, Physics* phy,
-                           const WorldPhysics& world) {
+void PhysicsSolver::update(Tf3f* tf, Physics* phy, const WorldPhysics& world) {
   assert(tf);
   assert(phy);
   if (phy->dynamic) {

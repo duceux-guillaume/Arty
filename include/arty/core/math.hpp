@@ -9,7 +9,6 @@
 #include <initializer_list>
 #include <iostream>
 #include <limits>
-#include <vector>
 
 #define MAT_TEMP template <typename T, int Rows, int Cols>
 #define MAT_TYPE Mat<T, Rows, Cols>
@@ -49,21 +48,21 @@ class Mat {
       _arr[i] = *it;
     }
   }
-  Mat(MAT_TYPE const& o) = default;
-  Mat(MAT_TYPE&& o) = default;
-  MAT_TYPE& operator=(MAT_TYPE const& o) = default;
-  MAT_TYPE& operator=(MAT_TYPE&& o) = default;
+  Mat(self_type const& o) = default;
+  Mat(self_type&& o) = default;
+  self_type& operator=(self_type const& o) = default;
+  self_type& operator=(self_type&& o) = default;
 
   // SPECIAL CONSTRUCTOR
-  static MAT_TYPE diagonal(T const& v) {
-    MAT_TYPE m;
+  static self_type diagonal(T const& v) {
+    self_type m;
     for (size_t i = 0; i < Rows && i < Cols; ++i) {
       m(i, i) = v;
     }
     return m;
   }
-  static MAT_TYPE identity() { return diagonal(T(1)); }
-  static MAT_TYPE zero() { return diagonal(T(0)); }
+  static self_type identity() { return diagonal(T(1)); }
+  static self_type zero() { return diagonal(T(0)); }
 
   // GETTERS
   T const& operator()(size_t i, size_t j) const {
@@ -107,6 +106,25 @@ class Mat {
     return r;
   }
 
+  /**
+   * @brief extract a block from matrix
+   */
+  template <int R, int C>
+  Mat<value_type, R, C> block(std::size_t i, std::size_t j) const {
+    static_assert(R <= Rows && C <= Cols,
+                  "block boundaries are outside of matrix");
+    static_assert(R > 0 && C > 0, "a matrix cannot have 0 dimension");
+    assert(i + R - 1 < rows);
+    assert(j + C - 1 < cols);
+    Mat<value_type, R, C> res;
+    for (std::size_t k = 0; k < R; ++k) {
+      for (std::size_t l = 0; l < C; ++l) {
+        res(k, l) = (*this)(i + k, l + j);
+      }
+    }
+    return res;
+  }
+
   void setCol(std::size_t j, col_type const& col) {
     assert(j < cols);
     for (std::size_t i = 0; i < rows; ++i) {
@@ -118,6 +136,20 @@ class Mat {
     assert(i < rows);
     for (std::size_t j = 0; j < cols; ++j) {
       (*this)(i, j) = row[j];
+    }
+  }
+
+  template <int R, int C>
+  void setBlock(std::size_t i, std::size_t j,
+                Mat<value_type, R, C> const& block) {
+    static_assert(R <= Rows && C <= Cols, "block is bigger than matrix");
+    static_assert(R > 0 && C > 0, "a matrix cannot have 0 dimension");
+    assert(i + R - 1 < rows);
+    assert(j + C - 1 < cols);
+    for (std::size_t k = 0; k < R; ++k) {
+      for (std::size_t l = 0; l < C; ++l) {
+        (*this)(i + k, l + j) = block(k, l);
+      }
     }
   }
 
@@ -157,15 +189,15 @@ class Mat {
     set(args...);
   }
   template <typename... Args>
-  static MAT_TYPE fromCols(col_type const& col, Args... args) {
-    MAT_TYPE m;
+  static self_type fromCols(col_type const& col, Args... args) {
+    self_type m;
     m.setCol(0, col);
     m.setCols(1, args...);
     return m;
   }
   template <typename... Args>
-  static MAT_TYPE fromRows(row_type const& row, Args... args) {
-    MAT_TYPE m;
+  static self_type fromRows(row_type const& row, Args... args) {
+    self_type m;
     m.setRow(0, row);
     m.setRows(1, args...);
     return m;
@@ -221,7 +253,7 @@ class Mat {
   }
 
   template <int OtherCols>
-  Mat<T, Rows, OtherCols> operator*(Mat<T, Cols, OtherCols> const& r) {
+  Mat<T, Rows, OtherCols> operator*(Mat<T, Cols, OtherCols> const& r) const {
     Mat<T, Rows, OtherCols> res;
     for (size_t i = 0; i < Rows; ++i) {
       for (size_t j = 0; j < OtherCols; ++j) {
@@ -253,7 +285,7 @@ class Mat {
 
   T norm() const { return std::sqrt(this->normsqr()); }
 
-  MAT_TYPE normalize() const {
+  self_type normalize() const {
     T invsqrt = static_cast<T>(1) / this->norm();
     return (*this) * invsqrt;
   }
@@ -779,44 +811,6 @@ inline Mat4x4<T> rotation(T const& a, T const& b, T const& c) {
   res(2, 2) = c1 * c2;
   return res;
 }
-
-struct Transform {
-  Mat4x4f toMat() const {
-    Mat4x4f tf = _rotation.toMat4x4();
-    tf(0, 3) = _translation.x();
-    tf(1, 3) = _translation.y();
-    tf(2, 3) = _translation.z();
-    return tf;
-  }
-
-  void fromMat(Mat4x4f const& m) {
-    _translation.x() = m(0, 3);
-    _translation.y() = m(1, 3);
-    _translation.z() = m(2, 3);
-    _rotation.fromMat(m);
-  }
-
-  static Transform from(Mat4x4f const& m) {
-    Transform tf;
-    tf.fromMat(m);
-    return tf;
-  }
-
-  Transform() : _translation(), _rotation() {}
-  Transform(Vec3f pos) : _translation(pos), _rotation() {}
-
-  Vec3f operator*(Vec3f const& p) const {
-    return _rotation.toMat3x3() * p + _translation;
-  }
-
-  Vec3f const& translation() const { return _translation; }
-  Vec3f& translation() { return _translation; }
-  Quatf const& rotation() const { return _rotation; }
-
- private:
-  Vec3f _translation;
-  Quatf _rotation;
-};
 
 }  // namespace arty
 

@@ -71,8 +71,8 @@ Vec3f CollisionDetection::computeCenter(const Mesh& mesh) {
   return (maxval + minval) * 0.5f;
 }
 
-Collision CollisionDetection::detect(const Mesh&, const Transform&, const Mesh&,
-                                     const Transform&) {
+Collision CollisionDetection::detect(const Mesh&, const Tf3f&, const Mesh&,
+                                     const Tf3f&) {
   Collision col;
   /*
    col.exist = false;
@@ -143,8 +143,8 @@ AABox3f CollisionDetection::computeAxisAlignedBoundingBox(const Mesh&) {
   return b;
 }
 
-Collision CollisionDetection::detect(const Transform& tf1, const AABox3f& b1,
-                                     const Transform& tf2, const AABox3f& b2) {
+Collision CollisionDetection::detect(const Tf3f& tf1, const AABox3f& b1,
+                                     const Tf3f& tf2, const AABox3f& b2) {
   Collision col;
   col.exist = false;
 

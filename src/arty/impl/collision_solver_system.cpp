@@ -5,7 +5,7 @@ namespace arty {
 Result CollisionSolverSystem::process(Ptr<Memory> const& mem) {
   auto work = [&](Entity const& e, std::vector<Collision> const& b) -> Result {
     for (auto const& col : b) {
-      auto tf = mem->read<Transform>(e, PhysicsSystem::INOUT_1);
+      auto tf = mem->read<Tf3f>(e, PhysicsSystem::INOUT_1);
       auto phy = mem->read<Physics>(e, PhysicsSystem::INOUT_2);
       _solver.update(&phy, &tf, col, e == col.e2);
       mem->write(e, PhysicsSystem::INOUT_1, tf);
@@ -21,7 +21,7 @@ Result CollisionSolverSystem::init(const Ptr<Memory>& /*board*/) {
 
 void CollisionSolverSystem::release() {}
 
-void CollisionSolver::update(Physics* phy, Transform* tf, const Collision& c,
+void CollisionSolver::update(Physics* phy, Tf3f* tf, const Collision& c,
                              int entity) {
   if (!phy->dynamic) {
     return;

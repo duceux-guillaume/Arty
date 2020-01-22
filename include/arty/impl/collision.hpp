@@ -20,11 +20,11 @@ class CollisionDetection {
   Sphere computeOuterCircle(Mesh const& mesh);
   Sphere computeInnerCircle(Mesh const& mesh);
   Vec3f computeCenter(Mesh const& mesh);
-  Collision detect(Mesh const& mesh1, Transform const& tf1, Mesh const& mesh2,
-                   Transform const& tf2);
+  Collision detect(Mesh const& mesh1, Tf3f const& tf1, Mesh const& mesh2,
+                   Tf3f const& tf2);
   AABox3f computeAxisAlignedBoundingBox(Mesh const& mesh);
-  Collision detect(Transform const& tf1, AABox3f const& b1,
-                   Transform const& tf2, AABox3f const& b2);
+  Collision detect(Tf3f const& tf1, AABox3f const& b1, Tf3f const& tf2,
+                   AABox3f const& b2);
 
  private:
 };
