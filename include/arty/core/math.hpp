@@ -114,8 +114,8 @@ class Mat {
   /**
    * @brief extract a block from matrix
    */
-  template <int R, int C>
-  Mat<value_type, R, C> block(std::size_t i, std::size_t j) const {
+  template <typename N, int R, int C>
+  Mat<N, R, C> block(std::size_t i, std::size_t j) const {
     static_assert(R <= Rows && C <= Cols,
                   "block boundaries are outside of matrix");
     static_assert(R > 0 && C > 0, "a matrix cannot have 0 dimension");
@@ -124,10 +124,24 @@ class Mat {
     Mat<value_type, R, C> res;
     for (std::size_t k = 0; k < R; ++k) {
       for (std::size_t l = 0; l < C; ++l) {
-        res(k, l) = (*this)(i + k, l + j);
+        res(k, l) = static_cast<N>((*this)(i + k, l + j));
       }
     }
     return res;
+  }
+
+  template <typename N, int R, int C>
+  void copyBlockTo(std::size_t i, std::size_t j, Mat<N, R, C>& res) const {
+    static_assert(R <= Rows && C <= Cols,
+                  "block boundaries are outside of matrix");
+    static_assert(R > 0 && C > 0, "a matrix cannot have 0 dimension");
+    assert(i + R - 1 < rows);
+    assert(j + C - 1 < cols);
+    for (std::size_t k = 0; k < R; ++k) {
+      for (std::size_t l = 0; l < C; ++l) {
+        res(k, l) = static_cast<N>((*this)(i + k, l + j));
+      }
+    }
   }
 
   void setCol(std::size_t j, col_type const& col) {

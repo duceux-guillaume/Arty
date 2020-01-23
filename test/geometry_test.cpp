@@ -65,10 +65,18 @@ TEST(Triangle, project) {
 //}
 
 TEST(AABox2f, intersect) {
-  AABox2f unit(Vec2f(), Vec2f(1.f, 1.f));
-  AABox2f random(Vec2f(1.5f, 0.f), Vec2f(1.f, 1.f));
-  ASSERT_TRUE(unit.intersect(random));
-  ASSERT_TRUE(random.intersect(unit));
+  {
+    AABox2f unit(Vec2f(), Vec2f(1.f, 1.f));
+    AABox2f random(Vec2f(1.5f, 0.f), Vec2f(1.f, 1.f));
+    ASSERT_TRUE(unit.intersect(random));
+    ASSERT_TRUE(random.intersect(unit));
+  }
+  {
+    AABox2f unit(Vec2f(), Vec2f(1.f, 1.f));
+    AABox2f random(Vec2f(2.5f, 0.f), Vec2f(1.f, 1.f));
+    ASSERT_FALSE(unit.intersect(random));
+    ASSERT_FALSE(random.intersect(unit));
+  }
 }
 
 TEST(AABox2f, intersection) {

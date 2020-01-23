@@ -16,21 +16,25 @@ Collision CollisionDetection::detect(const Tf3f& tf1, const AABox3f& b1,
 
 void CollisionSolver::solve(const Collision& c, Physics* target,
                             Physics other) {
-  if (!target->dynamic) {
+  if (target->isStatic()) {
     return;
   }
   Vec3f dir = argmin(c.intersection().halfLength());
-  if (!other.dynamic) {
+  if (other.isStatic()) {
     dir *= 2.f;
   }
   auto distance =
-      (other.position.translation() - target->position.translation()).normsqr();
-  auto distance2 =
-      (other.position.translation() - (target->position.translation() + dir))
+      (other.position().translation() - target->position().translation())
           .normsqr();
+  auto distance2 = (other.position().translation() -
+                    (target->position().translation() + dir))
+                       .normsqr();
   if (distance2 > distance) {
-    target->position.translation() += dir;
+    target->move(dir);
+  } else {
+    target->move(-dir);
   }
+  target->stop();
 }
 
 Vec3f CollisionSolver::argmin(const Vec3f& v) const {

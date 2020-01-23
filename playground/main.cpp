@@ -8,6 +8,7 @@
 #include <arty/impl/engine.hpp>
 #include <arty/impl/hitbox_rendering_system.hpp>
 #include <arty/impl/physics_system.hpp>
+#include <random>
 
 using namespace arty;
 
@@ -42,12 +43,19 @@ int main(void) {
       .makeSystem<CollisionRenderingSystem>(shapeRenderer)
       .makeSystem<CollisionSolverSystem>();
 
-  makeCube("unit", Tf3f(Vec3f(0.f, 0.f, 50.f)), Vec3f(1.f, 1.f, 1.f), 1.f,
+  makeCube("floor", Tf3f(Vec3f(6.f, 0.f, -5.f)), Vec3f(10.f, 10.f, 0.5f), 0.f,
            board);
-  // makeCube("cube", Tf3f(Vec3f(0.f, 0.f, 3.f)), Vec3f(0.5f, 0.5f, 0.5f), 1.f,
-  //         board);
-  makeCube("floor", Tf3f(Vec3f(0.f, 0.f, -5.f)), Vec3f(10.f, 10.f, 0.5f), 0.f,
-           board);
+
+  std::random_device rd;
+  std::mt19937 gen(rd());
+  std::uniform_real_distribution<> xdis(1.f, 11.f);
+  std::uniform_real_distribution<> ydis(-5.f, 5.f);
+  std::uniform_real_distribution<> zdis(0.f, 10.f);
+  std::uniform_real_distribution<> lendis(0.1f, 2.f);
+  for (int n = 0; n < 120; ++n) {
+    makeCube("random", Tf3f(Vec3f(xdis(gen), ydis(gen), zdis(gen))),
+             Vec3f(lendis(gen), lendis(gen), lendis(gen)), 1.f, board);
+  }
 
   check_result(engine.start());
   check_result(engine.run());

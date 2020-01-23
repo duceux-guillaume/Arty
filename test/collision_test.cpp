@@ -35,14 +35,15 @@ TEST(CollisionSolver, detectAndResolve) {
   auto obj2 = makeCube("paf", Vec3f{1.5f, 0.f, 0.f}, Vec3f::all(1.f), 1.f);
   CollisionDetection detector;
   auto collision =
-      detector.detect(obj1.p.position, obj1.b, obj2.p.position, obj2.b);
+      detector.detect(obj1.p.position(), obj1.b, obj2.p.position(), obj2.b);
   ASSERT_TRUE(collision.exist());
   CollisionSolver solver;
   solver.solve(collision, &obj1.p, obj2.p);
   solver.solve(collision, &obj2.p, obj1.p);
-  collision = detector.detect(obj1.p.position, obj1.b, obj2.p.position, obj2.b);
-  ASSERT_EQ(obj1.p.position.translation(), Vec3f::zero());
-  ASSERT_EQ(obj2.p.position.translation(), Vec3f(2.f, 0.f, 0.f));
+  collision =
+      detector.detect(obj1.p.position(), obj1.b, obj2.p.position(), obj2.b);
+  ASSERT_EQ(obj1.p.position().translation(), Vec3f::zero());
+  ASSERT_EQ(obj2.p.position().translation(), Vec3f(2.f, 0.f, 0.f));
   ASSERT_TRUE(collision.exist());
   ASSERT_FALSE(collision.hasVolume());
 }

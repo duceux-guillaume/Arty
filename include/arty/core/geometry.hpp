@@ -33,8 +33,8 @@ class Transform {
   }
 
   void fromMat(matrix_type const& m) {
-    _translation = m.block(0, dimension);
-    _rotation = m.block(0, 0);
+    m.copyBlockTo(0, dimension, _translation);
+    m.copyBlockTo(0, 0, _rotation);
   }
 
   static self_type from(Mat4x4f const& m) {
@@ -45,6 +45,22 @@ class Transform {
 
   translation_type operator*(translation_type const& p) const {
     return _rotation * p + _translation;
+  }
+
+  self_type operator*(self_type const& p) const {
+    self_type toto(*this);
+    toto *= p;
+    return toto;
+  }
+
+  self_type& operator*=(self_type const& r) {
+    fromMat(toMat() * r.toMat());
+    return *this;
+  }
+
+  self_type& operator+=(translation_type const& r) {
+    _translation += r;
+    return *this;
   }
 
   translation_type const& translation() const { return _translation; }
@@ -282,7 +298,7 @@ class AABox {
     vector_type pt_min = min().apply(
         other.min(), [](float l, float r) { return std::max(l, r); });
     vector_type volume = (pt_max - pt_min) * 0.5f;
-    if (volume.verify([](float e) { return e < 0.f; })) {
+    if (!volume.verify([](float e) { return e >= 0.f; })) {
       return false;
     }
     return self_type((pt_min + pt_max) * 0.5f, volume);

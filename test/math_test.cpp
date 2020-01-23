@@ -143,7 +143,7 @@ TEST(Mat, verify) {
 
 TEST(Mat, block) {
   auto id4 = Mat4x4f::identity();
-  auto block = id4.block<2, 2>(0, 0);
+  auto block = id4.block<float, 2, 2>(0, 0);
   ASSERT_EQ(block, Mat2x2f::identity());
 }
 
