@@ -118,6 +118,7 @@ endif(OPENGL_FOUND)
 ## GTEST ##
 ###########
 
+if(CMAKE_COMPILER_IS_GNUCXX)
 enable_testing()
 
 # Prevent overriding the parent project's compiler/linker
@@ -136,3 +137,4 @@ if (CMAKE_VERSION VERSION_LESS 2.8.11)
 endif()
 
 add_subdirectory(test)
+endif(CMAKE_COMPILER_IS_GNUCXX)
