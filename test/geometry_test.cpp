@@ -88,6 +88,14 @@ TEST(AABox2f, intersection) {
     ASSERT_EQ(intersection.value().halfLength(), Vec2f(0.25f, 0.25f));
     ASSERT_EQ(intersection.value().center(), Vec2f(-0.75f, 0.75f));
   }
+  {
+    AABox3f unit(Vec3f::zero(), Vec3f::all(1.f));
+    AABox3f random(Vec3f(0.f, -1.5f, 0.f), Vec3f(2.f, 1.f, 2.f));
+    auto intersection = unit.intersection(random);
+    ASSERT_TRUE(intersection.exist());
+    ASSERT_EQ(intersection.value().halfLength(), Vec3f(1.f, 0.25f, 1.f));
+    ASSERT_EQ(intersection.value().center(), Vec3f(0.f, -0.75f, 0.f));
+  }
 }
 
 TEST(Tf3f, toMat) {

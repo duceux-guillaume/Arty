@@ -62,7 +62,12 @@ class Mat {
     return m;
   }
   static self_type identity() { return diagonal(T(1)); }
-  static self_type zero() { return diagonal(T(0)); }
+  static self_type zero() { return self_type(); }
+  static self_type all(value_type const& v) {
+    self_type m;
+    m.forEach([v](value_type& e) { e = v; });
+    return m;
+  }
 
   // GETTERS
   T const& operator()(size_t i, size_t j) const {
@@ -313,6 +318,20 @@ class Mat {
     self_type r;
     std::transform(_arr, _arr + size, other._arr, r._arr, foo);
     return r;
+  }
+
+  template <typename Func>
+  void forEach(Func foo) {
+    for (auto& e : (*this)) {
+      foo(e);
+    }
+  }
+
+  template <typename Func>
+  void forEach(Func foo) const {
+    for (auto const& e : (*this)) {
+      foo(e);
+    }
   }
 
   template <typename Func>

@@ -32,6 +32,10 @@ Result Engine::start() {
 
 Result Engine::step() {
   Result res;
+  if (_window->width() == 0 || _window->height() == 0) {
+    // window is not ready yet
+    return ok();
+  }
   _window->clear();
   for (auto system : _systems) {
     if (system) {

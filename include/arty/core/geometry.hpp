@@ -2,6 +2,7 @@
 #define GEOMETRY_HPP
 
 #include <arty/core/math.hpp>
+#include <vector>
 
 namespace arty {
 
@@ -269,33 +270,21 @@ class AABox {
   vector_type const& center() const { return _center; }
   vector_type const& halfLength() const { return _halfLength; }
 
-  bool intersect(AABox const& other) {
-    for (std::size_t i = 0; i < vector_type::size; ++i) {
-      float delta = std::abs(_center[i] - other._center[i]);
-      float th = _halfLength[i] + other._halfLength[i];
-      if (delta > th) {
-        return false;
-      }
-    }
-    return true;
-  }
+  bool intersect(AABox const& other) { return intersection(other).exist(); }
 
   vector_type max() const { return _center + _halfLength; }
 
   vector_type min() const { return _center - _halfLength; }
 
   Intersection<self_type> intersection(self_type const& other) const {
-    vector_type distance = _center.apply(
-        other._center, [](float l, float r) { return std::abs(l - r); });
-    vector_type threshold = _halfLength + other._halfLength;
-    vector_type volume = (threshold - distance) * 0.5f;
-    if (!volume.verify([](float f) { return f >= 0.f; })) {
-      return false;
-    }
     vector_type pt_max = max().apply(
         other.max(), [](float l, float r) { return std::min(l, r); });
     vector_type pt_min = min().apply(
         other.min(), [](float l, float r) { return std::max(l, r); });
+    vector_type volume = (pt_max - pt_min) * 0.5f;
+    if (volume.verify([](float e) { return e < 0.f; })) {
+      return false;
+    }
     return self_type((pt_min + pt_max) * 0.5f, volume);
   }
 

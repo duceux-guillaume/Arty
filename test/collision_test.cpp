@@ -5,7 +5,44 @@
 
 using namespace arty;
 
+struct TestObject {
+  Entity e;
+  Physics p;
+  AABox3f b;
+};
+
+TestObject makeCube(std::string const& name, Tf3f const& pos,
+                    Vec3f const& length, float mass) {
+  static uint64_t count = 0;
+  TestObject obj;
+  obj.e = Entity(name, ++count);
+  obj.p = Physics(pos, mass);
+  obj.b = AABox3f(Vec3f::zero(), length);
+  return obj;
+}
+
 TEST(CollisionDetection, detect) {
-  Vec3f center = Vec3f();
-  ASSERT_EQ(center, Vec3f());
+  Tf3f tf1;
+  Tf3f tf2(Vec3f{1.5f, 0.f, 0.f});
+  AABox3f box(Vec3f::zero(), Vec3f::all(1.f));
+  CollisionDetection detector;
+  auto collision = detector.detect(tf1, box, tf2, box);
+  ASSERT_TRUE(collision.exist());
+}
+
+TEST(CollisionSolver, detectAndResolve) {
+  auto obj1 = makeCube("floor", Tf3f(), Vec3f::all(1.f), 0.f);
+  auto obj2 = makeCube("paf", Vec3f{1.5f, 0.f, 0.f}, Vec3f::all(1.f), 1.f);
+  CollisionDetection detector;
+  auto collision =
+      detector.detect(obj1.p.position, obj1.b, obj2.p.position, obj2.b);
+  ASSERT_TRUE(collision.exist());
+  CollisionSolver solver;
+  solver.solve(collision, &obj1.p, obj2.p);
+  solver.solve(collision, &obj2.p, obj1.p);
+  collision = detector.detect(obj1.p.position, obj1.b, obj2.p.position, obj2.b);
+  ASSERT_EQ(obj1.p.position.translation(), Vec3f::zero());
+  ASSERT_EQ(obj2.p.position.translation(), Vec3f(2.f, 0.f, 0.f));
+  ASSERT_TRUE(collision.exist());
+  ASSERT_FALSE(collision.hasVolume());
 }

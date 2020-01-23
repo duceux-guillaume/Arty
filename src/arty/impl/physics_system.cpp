@@ -3,16 +3,15 @@
 namespace arty {
 
 Result PhysicsSystem::process(const Ptr<Memory>& mem) {
-  auto work = [mem, this](Entity const& e, Tf3f const& t,
-                          Physics const& p) -> Result {
-    auto newTf = t;
+  auto work = [mem, this](Entity const& e, Physics const& p) -> Result {
     auto newPhy = p;
+    Tf3f newTf;
     _solver.update(&newTf, &newPhy, _world);
-    mem->write(e, INOUT_1, newTf);
-    mem->write(e, INOUT_2, newPhy);
+    mem->write(e, OUTPUT, newTf);
+    mem->write(e, INPUT, newPhy);
     return ok();
   };
-  mem->process<Tf3f, Physics>(INOUT_1, INOUT_2, work);
+  mem->process<Physics>(INPUT, work);
   return ok();
 }
 
@@ -21,12 +20,13 @@ void PhysicsSolver::update(Tf3f* tf, Physics* phy, const WorldPhysics& world) {
   assert(phy);
   if (phy->dynamic) {
     float deltaTime = 0.016f;
-    tf->translation() += phy->velocity.translation() * deltaTime;
+    phy->position.translation() += phy->velocity.translation() * deltaTime;
     phy->velocity.translation() += phy->acceleration.translation() * deltaTime;
     // handle gravity
     Vec3f gravity = Vec3f(0.f, 0.f, -1.f) * world.gravity_strengh;
-    phy->acceleration = gravity;
+    phy->acceleration.translation() = gravity;
   }
+  *tf = phy->position;
   /*
     // handle forces
     Vec3f force = gravity;

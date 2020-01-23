@@ -14,13 +14,15 @@ struct WorldPhysics {
 };
 
 struct Physics {
+  Tf3f position;
   Tf3f velocity;
   Tf3f acceleration;
   float mass;
   bool dynamic;
 
-  Physics() : Physics(0.f) {}
-  Physics(float mass) : velocity(), acceleration(), mass(mass), dynamic(true) {
+  Physics() : Physics(Tf3f(), 0.f) {}
+  Physics(Tf3f const& pos, float mass)
+      : position(pos), velocity(), acceleration(), mass(mass), dynamic(true) {
     if (mass <= 0.f) {
       dynamic = false;
     }
@@ -36,8 +38,8 @@ class PhysicsSolver {
 
 class PhysicsSystem : public System {
  public:
-  static constexpr const char* INOUT_1 = "transform";
-  static constexpr const char* INOUT_2 = "physics";
+  static constexpr const char* OUTPUT = "transform";
+  static constexpr const char* INPUT = "physics";
 
   PhysicsSystem(WorldPhysics const& world) : _world(world), _solver() {}
 
