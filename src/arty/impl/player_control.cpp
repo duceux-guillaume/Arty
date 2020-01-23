@@ -4,7 +4,7 @@ namespace arty {
 
 Result PlayerControlSystem::process(const Ptr<Memory> & /*board*/,
                                     const Ptr<Keyboard> &keyboard) {
-  if (keyboard->hasOccured(_up)) {
+  if (keyboard->occured(_up)) {
     std::cout << "move up" << std::endl;
   }
 

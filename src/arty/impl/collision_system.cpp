@@ -16,8 +16,6 @@ Result CollisionDetectionSystem::process(Ptr<Memory> const& mem) {
       Collision col = _collision.detect(t, b, t2, b2);
       if (col.exist()) {
         col.set(e, e2);
-        std::cout << "found collision between " << e.name() << " and "
-                  << e2.name() << std::endl;
         auto cols1 = mem->read<std::vector<Collision>>(e, OUTPUT);
         cols1.push_back(col);
         mem->write(e, OUTPUT, cols1);

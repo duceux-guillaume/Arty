@@ -20,6 +20,47 @@ void makeCube(std::string const& name, Tf3f const& pos, Vec3f const& length,
   mem->write(entity, PhysicsSystem::INPUT, Physics(pos, mass));
 }
 
+class InitSystem : public System {
+ private:
+  InputEvent _reset;
+
+  void reset(Ptr<Memory> const& mem) {
+    mem->clear();
+    makeCube("floor", Tf3f(Vec3f(6.f, 0.f, -5.f)), Vec3f(10.f, 10.f, 0.5f), 0.f,
+             mem);
+
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<> xdis(1.f, 11.f);
+    std::uniform_real_distribution<> ydis(-5.f, 5.f);
+    std::uniform_real_distribution<> zdis(0.f, 10.f);
+    std::uniform_real_distribution<> lendis(0.1f, 2.f);
+    for (int n = 0; n < 120; ++n) {
+      makeCube("random", Tf3f(Vec3f(xdis(gen), ydis(gen), zdis(gen))),
+               Vec3f(lendis(gen), lendis(gen), lendis(gen)), 1.f, mem);
+    }
+  }
+
+ public:
+  InitSystem() : _reset("RESET") {}
+
+  Result process(const Ptr<Memory>& mem,
+                 Ptr<Keyboard> const& keyboard) override {
+    if (keyboard->occured(_reset)) {
+      reset(mem);
+    }
+    return ok();
+  }
+  Result init(const Ptr<Memory>& mem, Ptr<Keyboard> const& keyboard) override {
+    if (!keyboard->registerKeyEvent(Keyboard::SPACE, Keyboard::Action::PRESS,
+                                    _reset)) {
+      return error("couldn't register event");
+    }
+    reset(mem);
+    return ok();
+  }
+};
+
 int main(void) {
   GlfwWindow* window_impl = new GlfwWindow;
   Ptr<Keyboard> keyboard = window_impl->provideKeyboard();
@@ -35,6 +76,7 @@ int main(void) {
   engine.setBoard(board)
       .setWindow(window)
       .setKeyboard(keyboard)
+      .makeSystem<InitSystem>()
       .makeSystem<DebugHidSystem>(window, textRenderer)
       .makeSystem<FixedCameraSystem>(window)
       .makeSystem<HitBoxRenderingSystem>(shapeRenderer)
@@ -42,20 +84,6 @@ int main(void) {
       .makeSystem<CollisionDetectionSystem>()
       .makeSystem<CollisionRenderingSystem>(shapeRenderer)
       .makeSystem<CollisionSolverSystem>();
-
-  makeCube("floor", Tf3f(Vec3f(6.f, 0.f, -5.f)), Vec3f(10.f, 10.f, 0.5f), 0.f,
-           board);
-
-  std::random_device rd;
-  std::mt19937 gen(rd());
-  std::uniform_real_distribution<> xdis(1.f, 11.f);
-  std::uniform_real_distribution<> ydis(-5.f, 5.f);
-  std::uniform_real_distribution<> zdis(0.f, 10.f);
-  std::uniform_real_distribution<> lendis(0.1f, 2.f);
-  for (int n = 0; n < 120; ++n) {
-    makeCube("random", Tf3f(Vec3f(xdis(gen), ydis(gen), zdis(gen))),
-             Vec3f(lendis(gen), lendis(gen), lendis(gen)), 1.f, board);
-  }
 
   check_result(engine.start());
   check_result(engine.run());

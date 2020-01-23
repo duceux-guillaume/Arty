@@ -48,6 +48,7 @@ Result Engine::step() {
     }
   }
   _window->swapBuffer();
+  _keyboard->flush();
   return ok();
 }
 

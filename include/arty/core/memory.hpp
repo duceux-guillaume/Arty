@@ -135,6 +135,11 @@ class Memory {
     return _components[component].erase(entity) > 0;
   }
 
+  void clear() {
+    _components.clear();
+    _configuration.clear();
+  }
+
   template <typename T>
   Result process(
       std::string const& component,

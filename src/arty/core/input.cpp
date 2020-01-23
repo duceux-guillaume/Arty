@@ -10,7 +10,7 @@ void Keyboard::process(const Keyboard::Key &key,
   auto const &submapping = mapping_[key];
   auto it = submapping.find(action);
   if (it != submapping.end()) {
-    _events.insert(it->second);
+    _incomings.insert(it->second);
   } else {
     std::cout << "no event registered" << std::endl;
   }
@@ -25,14 +25,17 @@ bool Keyboard::registerKeyEvent(const Keyboard::Key &key,
   return submapping.insert(std::make_pair(action, event)).second;
 }
 
-Keyboard::event_t Keyboard::generateEvent(const std::string &name) {
+Keyboard::event_t Keyboard::generate(const std::string &name) {
   return event_t(name);
 }
 
-void Keyboard::clearEvents() { _events.clear(); }
+void Keyboard::flush() {
+  std::swap(_pool, _incomings);
+  _incomings.clear();
+}
 
-bool Keyboard::hasOccured(const Keyboard::event_t &e) {
-  return _events.find(e) != _events.end();
+bool Keyboard::occured(const Keyboard::event_t &e) {
+  return _pool.find(e) != _pool.end();
 }
 
 }  // namespace arty

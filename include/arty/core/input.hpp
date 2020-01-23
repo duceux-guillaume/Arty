@@ -14,8 +14,7 @@ class InputEvent {
   static int _count;
 
  public:
-  InputEvent() : _name(), _uuid(-1) {}
-  InputEvent(std::string const& name) : _name(name), _uuid(_count++) {}
+  InputEvent(std::string const& name) : _name(name), _uuid(++_count) {}
 
   int uuid() const { return _uuid; }
   std::string const& name() const { return _name; }
@@ -181,15 +180,16 @@ class Keyboard {
   bool registerKeyEvent(Key const& key, Action const& action,
                         event_t const& event);
 
-  event_t generateEvent(std::string const& name);
+  event_t generate(std::string const& name);
 
-  void clearEvents();
+  void flush();
 
-  bool hasOccured(event_t const& e);
+  bool occured(event_t const& e);
 
  private:
   std::unordered_map<Key, std::unordered_map<Action, event_t>> mapping_;
-  std::unordered_set<event_t> _events;
+  std::unordered_set<event_t> _incomings;
+  std::unordered_set<event_t> _pool;
 };
 
 }  // namespace arty
