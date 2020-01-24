@@ -158,3 +158,13 @@ TEST(Mat, setBlock) {
   block.setBlock(2, 2, Mat2x2f::identity());
   ASSERT_EQ(block, Mat4x4f::identity());
 }
+
+TEST(Vec, grow) {
+  Vec3f pt(0.f, 1.f, 2.f);
+  ASSERT_EQ(Vec4f(pt, 3.f), Vec4f(0.f, 1.f, 2.f, 3.f));
+}
+
+TEST(Vec, cast) {
+  Vec3f pt(0.f, 1.f, 2.f);
+  ASSERT_EQ(Vec3d(pt), Vec3d(0., 1., 2.));
+}

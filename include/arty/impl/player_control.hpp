@@ -28,15 +28,7 @@ class MouseSystem : public System {
   Result process(Ptr<Memory> const& mem, Ptr<Keyboard> const& /*keyboard*/,
                  Ptr<Mouse> const& mouse) {
     Camera camera = mem->read<Camera>("camera");
-    auto mp = mouse->position();
-    std::cout << "cursor" << mp << std::endl;
-    Vec4f mpp{static_cast<float>(mp.x()), static_cast<float>(mp.y()), -1.f,
-              1.f};
-    auto position = camera.position();
-    auto tmp1 = position * mpp;
-    auto tmp2 = Vec3f(position(0, 3), position(1, 3), position(2, 3));
-    std::cout << "reprojection" << tmp1 << std::endl;
-    Line3f line(tmp2, Vec3f(tmp1.x(), tmp1.y(), tmp1.z()));
+    auto line = camera.raycast(Camera::pixel_type(mouse->position()));
     Plane3f xyplane(Vec3f(), Vec3f(1.f, 0.f, 0.f), Vec3f(0.f, 1.f, 0.f));
     auto toy = Geo3D::intersect(line, xyplane);
     if (toy.exist()) {

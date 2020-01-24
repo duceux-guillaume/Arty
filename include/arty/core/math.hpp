@@ -14,6 +14,25 @@
 
 namespace arty {
 
+namespace details {
+
+template <bool...>
+struct bool_pack;
+
+template <bool... v>
+using all_true = std::is_same<bool_pack<true, v...>, bool_pack<v..., true>>;
+
+template <class... Args>
+using EnableIfConvertible =
+    std::enable_if_t<all_true<std::is_convertible<Args, std::size_t>{}...>{}>;
+
+#define VARIADIC_ARG \
+  typename... Args, class = details::EnableIfConvertible<Args...>
+#define VARIADIC_TEMP \
+  template <typename... Args, class = details::EnableIfConvertible<Args...>>
+
+}  // namespace details
+
 MAT_TEMP
 class Mat {
   static_assert(Rows > 0, "Rows must be positiv");
@@ -51,6 +70,11 @@ class Mat {
   Mat(self_type&& o) = default;
   self_type& operator=(self_type const& o) = default;
   self_type& operator=(self_type&& o) = default;
+
+  template <typename G>
+  explicit Mat(Mat<G, rows, cols> const& other) {
+    setBlock(0, 0, other);
+  }
 
   // SPECIAL CONSTRUCTOR
   static self_type diagonal(T const& v) {
@@ -173,23 +197,24 @@ class Mat {
   // VARIADIC CONSTRUCTION
  private:
   void setAt(std::size_t /*i*/) {}
-  void setAt(std::size_t i, T const& first) {
+  void setAt(std::size_t i, value_type const& first) {
     assert(i < size);
     _arr[i] = first;
   }
-  template <typename... Args>
-  void setAt(std::size_t i, T const& first, Args... args) {
+  VARIADIC_TEMP
+  void setAt(std::size_t i, value_type const& first, Args... args) {
     _arr[i] = first;
     setAt(i + 1, args...);
   }
 
-  template <typename... Args>
+  VARIADIC_TEMP
   void setCols(std::size_t j, col_type const& col, Args... args) {
     assert(j < cols);
     setCol(j, col);
     setCols(j + 1, args...);
   }
-  template <typename... Args>
+
+  VARIADIC_TEMP
   void setRows(std::size_t j, row_type const& row, Args... args) {
     assert(j < rows);
     setRow(j, row);
@@ -197,22 +222,21 @@ class Mat {
   }
 
  public:
-  template <typename... Args>
-  void set(Args... args) {
-    setAt(0, args...);
-  }
-  template <typename... Args>
-  Mat(Args... args) : Mat() {
-    set(args...);
-  }
-  template <typename... Args>
+  VARIADIC_TEMP
+  void set(Args... args) { setAt(0, args...); }
+
+  VARIADIC_TEMP
+  explicit Mat(Args... args) : Mat() { set(args...); }
+
+  VARIADIC_TEMP
   static self_type fromCols(col_type const& col, Args... args) {
     self_type m;
     m.setCol(0, col);
     m.setCols(1, args...);
     return m;
   }
-  template <typename... Args>
+
+  VARIADIC_TEMP
   static self_type fromRows(row_type const& row, Args... args) {
     self_type m;
     m.setRow(0, row);
@@ -357,6 +381,15 @@ class Mat {
   }
 
   // VECTORS STUFF
+  template <int ORows, int OCols, VARIADIC_ARG>
+  Mat(Mat<value_type, ORows, OCols> const& smaller, Args... args) : Mat() {
+    static_assert(is_vector, "operation reserved to vectors");
+    static_assert(smaller.is_vector, "operation reserved to vectors");
+    static_assert(smaller.size < size, "operation reserved to grow vectors");
+    std::memcpy(this->_arr, smaller.begin(), sizeof(value_type) * smaller.size);
+    setAt(smaller.size, args...);
+  }
+
   T const& x() const {
     static_assert(rows == 1 || cols == 1, "operation reserved to vectors");
     return _arr[0];
@@ -653,6 +686,7 @@ using Vec2d = Vec2<double>;
 template <typename T>
 using Vec3 = Vec<T, 3>;
 using Vec3f = Vec3<float>;
+using Vec3d = Vec3<double>;
 
 template <typename T>
 using Vec4 = Vec<T, 4>;

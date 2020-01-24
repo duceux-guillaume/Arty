@@ -1,6 +1,7 @@
 #ifndef CAMERA_SYSTEM_HPP
 #define CAMERA_SYSTEM_HPP
 
+#include <arty/core/geometry.hpp>
 #include <arty/core/math.hpp>
 #include <arty/core/system.hpp>
 #include <arty/core/window.hpp>
@@ -16,6 +17,7 @@ class Camera {
   using point_type = Vec3<number_type>;
   using vector_type = Vec4<number_type>;
   using pixel_type = Vec2<number_type>;
+  using ray_type = Line3<number_type>;
 
   mat_type const& projection() const { return _projection; }
   mat_type view() const { return _inv_rot * _inv_tran; }
@@ -29,11 +31,18 @@ class Camera {
   void lookAt(point_type const& eye, point_type const& target,
               point_type const& updir);
 
+  ray_type raycast(pixel_type const& pixel) {
+    vector_type mpp(pixel, -1.f, 1.f);
+    auto dir = position() * mpp;
+    auto ori = point_type(-_inv_tran(0, 3), -_inv_tran(1, 3), -_inv_tran(2, 3));
+    return ray_type(ori, point_type(dir.x(), dir.y(), dir.z()));
+  }
+
  private:
   Mat4x4f _projection;
   Mat4x4f _inv_rot;
   Mat4x4f _inv_tran;
-};
+};  // namespace arty
 
 class FixedCameraSystem : public System {
  public:

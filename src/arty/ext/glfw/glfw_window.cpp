@@ -139,10 +139,8 @@ Mouse::position_type GlfwMouse::position() const {
   glfwGetCursorPos(window, &x, &y);
   int width, height;
   glfwGetWindowSize(window, &width, &height);
-  x -= width / 2.;
-  y -= height / 2.;
-  x /= width / 2.;
-  y /= height / 2.;
+  x = x * 2. / width - 1.;
+  y = -y * 2. / height + 1.;
   return position_type(x, y);
 }
 
