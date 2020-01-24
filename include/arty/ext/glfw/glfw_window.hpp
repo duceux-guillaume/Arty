@@ -8,12 +8,27 @@
 
 namespace arty {
 
-class GlfwWindow : public Window, public Keyboard {
+class GlfwWindow;
+
+class GlfwMouse : public Mouse {
+ private:
+  GlfwWindow* _parent;
+
+ public:
+  GlfwMouse(GlfwWindow* win) : _parent(win) {}
+
+  position_type position() const override;
+  void set(position_type const& pos) override;
+};
+
+class GlfwWindow : public Window {
  private:
   GLFWwindow* _window;
 
  public:
   GlfwWindow() : _window() {}
+
+  GLFWwindow* window() const { return _window; }
 
   // Window interface
  public:
@@ -27,10 +42,6 @@ class GlfwWindow : public Window, public Keyboard {
 
   void close() override;
 
-  CursorPosition getCursorPosition() override;
-
-  void setCursorPosition(CursorPosition const& cursor) override;
-
   double getTime() override;
 
   int width() override;
@@ -38,6 +49,8 @@ class GlfwWindow : public Window, public Keyboard {
   int height() override;
 
   Ptr<Keyboard> provideKeyboard();
+
+  Ptr<Mouse> provideMouse();
 };
 }  // namespace arty
 

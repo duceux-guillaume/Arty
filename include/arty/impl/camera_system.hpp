@@ -4,12 +4,34 @@
 #include <arty/core/math.hpp>
 #include <arty/core/system.hpp>
 #include <arty/core/window.hpp>
+#include <cmath>
+#include <limits>
 
 namespace arty {
 
-struct Camera {
-  Mat4x4f projection;
-  Mat4x4f view;
+class Camera {
+ public:
+  using number_type = float;
+  using mat_type = Mat<number_type, 4, 4>;
+  using point_type = Vec3<number_type>;
+  using vector_type = Vec4<number_type>;
+  using pixel_type = Vec2<number_type>;
+
+  mat_type const& projection() const { return _projection; }
+  mat_type view() const { return _orientation * _translation; }
+
+  pixel_type worldToPixel(point_type const& pt) const;
+
+  void perspective(number_type const& fov, number_type const& aspect,
+                   number_type const& znear, number_type const& zfar);
+
+  void lookAt(point_type const& eye, point_type const& target,
+              point_type const& updir);
+
+ private:
+  Mat4x4f _projection;
+  Mat4x4f _orientation;
+  Mat4x4f _translation;
 };
 
 class FixedCameraSystem : public System {

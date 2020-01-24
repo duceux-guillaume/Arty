@@ -13,3 +13,7 @@ add_test(NAME collision_test COMMAND collision_test)
 add_executable(geometry_test geometry_test.cpp)
 target_link_libraries(geometry_test gtest_main arty_core)
 add_test(NAME geometry_test COMMAND geometry_test)
+
+add_executable(camera_test camera_test.cpp)
+target_link_libraries(camera_test gtest_main arty_core)
+add_test(NAME camera_test COMMAND camera_test)

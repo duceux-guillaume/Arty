@@ -15,8 +15,9 @@ struct WorldPhysics {
 
 class Physics {
  public:
-  using vector_type = Vec3f;
-  using transform_type = Tf3f;
+  using number_type = float;
+  using vector_type = Vec3<number_type>;
+  using transform_type = Transform<number_type, 3>;
 
   Physics() : Physics(Tf3f(), 0.f) {}
   Physics(Tf3f const& pos, float mass)
@@ -26,6 +27,7 @@ class Physics {
         _mass(mass),
         _dynamic(true) {
     if (mass <= 0.f) {
+      _mass = 0.f;
       _dynamic = false;
     }
   }
@@ -35,6 +37,7 @@ class Physics {
   transform_type const& position() const { return _position; }
   transform_type const& velocity() const { return _velocity; }
   transform_type const& acceleration() const { return _acceleration; }
+  transform_type& acceleration() { return _acceleration; }
 
   void move(transform_type const& mvmt) { _position *= mvmt; }
   void move(vector_type const& mvmt) { _position += mvmt; }
@@ -42,13 +45,34 @@ class Physics {
   void impulse(vector_type const& imp) { _velocity += imp; }
   void stop() { _velocity = transform_type(); }
 
-  void apply(vector_type const& f) { _acceleration += f; }
+  void apply(vector_type const& force, vector_type const& pos) {
+    _forces_dir.push_back(force);
+    _forces_pos.push_back(pos);
+  }
+
+  void apply(vector_type const& force) {
+    _forces_dir.push_back(force);
+    _forces_pos.push_back(position().translation());
+  }
+
+  void flush() {
+    _forces_dir.clear();
+    _forces_pos.clear();
+  }
+
+  number_type kinetic() const {
+    return _mass * std::pow(_velocity.translation().norm(), 2.);
+  }
+
+  std::vector<vector_type> const& forces() const { return _forces_dir; }
+
+  number_type mass() const { return _mass; }
 
  private:
   transform_type _position;
   transform_type _velocity;
   transform_type _acceleration;
-  float _mass;
+  number_type _mass;
   bool _dynamic;
   std::vector<vector_type> _forces_dir;
   std::vector<vector_type> _forces_pos;

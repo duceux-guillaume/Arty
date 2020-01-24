@@ -8,7 +8,6 @@
 #include <cstring>
 #include <initializer_list>
 #include <iostream>
-#include <limits>
 
 #define MAT_TEMP template <typename T, int Rows, int Cols>
 #define MAT_TYPE Mat<T, Rows, Cols>
@@ -158,16 +157,15 @@ class Mat {
     }
   }
 
-  template <int R, int C>
-  void setBlock(std::size_t i, std::size_t j,
-                Mat<value_type, R, C> const& block) {
+  template <typename G, int R, int C>
+  void setBlock(std::size_t i, std::size_t j, Mat<G, R, C> const& block) {
     static_assert(R <= Rows && C <= Cols, "block is bigger than matrix");
     static_assert(R > 0 && C > 0, "a matrix cannot have 0 dimension");
     assert(i + R - 1 < rows);
     assert(j + C - 1 < cols);
     for (std::size_t k = 0; k < R; ++k) {
       for (std::size_t l = 0; l < C; ++l) {
-        (*this)(i + k, l + j) = block(k, l);
+        (*this)(i + k, l + j) = static_cast<value_type>(block(k, l));
       }
     }
   }
@@ -650,6 +648,7 @@ using Vec = Mat<T, Dim, 1>;
 template <typename T>
 using Vec2 = Vec<T, 2>;
 using Vec2f = Vec2<float>;
+using Vec2d = Vec2<double>;
 
 template <typename T>
 using Vec3 = Vec<T, 3>;
@@ -753,45 +752,6 @@ using Quatf = Quat<float>;
 template <typename T>
 inline T radians(T const& degree) {
   return degree * static_cast<T>(0.01745329251994329576923690768489);
-}
-
-template <typename T>
-inline Mat4x4<T> perspective(T const& fov, T const& aspect, T const& znear,
-                             T const& zfar) {
-  assert(std::abs(aspect - std::numeric_limits<T>::epsilon()) >
-         static_cast<T>(0));
-
-  T const tanHalfFovy = std::tan(fov / static_cast<T>(2));
-  Mat4x4<T> mat;
-  mat(0, 0) = static_cast<T>(1) / (aspect * tanHalfFovy);
-  mat(1, 1) = static_cast<T>(1) / (tanHalfFovy);
-  mat(2, 2) = -(zfar + znear) / (zfar - znear);
-  mat(3, 2) = -static_cast<T>(1);
-  mat(2, 3) = -(static_cast<T>(2) * zfar * znear) / (zfar - znear);
-  return mat;
-}
-
-template <typename T>
-inline Mat4x4<T> lookAt(Vec3<T> const& eye, Vec3<T> const& center,
-                        Vec3<T> const& up) {
-  Vec3<T> const f(normalize(center - eye));
-  Vec3<T> const s(normalize(cross(f, up)));
-  Vec3<T> const u(cross(s, f));
-
-  Mat4x4<T> result = Mat4x4<T>::identity();
-  result(0, 0) = s.x();
-  result(0, 1) = s.y();
-  result(0, 2) = s.z();
-  result(1, 0) = u.x();
-  result(1, 1) = u.y();
-  result(1, 2) = u.z();
-  result(2, 0) = -f.x();
-  result(2, 1) = -f.y();
-  result(2, 2) = -f.z();
-  result(0, 3) = -dot(s, eye);
-  result(1, 3) = -dot(u, eye);
-  result(2, 3) = dot(f, eye);
-  return result;
 }
 
 MAT_TEMP

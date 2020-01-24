@@ -63,9 +63,14 @@ TEST(Vec, Eq) {
 
 TEST(Vec, Normalize) {
   Vec3f v1{1.f, 0.f, 0.f};
+  ASSERT_EQ(v1.norm(), 1.f);
   ASSERT_EQ(v1.normalize(), v1);
   Vec3f v2{1.f, 0.f, 0.f};
+  ASSERT_EQ(v2.norm(), 1.f);
   ASSERT_EQ(v2.normalize(), v1);
+  Vec3f v3{1.f, 1.f, 1.f};
+  ASSERT_NEAR(v3.normalize().norm(), 1.f,
+              std::numeric_limits<float>::epsilon());
 }
 
 TEST(Vec, Cross) {

@@ -16,6 +16,8 @@ class Engine {
 
   Engine& setKeyboard(Ptr<Keyboard> const& ptr);
 
+  Engine& setMouse(Ptr<Mouse> const& ptr);
+
   Engine& addSystem(Ptr<System> const& system);
 
   template <class DerivedSystem>
@@ -45,6 +47,7 @@ class Engine {
   std::vector<Ptr<System>> _systems;
   Ptr<Memory> _state;
   Ptr<Keyboard> _keyboard;
+  Ptr<Mouse> _mouse;
 };
 
 }  // namespace arty

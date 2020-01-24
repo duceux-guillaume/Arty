@@ -1,6 +1,7 @@
 #ifndef INPUT_H
 #define INPUT_H
 
+#include <arty/core/math.hpp>
 #include <iostream>
 #include <unordered_map>
 #include <unordered_set>
@@ -190,6 +191,14 @@ class Keyboard {
   std::unordered_map<Key, std::unordered_map<Action, event_t>> mapping_;
   std::unordered_set<event_t> _incomings;
   std::unordered_set<event_t> _pool;
+};
+
+class Mouse {
+ public:
+  using position_type = Vec2d;
+
+  virtual position_type position() const = 0;
+  virtual void set(position_type const& pos) = 0;
 };
 
 }  // namespace arty

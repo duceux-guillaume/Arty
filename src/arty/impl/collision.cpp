@@ -29,11 +29,10 @@ void CollisionSolver::solve(const Collision& c, Physics* target,
   auto distance2 = (other.position().translation() -
                     (target->position().translation() + dir))
                        .normsqr();
-  if (distance2 > distance) {
-    target->move(dir);
-  } else {
-    target->move(-dir);
+  if (distance2 < distance) {
+    dir = -dir;
   }
+  target->move(dir);
   target->stop();
 }
 

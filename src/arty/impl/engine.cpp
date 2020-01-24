@@ -12,6 +12,11 @@ Engine &Engine::setKeyboard(const Ptr<Keyboard> &ptr) {
   return *this;
 }
 
+Engine &Engine::setMouse(const Ptr<Mouse> &ptr) {
+  _mouse = ptr;
+  return *this;
+}
+
 Engine &Engine::addSystem(const Ptr<System> &system) {
   _systems.push_back(system);
   return *this;
@@ -39,7 +44,7 @@ Result Engine::step() {
   _window->clear();
   for (auto system : _systems) {
     if (system) {
-      res = system->process(_state, _keyboard);
+      res = system->process(_state, _keyboard, _mouse);
       if (!res) {
         std::cerr << res.message() << std::endl;
       }

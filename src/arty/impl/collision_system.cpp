@@ -36,8 +36,8 @@ Result CollisionRenderingSystem::process(const Ptr<Memory>& mem) {
 
   auto work = [&](Entity const& e, std::vector<Collision> const& b) -> Result {
     for (auto const& col : b) {
-      _renderer->draw(e, col.intersection(), Mat4x4f::identity(), cam.view,
-                      cam.projection);
+      _renderer->draw(e, col.intersection(), Mat4x4f::identity(), cam.view(),
+                      cam.projection());
     }
     return ok();
   };

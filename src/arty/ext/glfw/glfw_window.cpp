@@ -109,19 +109,6 @@ void GlfwWindow::close() {
   glfwTerminate();
 }
 
-CursorPosition GlfwWindow::getCursorPosition() {
-  // Get mouse position
-  CursorPosition cursor;
-  glfwGetCursorPos(_window, &cursor.x, &cursor.y);
-  cursor.x -= width() / 2;
-  cursor.y -= height() / 2;
-  return cursor;
-}
-
-void GlfwWindow::setCursorPosition(const CursorPosition& cursor) {
-  glfwSetCursorPos(_window, cursor.x, cursor.y);
-}
-
 double GlfwWindow::getTime() { return glfwGetTime(); }
 
 int GlfwWindow::width() {
@@ -137,5 +124,33 @@ int GlfwWindow::height() {
 }
 
 Ptr<Keyboard> GlfwWindow::provideKeyboard() { return _keyboard; }
+
+Ptr<Mouse> GlfwWindow::provideMouse() {
+  return Ptr<Mouse>(new GlfwMouse(this));
+}
+
+Mouse::position_type GlfwMouse::position() const {
+  assert(_parent);
+  auto window = _parent->window();
+  if (!window) {
+    return position_type();
+  }
+  double x, y;
+  glfwGetCursorPos(window, &x, &y);
+  int width, height;
+  glfwGetWindowSize(window, &width, &height);
+  x -= width / 2.;
+  y -= height / 2.;
+  return position_type(x, y);
+}
+
+void GlfwMouse::set(const Mouse::position_type& pos) {
+  assert(_parent);
+  auto window = _parent->window();
+  if (!window) {
+    return;
+  }
+  glfwSetCursorPos(window, pos.x(), pos.y());
+}
 
 }  // namespace arty
