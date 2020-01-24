@@ -30,7 +30,7 @@ Result FixedCameraSystem::process(const Ptr<Memory>& board) {
 }
 
 Camera::pixel_type Camera::worldToPixel(const Camera::point_type& pt) const {
-  vector_type clip = _projection * _orientation * _translation *
+  vector_type clip = _projection * _inv_rot * _inv_tran *
                      vector_type(pt.x(), pt.y(), pt.z(), number_type(1));
   return pixel_type{clip.x(), clip.y()};
 }
@@ -66,14 +66,14 @@ void Camera::lookAt(const Camera::point_type& eye,
   // TODO handle bad up direction
   point_type const up(cross(forward, right));
 
-  _orientation = mat_type{
+  _inv_rot = mat_type{
       right.x(),   right.y(),   right.z(),   0,  //
       up.x(),      up.y(),      up.z(),      0,  //
       forward.x(), forward.y(), forward.z(), 0,  //
       0,           0,           0,           1,
   };
 
-  _translation = mat_type{
+  _inv_tran = mat_type{
       1, 0, 0, -eye.x(),  //
       0, 1, 0, -eye.y(),  //
       0, 0, 1, -eye.z(),  //

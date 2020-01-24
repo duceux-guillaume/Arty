@@ -18,7 +18,8 @@ class Camera {
   using pixel_type = Vec2<number_type>;
 
   mat_type const& projection() const { return _projection; }
-  mat_type view() const { return _orientation * _translation; }
+  mat_type view() const { return _inv_rot * _inv_tran; }
+  mat_type position() const { return (-_inv_tran) * _inv_rot.transpose(); }
 
   pixel_type worldToPixel(point_type const& pt) const;
 
@@ -30,8 +31,8 @@ class Camera {
 
  private:
   Mat4x4f _projection;
-  Mat4x4f _orientation;
-  Mat4x4f _translation;
+  Mat4x4f _inv_rot;
+  Mat4x4f _inv_tran;
 };
 
 class FixedCameraSystem : public System {

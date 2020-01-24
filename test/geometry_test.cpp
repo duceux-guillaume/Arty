@@ -143,3 +143,13 @@ TEST(Tf3f, toMat) {
     ASSERT_EQ(tf.toMat(), transform);
   }
 }
+
+TEST(Geo3D, intersectLinePlane) {
+  Line3f xaxis(Vec3f(), Vec3f(1.f, 0.f, 0.f));
+  Plane3f xyplane(Vec3f(), Vec3f(1.f, 0.f, 0.f), Vec3f(0.f, 1.f, 0.f));
+  ASSERT_FALSE(Geo3D::intersect(xaxis, xyplane).exist());
+  Plane3f zyplane(Vec3f(), Vec3f(0.f, 0.f, 1.f), Vec3f(0.f, 1.f, 0.f));
+  auto zero = Geo3D::intersect(xaxis, zyplane);
+  ASSERT_TRUE(zero.exist());
+  ASSERT_EQ(zero.value(), Vec3f());
+}

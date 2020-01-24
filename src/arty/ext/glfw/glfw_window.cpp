@@ -141,6 +141,8 @@ Mouse::position_type GlfwMouse::position() const {
   glfwGetWindowSize(window, &width, &height);
   x -= width / 2.;
   y -= height / 2.;
+  x /= width / 2.;
+  y /= height / 2.;
   return position_type(x, y);
 }
 

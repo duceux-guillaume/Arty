@@ -348,6 +348,24 @@ class Polygon {
 };
 using Polygon3f = Polygon<float, 3>;
 
+namespace Geo3D {
+template <typename T>
+static Intersection<Vec3<T>> intersect(Plane<T> const& p, Line3<T> const& l) {
+  return Geo3D::intersect(l, p);
+}
+
+template <typename T>
+static Intersection<Vec3<T>> intersect(Line3<T> const& l, Plane<T> const& p) {
+  if (l.direction().dot(p.direction()) == T(0)) {
+    return false;
+  }
+  T s = p.direction().dot(p.origin() - l.origin()) /
+        p.direction().dot(l.direction());
+  return l.origin() + l.direction() * s;
+}
+
+}  // namespace Geo3D
+
 }  // namespace arty
 
 #endif  // GEOMETRY_HPP

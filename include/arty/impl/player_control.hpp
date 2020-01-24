@@ -30,20 +30,21 @@ class MouseSystem : public System {
     Camera camera = mem->read<Camera>("camera");
     auto mp = mouse->position();
     std::cout << "cursor" << mp << std::endl;
-    Vec4f mpp{static_cast<float>(mp.x()), static_cast<float>(mp.y()), 0.f, 0.f};
-    auto tmp1 = camera.view().inv() * mpp;
+    Vec4f mpp{static_cast<float>(mp.x()), static_cast<float>(mp.y()), -1.f,
+              1.f};
+    auto position = camera.position();
+    auto tmp1 = position * mpp;
+    auto tmp2 = Vec3f(position(0, 3), position(1, 3), position(2, 3));
     std::cout << "reprojection" << tmp1 << std::endl;
-
-    //    static bool first_time = true;
-    //    if (first_time) {
-    //      mem->clear();
-    //      first_time = false;
-    //    }
-    static auto entity = mem->createEntity("toy");
-    Tf3f pos(Vec3f(tmp1.x(), tmp1.y(), 0.f));
-    //    mem->write(entity, PhysicsSystem::INPUT, Physics(pos, 0.f));
-    //    mem->write(entity, HitBoxRenderingSystem::DRAW_PROP,
-    //               AABox3f(Vec3f::zero(), Vec3f::all(0.1f)));
+    Line3f line(tmp2, Vec3f(tmp1.x(), tmp1.y(), tmp1.z()));
+    Plane3f xyplane(Vec3f(), Vec3f(1.f, 0.f, 0.f), Vec3f(0.f, 1.f, 0.f));
+    auto toy = Geo3D::intersect(line, xyplane);
+    if (toy.exist()) {
+      static auto ent = mem->createEntity("toy");
+      std::cout << "toy" << toy.value() << std::endl;
+      mem->write(ent, "transform", Tf3f(toy.value()));
+      mem->write(ent, "hitbox", AABox3f(Vec3f::zero(), Vec3f::all(1.f)));
+    }
     return ok();
   }
 };
