@@ -14,6 +14,7 @@
 
 namespace arty {
 
+#ifdef __linux__
 namespace details {
 
 template <bool...>
@@ -22,16 +23,20 @@ struct bool_pack;
 template <bool... v>
 using all_true = std::is_same<bool_pack<true, v...>, bool_pack<v..., true>>;
 
-template <class... Args>
+template <typename T, class... Args>
 using EnableIfConvertible =
-    std::enable_if_t<all_true<std::is_convertible<Args, std::size_t>{}...>{}>;
+    std::enable_if_t<all_true<std::is_convertible<Args, T>{}...>{}>;
 
 #define VARIADIC_ARG \
-  typename... Args, class = details::EnableIfConvertible<Args...>
+  typename... Args, class = details::EnableIfConvertible<T, Args...>
 #define VARIADIC_TEMP \
-  template <typename... Args, class = details::EnableIfConvertible<Args...>>
+  template <typename... Args, class = details::EnableIfConvertible<T, Args...>>
 
 }  // namespace details
+#else
+#define VARIADIC_ARG typename... Args
+#define VARIADIC_TEMP template <typename... Args>
+#endif
 
 MAT_TEMP
 class Mat {
