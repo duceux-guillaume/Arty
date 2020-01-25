@@ -23,24 +23,6 @@ class PlayerControlSystem : public System {
   void release() override;
 };
 
-class MouseSystem : public System {
- public:
-  Result process(Ptr<Memory> const& mem, Ptr<Keyboard> const& /*keyboard*/,
-                 Ptr<Mouse> const& mouse) {
-    Camera camera = mem->read<Camera>("camera");
-    auto line = camera.raycast(Camera::pixel_type(mouse->position()));
-    Plane3f xyplane(Vec3f(), Vec3f(1.f, 0.f, 0.f), Vec3f(0.f, 1.f, 0.f));
-    auto toy = Geo3D::intersect(line, xyplane);
-    if (toy.exist()) {
-      static auto ent = mem->createEntity("toy");
-      std::cout << "toy" << toy.value() << std::endl;
-      mem->write(ent, "transform", Tf3f(toy.value()));
-      mem->write(ent, "hitbox", AABox3f(Vec3f::zero(), Vec3f::all(1.f)));
-    }
-    return ok();
-  }
-};
-
 }  // namespace arty
 
 #endif  // PLAYER_CONTROL_HPP

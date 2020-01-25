@@ -167,6 +167,7 @@ class Plane {
  public:
   Plane(Vec3<T> const& pt1, Vec3<T> const& pt2, Vec3<T> const& pt3)
       : _line(pt1, cross(pt2 - pt1, pt3 - pt1)) {}
+  Plane(Vec3<T> const& ori, Vec3<T> const& dir) : _line(ori, dir.normalize()) {}
 
   Vec3<T> project(Vec3<T> const& p) {
     T coeff = _line.dirCoeff(p);
@@ -373,9 +374,9 @@ static Intersection<Vec3<T>> intersect(AABox<T, 3> const& p,
 }
 
 template <typename T>
-static Intersection<Vec3<T>> intersect(Line3<T> const& /*l*/,
-                                       AABox<T, 3> const& /*p*/) {
-  return false;
+static Intersection<Vec3<T>> intersect(Line3<T> const& l,
+                                       AABox<T, 3> const& b) {
+  return Geo3D::intersect(l, Plane3f(b.center(), b.halfLength()));
 }
 
 }  // namespace Geo3D

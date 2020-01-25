@@ -7,8 +7,8 @@
 #include <arty/impl/debug_hid_system.hpp>
 #include <arty/impl/engine.hpp>
 #include <arty/impl/hitbox_rendering_system.hpp>
+#include <arty/impl/mouse_system.hpp>
 #include <arty/impl/physics_system.hpp>
-#include <arty/impl/player_control.hpp>
 #include <random>
 
 using namespace arty;

@@ -27,7 +27,8 @@ Result MouseSystem::process(const Ptr<Memory>& mem, const Ptr<Keyboard>&,
   auto res = mem->process<Tf3f, AABox3f>(INPUT_1, INPUT_2, work);
 
   if (selected.isValid()) {
-    mem->write(selected, OUTPUT, data);
+    //    mem->write(selected, OUTPUT, data);
+    mem->remove(selected);
   }
   return res;
 }

@@ -135,6 +135,13 @@ class Memory {
     return _components[component].erase(entity) > 0;
   }
 
+  bool remove(Entity const& entity) {
+    for (auto& comp : _components) {
+      comp.second.erase(entity);
+    }
+    return true;
+  }
+
   void clear() {
     _components.clear();
     _configuration.clear();
