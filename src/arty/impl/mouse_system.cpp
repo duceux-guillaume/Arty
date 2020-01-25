@@ -1,22 +1,35 @@
-#include <arty/impl/camera_system.hpp>
 #include <arty/impl/mouse_system.hpp>
 
 namespace arty {
 
-Result MouseSystem::process(const Ptr<Memory> & /*board*/) {
-  /*
-  CursorPosition cursor = _window->getCursorPosition();
-  Vec3f direction(cursor.x, cursor.y, 0.f);
-  auto ptr = board->getProperties<Camera>("camera");
-  if (!ptr || ptr->size() != 1) {
-    return error("error getting camera state");
-  }
-  Camera cam = ptr->at(0).value;
-  Mat4x4f worldcampos = inverse(cam.view);
-*/
-  return ok();
-}
+Result MouseSystem::process(const Ptr<Memory>& mem, const Ptr<Keyboard>&,
+                            const Ptr<Mouse>& mouse) {
+  Camera camera = mem->read<Camera>("camera");
+  auto line = camera.raycast(Camera::pixel_type(mouse->position()));
+  auto selected = Entity("root", 0);
+  auto closest = std::numeric_limits<float>::max();
+  auto data = Vec3f();
 
-Result MouseSystem::init(const Ptr<Memory> & /*board*/) { return ok(); }
+  auto work = [&](Entity const& e, Tf3f const& t, AABox3f const& b) -> Result {
+    auto box = b.move(t);
+    auto intersection = Geo3D::intersect(line, box);
+    if (intersection.exist()) {
+      /* if closer to camera, select this one */
+      auto dist = (line.origin() - intersection.value()).normsqr();
+      if (dist < closest) {
+        selected = e;
+        closest = dist;
+        data = intersection.value();
+      }
+    }
+    return ok();
+  };
+  auto res = mem->process<Tf3f, AABox3f>(INPUT_1, INPUT_2, work);
+
+  if (selected.isValid()) {
+    mem->write(selected, OUTPUT, data);
+  }
+  return res;
+}
 
 }  // namespace arty

@@ -38,6 +38,11 @@ class Camera {
     return ray_type(ori, point_type(dir.x(), dir.y(), dir.z()));
   }
 
+  number_type distanceTo(point_type const& pt) {
+    auto cam = point_type(-_inv_tran(0, 3), -_inv_tran(1, 3), -_inv_tran(2, 3));
+    return (cam - pt).norm();
+  }
+
  private:
   Mat4x4f _projection;
   Mat4x4f _inv_rot;

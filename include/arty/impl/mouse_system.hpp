@@ -1,23 +1,20 @@
 #ifndef MOUSE_SYSTEM_HPP
 #define MOUSE_SYSTEM_HPP
 
+#include <arty/core/input.hpp>
 #include <arty/core/system.hpp>
-#include <arty/core/window.hpp>
+#include <arty/impl/camera_system.hpp>
 
 namespace arty {
 
 class MouseSystem : public System {
  public:
-  MouseSystem(Ptr<Window> const &w) : _window(w) {}
+  static constexpr const char* INPUT_1 = "transform";
+  static constexpr const char* INPUT_2 = "hitbox";
+  static constexpr const char* OUTPUT = "selected";
 
- private:
-  Ptr<Window> _window;
-
-  // System interface
- public:
-  Result process(const Ptr<Memory> &board);
-  Result init(const Ptr<Memory> &board);
-  void release();
+  Result process(Ptr<Memory> const& mem, Ptr<Keyboard> const& /*keyboard*/,
+                 Ptr<Mouse> const& mouse);
 };
 
 }  // namespace arty

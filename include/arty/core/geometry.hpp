@@ -349,6 +349,7 @@ class Polygon {
 using Polygon3f = Polygon<float, 3>;
 
 namespace Geo3D {
+// LINE VS PLANE
 template <typename T>
 static Intersection<Vec3<T>> intersect(Plane<T> const& p, Line3<T> const& l) {
   return Geo3D::intersect(l, p);
@@ -362,6 +363,19 @@ static Intersection<Vec3<T>> intersect(Line3<T> const& l, Plane<T> const& p) {
   T s = p.direction().dot(p.origin() - l.origin()) /
         p.direction().dot(l.direction());
   return l.origin() + l.direction() * s;
+}
+
+// LINE VS AABB
+template <typename T>
+static Intersection<Vec3<T>> intersect(AABox<T, 3> const& p,
+                                       Line3<T> const& l) {
+  return Geo3D::intersect(l, p);
+}
+
+template <typename T>
+static Intersection<Vec3<T>> intersect(Line3<T> const& /*l*/,
+                                       AABox<T, 3> const& /*p*/) {
+  return false;
 }
 
 }  // namespace Geo3D
