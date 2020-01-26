@@ -309,6 +309,10 @@ class AABox {
     return self_type(tf * _center, _halfLength);
   }
 
+  static self_type unit() {
+    return self_type(vector_type::zero(), vector_type::all(T(1)));
+  }
+
  private:
   vector_type _center;
   vector_type _halfLength;
@@ -349,11 +353,21 @@ class Polygon {
 };
 using Polygon3f = Polygon<float, 3>;
 
-namespace Geo3D {
+namespace Geo {
+// CONTAINS
+template <typename T, int D>
+static bool contains(AABox<T, D> const& box, Vec<T, D> const& pt) {
+  bool sup = (pt - box.min()).verify([](T val) { return val >= 0; });
+  if (!sup) {
+    return false;
+  }
+  return (box.max() - pt).verify([](T val) { return val >= 0; });
+}
+
 // LINE VS PLANE
 template <typename T>
 static Intersection<Vec3<T>> intersect(Plane<T> const& p, Line3<T> const& l) {
-  return Geo3D::intersect(l, p);
+  return Geo::intersect(l, p);
 }
 
 template <typename T>
@@ -370,16 +384,52 @@ static Intersection<Vec3<T>> intersect(Line3<T> const& l, Plane<T> const& p) {
 template <typename T>
 static Intersection<Vec3<T>> intersect(AABox<T, 3> const& p,
                                        Line3<T> const& l) {
-  return Geo3D::intersect(l, p);
+  return Geo::intersect(l, p);
 }
 
 template <typename T>
 static Intersection<Vec3<T>> intersect(Line3<T> const& l,
                                        AABox<T, 3> const& b) {
-  return Geo3D::intersect(l, Plane3f(b.center(), b.halfLength()));
+  // X
+  {
+    auto i1 = Geo::intersect(
+        l, Plane3f(b.center(), Vec3<T>(b.halfLength().x(), T(0), T(0))));
+    if (i1.empty()) {
+      return false;
+    }
+    auto ctn = Geo::contains(b, i1.value());
+    if (ctn) {
+      return i1;
+    }
+  }
+  // Y
+  {
+    auto i1 = Geo::intersect(
+        l, Plane3f(b.center(), Vec3<T>(b.halfLength().y(), T(0), T(0))));
+    if (i1.empty()) {
+      return false;
+    }
+    auto ctn = Geo::contains(b, i1.value());
+    if (ctn) {
+      return i1;
+    }
+  }
+  // Z
+  {
+    auto i1 = Geo::intersect(
+        l, Plane3f(b.center(), Vec3<T>(b.halfLength().z(), T(0), T(0))));
+    if (i1.empty()) {
+      return false;
+    }
+    auto ctn = Geo::contains(b, i1.value());
+    if (ctn) {
+      return i1;
+    }
+  }
+  return false;
 }
 
-}  // namespace Geo3D
+}  // namespace Geo
 
 }  // namespace arty
 

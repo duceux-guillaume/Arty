@@ -212,6 +212,9 @@ class Memory {
       } catch (const std::bad_any_cast& e) {
         return error(e.what());
       }
+      if (!v1 || !v2) {
+        return error("bad_any_cast");
+      }
       check_result(updateFunc(c1It->first, *v1, *v2));
       ++c1It;
       ++c2It;

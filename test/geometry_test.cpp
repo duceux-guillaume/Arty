@@ -144,12 +144,19 @@ TEST(Tf3f, toMat) {
   }
 }
 
-TEST(Geo3D, intersectLinePlane) {
+TEST(Geo, intersectLinePlane) {
   Line3f xaxis(Vec3f(), Vec3f(1.f, 0.f, 0.f));
   Plane3f xyplane(Vec3f(), Vec3f(1.f, 0.f, 0.f), Vec3f(0.f, 1.f, 0.f));
-  ASSERT_FALSE(Geo3D::intersect(xaxis, xyplane).exist());
+  ASSERT_FALSE(Geo::intersect(xaxis, xyplane).exist());
   Plane3f zyplane(Vec3f(), Vec3f(0.f, 0.f, 1.f), Vec3f(0.f, 1.f, 0.f));
-  auto zero = Geo3D::intersect(xaxis, zyplane);
+  auto zero = Geo::intersect(xaxis, zyplane);
   ASSERT_TRUE(zero.exist());
   ASSERT_EQ(zero.value(), Vec3f());
+}
+
+TEST(Geo, AABoxContainsPoint) {
+  auto unit = AABox2f::unit();
+  ASSERT_TRUE(Geo::contains(unit, unit.center()));
+  ASSERT_TRUE(Geo::contains(unit, unit.center() + unit.halfLength()));
+  ASSERT_FALSE(Geo::contains(unit, unit.center() + unit.halfLength() * 2.f));
 }
