@@ -390,40 +390,23 @@ static Intersection<Vec3<T>> intersect(AABox<T, 3> const& p,
 template <typename T>
 static Intersection<Vec3<T>> intersect(Line3<T> const& l,
                                        AABox<T, 3> const& b) {
-  // X
-  {
-    auto i1 = Geo::intersect(
-        l, Plane3f(b.center(), Vec3<T>(b.halfLength().x(), T(0), T(0))));
-    if (i1.empty()) {
-      return false;
-    }
-    auto ctn = Geo::contains(b, i1.value());
-    if (ctn) {
-      return i1;
-    }
-  }
-  // Y
-  {
-    auto i1 = Geo::intersect(
-        l, Plane3f(b.center(), Vec3<T>(b.halfLength().y(), T(0), T(0))));
-    if (i1.empty()) {
-      return false;
-    }
-    auto ctn = Geo::contains(b, i1.value());
-    if (ctn) {
-      return i1;
-    }
-  }
-  // Z
-  {
-    auto i1 = Geo::intersect(
-        l, Plane3f(b.center(), Vec3<T>(b.halfLength().z(), T(0), T(0))));
-    if (i1.empty()) {
-      return false;
-    }
-    auto ctn = Geo::contains(b, i1.value());
-    if (ctn) {
-      return i1;
+  for (int i = -1; i <= 1; i += 2) {
+    for (int j = 0; j < 3; ++j) {
+      auto dir = Vec3<T>(b.halfLength().x() * i, T(0), T(0));
+      if (j == 1) {
+        dir = Vec3<T>(T(0), b.halfLength().y() * i, T(0));
+      } else if (j == 2) {
+        dir = Vec3<T>(T(0), T(0), b.halfLength().z() * i);
+      }
+      auto center = b.center() + dir;
+      auto inter = Geo::intersect(l, Plane3f(center, dir));
+      if (inter.empty()) {
+        return false;
+      }
+      auto ctn = Geo::contains(b, inter.value());
+      if (ctn) {
+        return inter;
+      }
     }
   }
   return false;
