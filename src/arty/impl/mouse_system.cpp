@@ -1,4 +1,5 @@
 #include <arty/impl/mouse_system.hpp>
+#include <arty/impl/physics_system.hpp>
 
 namespace arty {
 
@@ -30,17 +31,47 @@ Result MouseSystem::process(const Ptr<Memory>& mem, const Ptr<Keyboard>&,
   static AABox3f totobox(Vec3f(), Vec3f::all(0.1f));
   if (selected.isValid()) {
     mem->write(selected, OUTPUT, data);
-    mem->write(toto, "transform", Tf3f(data));
-    mem->write(toto, "hitbox", totobox);
+
+    if (mouse->occured(_pop)) {
+      auto poped = mem->createEntity("poped");
+      Tf3f pose(data);
+      pose += Vec3f(0.f, 0.f, 2.f);
+      mem->write(poped, PhysicsSystem::INPUT, Physics(pose, 1.f));
+      mem->write(poped, "hitbox", AABox3f::unit());
+    } else if (mouse->occured(_del)) {
+      mem->remove(selected);
+    } else {
+      mem->write(toto, "transform", Tf3f(data));
+      mem->write(toto, "hitbox", totobox);
+    }
   } else {
     auto plano = Geo::intersect(line, Plane3f(Vec3f(), Vec3f(0.f, 0.f, 1.f)));
     if (plano.empty()) {
       return res;
     }
-    mem->write(toto, "transform", Tf3f(plano.value()));
-    mem->write(toto, "hitbox", totobox);
+    if (mouse->occured(_pop)) {
+      auto poped = mem->createEntity("poped");
+      Tf3f pose(plano.value());
+      pose += Vec3f(0.f, 0.f, 2.f);
+      mem->write(poped, PhysicsSystem::INPUT, Physics(pose, 1.f));
+      mem->write(poped, "hitbox", AABox3f::unit());
+    } else {
+      mem->write(toto, "transform", Tf3f(plano.value()));
+      mem->write(toto, "hitbox", totobox);
+    }
   }
   return res;
+}
+
+Result MouseSystem::init(const Ptr<Memory>&, const Ptr<Keyboard>&,
+                         const Ptr<Mouse>& mouse) {
+  if (!mouse->registerEvent(Mouse::LEFT, InputDevice::Action::PRESS, _pop)) {
+    return error("couldn't register event");
+  }
+  if (!mouse->registerEvent(Mouse::RIGHT, InputDevice::Action::PRESS, _del)) {
+    return error("couldn't register event");
+  }
+  return ok();
 }
 
 }  // namespace arty

@@ -4,6 +4,11 @@ namespace arty {
 
 Result System::process(Ptr<Memory> const&) { return ok(); }
 
+Result System::init(const Ptr<Memory>& board, const Ptr<Keyboard>& keyboard,
+                    const Ptr<Mouse>& /*mouse*/) {
+  return init(board, keyboard);
+}
+
 Result System::process(Ptr<Memory> const& board, Ptr<Keyboard> const& keyboard,
                        Ptr<Mouse> const& /*mouse*/) {
   return process(board, keyboard);

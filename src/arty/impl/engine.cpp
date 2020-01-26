@@ -2,35 +2,35 @@
 
 namespace arty {
 
-Engine &Engine::setWindow(const Ptr<Window> &ptr) {
+Engine& Engine::setWindow(const Ptr<Window>& ptr) {
   _window = ptr;
   return *this;
 }
 
-Engine &Engine::setKeyboard(const Ptr<Keyboard> &ptr) {
+Engine& Engine::setKeyboard(const Ptr<Keyboard>& ptr) {
   _keyboard = ptr;
   return *this;
 }
 
-Engine &Engine::setMouse(const Ptr<Mouse> &ptr) {
+Engine& Engine::setMouse(const Ptr<Mouse>& ptr) {
   _mouse = ptr;
   return *this;
 }
 
-Engine &Engine::addSystem(const Ptr<System> &system) {
+Engine& Engine::addSystem(const Ptr<System>& system) {
   _systems.push_back(system);
   return *this;
 }
 
-Engine &Engine::setBoard(const Ptr<Memory> &board) {
+Engine& Engine::setBoard(const Ptr<Memory>& board) {
   _state = board;
   return *this;
 }
 
 Result Engine::start() {
   check_result(_window->init());
-  for (auto const &system : _systems) {
-    check_result(system->init(_state, _keyboard));
+  for (auto const& system : _systems) {
+    check_result(system->init(_state, _keyboard, _mouse));
   }
   return ok();
 }
@@ -54,6 +54,7 @@ Result Engine::step() {
   }
   _window->swapBuffer();
   _keyboard->flush();
+  _mouse->flush();
   return ok();
 }
 
@@ -82,7 +83,7 @@ Result Engine::run() {
 }
 
 void Engine::stop() {
-  for (auto const &system : _systems) {
+  for (auto const& system : _systems) {
     system->release();
   }
   _window->close();

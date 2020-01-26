@@ -1,8 +1,11 @@
 #include <GL/glew.h>
 
 #include <arty/ext/glfw/glfw_window.hpp>
+#include <functional>
 
 namespace arty {
+
+namespace {
 
 static void GLAPIENTRY MessageCallback(GLenum /*source*/, GLenum type,
                                        GLuint /*id*/, GLenum severity,
@@ -21,6 +24,15 @@ static void keyboardCallback(GLFWwindow* /*window*/, int key, int /*scancode*/,
   _keyboard->process(static_cast<Keyboard::Key>(key),
                      static_cast<Keyboard::Action>(action));
 }
+
+Ptr<Mouse> _mouse = nullptr;
+static void mouseCallback(GLFWwindow* /*window*/, int button, int action,
+                          int /*mod*/) {
+  if (_mouse) {
+    _mouse->process(button, static_cast<InputDevice::Action>(action));
+  }
+}
+}  // namespace
 
 Result GlfwWindow::init() {
   // Initialise GLFW
@@ -83,6 +95,7 @@ Result GlfwWindow::init() {
   glDebugMessageCallback(MessageCallback, 0);
 
   (void)glfwSetKeyCallback(_window, keyboardCallback);
+  (void)glfwSetMouseButtonCallback(_window, mouseCallback);
 
   return ok();
 }
@@ -126,7 +139,10 @@ int GlfwWindow::height() {
 Ptr<Keyboard> GlfwWindow::provideKeyboard() { return _keyboard; }
 
 Ptr<Mouse> GlfwWindow::provideMouse() {
-  return Ptr<Mouse>(new GlfwMouse(this));
+  if (!_mouse) {
+    _mouse = Ptr<Mouse>(new GlfwMouse(this));
+  }
+  return _mouse;
 }
 
 Mouse::position_type GlfwMouse::position() const {

@@ -19,6 +19,10 @@ class GlfwMouse : public Mouse {
 
   position_type position() const override;
   void set(position_type const& pos) override;
+
+  void callback(GLFWwindow*, int button, int action, int) {
+    process(button, static_cast<Action>(action));
+  }
 };
 
 class GlfwWindow : public Window {

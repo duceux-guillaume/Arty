@@ -16,9 +16,11 @@ class System {
                          Ptr<Mouse> const& mouse);
   virtual Result process(Ptr<Memory> const& board,
                          Ptr<Keyboard> const& keyboard);
-  virtual Result init(Ptr<Memory> const& board);
   virtual Result process(Ptr<Memory> const& board);
+  virtual Result init(Ptr<Memory> const& board, Ptr<Keyboard> const& keyboard,
+                      Ptr<Mouse> const& mouse);
   virtual Result init(Ptr<Memory> const& board, Ptr<Keyboard> const& keyboard);
+  virtual Result init(Ptr<Memory> const& board);
   virtual void release();
 
  protected:

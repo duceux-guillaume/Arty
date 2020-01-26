@@ -13,8 +13,17 @@ class MouseSystem : public System {
   static constexpr const char* INPUT_2 = "hitbox";
   static constexpr const char* OUTPUT = "selected";
 
+  MouseSystem() : _pop("POP"), _del("DEL") {}
+
   Result process(Ptr<Memory> const& mem, Ptr<Keyboard> const& /*keyboard*/,
-                 Ptr<Mouse> const& mouse);
+                 Ptr<Mouse> const& mouse) override;
+
+  Result init(const Ptr<Memory>&, Ptr<Keyboard> const&,
+              Ptr<Mouse> const& mouse) override;
+
+ private:
+  InputEvent _pop;
+  InputEvent _del;
 };
 
 }  // namespace arty

@@ -42,7 +42,28 @@ ostream& operator<<(ostream& out, arty::InputEvent const& event);
 
 namespace arty {
 
-class Keyboard {
+class InputDevice {
+ public:
+  using event_t = InputEvent;
+  enum Action { SUNKNOWN, PRESS, HOLD, RELEASE };
+
+  void process(int trigger, Action const& action);
+
+  bool registerEvent(int key, Action const& action, event_t const& event);
+
+  event_t generate(std::string const& name);
+
+  void flush();
+
+  bool occured(event_t const& e);
+
+ protected:
+  std::unordered_map<int, std::unordered_map<Action, event_t>> mapping_;
+  std::unordered_set<event_t> _incomings;
+  std::unordered_set<event_t> _pool;
+};
+
+class Keyboard : public InputDevice {
  public:
   using event_t = InputEvent;
 
@@ -174,28 +195,21 @@ class Keyboard {
     LAST = MENU,
   };
 
-  enum Action { SUNKNOWN, PRESS, HOLD, RELEASE };
-
-  void process(Key const& key, Action const& action);
+  void process(Key const& key, Action const& action) {
+    InputDevice::process(key, action);
+  }
 
   bool registerKeyEvent(Key const& key, Action const& action,
-                        event_t const& event);
-
-  event_t generate(std::string const& name);
-
-  void flush();
-
-  bool occured(event_t const& e);
-
- private:
-  std::unordered_map<Key, std::unordered_map<Action, event_t>> mapping_;
-  std::unordered_set<event_t> _incomings;
-  std::unordered_set<event_t> _pool;
+                        event_t const& event) {
+    return InputDevice::registerEvent(key, action, event);
+  }
 };
 
-class Mouse {
+class Mouse : public InputDevice {
  public:
   using position_type = Vec2d;
+
+  enum Button { LEFT, RIGHT };
 
   virtual position_type position() const = 0;
   virtual void set(position_type const& pos) = 0;
