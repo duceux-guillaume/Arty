@@ -31,6 +31,7 @@ class number {
     return !(*this < o) && !(*this == o);
   }
   bool operator>=(number const& o) const { return !(*this < o); }
+  bool operator<=(number const& o) const { return (*this < o) || (*this == o); }
   bool operator!=(number const& o) const { return !(*this == o); }
 
   // OPERATORS
