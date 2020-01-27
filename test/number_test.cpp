@@ -100,3 +100,35 @@ TEST(Number, Over) {
   ASSERT_EQ(number(2) / number(1), number(2));
   ASSERT_EQ(number(1, 2) / number(1, 3), number(3, 2));
 }
+
+TEST(Number, Sqrt) {
+  ASSERT_EQ(number::sqrt(1, 1), 1);
+  ASSERT_EQ(number::sqrt(4, 1), 2);
+  ASSERT_EQ(number::sqrt(9, 1), 3);
+  ASSERT_EQ(number::sqrt(16, 1), 4);
+  // sqrt(2) ~= 1.41421356237
+  ASSERT_EQ(number::sqrt(2, 1), number(14, 10));
+  // ASSERT_EQ(number::sqrt(2, 2), number(141, 10));
+  // ASSERT_EQ(number::sqrt(2, 4), number(14142, 10000));
+}
+
+TEST(Number, PowOfIntegral) {
+  ASSERT_EQ(number::pow(number(), 0, 1), 1);
+  ASSERT_EQ(number::pow(number(1), 0, 1), 1);
+  ASSERT_EQ(number::pow(number(1), 2, 1), 1);
+  ASSERT_EQ(number::pow(number(2), 0, 1), 1);
+  ASSERT_EQ(number::pow(number(2), 1, 1), 2);
+  ASSERT_EQ(number::pow(number(2), 2, 1), 4);
+  ASSERT_EQ(number::pow(number(), -0, 1), number(1));
+  ASSERT_EQ(number::pow(number(1), -0, 1), number(1));
+  ASSERT_EQ(number::pow(number(1), -2, 1), number(1));
+  ASSERT_EQ(number::pow(number(2), -0, 1), number(1));
+  ASSERT_EQ(number::pow(number(2), -1, 1), number(1, 2));
+  ASSERT_EQ(number::pow(number(2), -2, 1), number(1, 4));
+}
+
+TEST(Number, Pow) {
+  ASSERT_EQ(number::pow(number(), 1.1, 1), 0);
+  ASSERT_EQ(number::pow(number(1), 1.5, 1), 1);
+  ASSERT_EQ(number::pow(number(4), 2.5, 1), 32);
+}

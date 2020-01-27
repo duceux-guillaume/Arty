@@ -1,6 +1,8 @@
 #ifndef NUMBER_HPP
 #define NUMBER_HPP
 
+#include <cassert>
+#include <cmath>
 #include <cstdint>
 #include <iostream>
 #include <string>
@@ -17,7 +19,8 @@ class number {
   number(int64_t dec, int64_t num) : _den(dec), _num(num) { reduce(); }
 
   // CAST
-  explicit operator double() const { return static_cast<double>(_den) / _num; }
+  explicit operator double() const;
+  explicit operator int() const;
   explicit operator std::string() const;
 
   // COMPARISONS
@@ -47,11 +50,28 @@ class number {
     return *this *= number(other._num, other._den);
   }
 
+  // INCR
+  number& operator++();
+  number operator++(int);
+  number& operator--();
+  number operator--(int);
+
+  // IRR
+  static number sqrt(number const& num, number const& prec);
+  static number sqr(number const& n);
+  static number pow(number const& b, number const& p, number const& pre);
+
  private:
   void reduce();
   static int64_t gcd(int64_t l, int64_t r);
 
   bool is_integer() const { return _num == 1; }
+
+  std::pair<int64_t, number> split() const;
+
+  friend std::ostream& operator<<(std::ostream& os, number const& n) {
+    return os << static_cast<std::string>(n);
+  }
 
  private:
   int64_t _den;
@@ -78,11 +98,6 @@ inline const number operator/(number l, number const& r) {
   l /= r;
   return l;
 }
-
-// HARD STUFF
-const number sqrt(number const& n);
-
-const number pow(number const& n, double e);
 
 }  // namespace arty
 
