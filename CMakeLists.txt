@@ -111,6 +111,8 @@ add_custom_command(
 )
 endif(CMAKE_COMPILER_IS_GNUCXX)
 
+add_subdirectory(benchmarks)
+
 endif(OPENGL_FOUND)
 
 

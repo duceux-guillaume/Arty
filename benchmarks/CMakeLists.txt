@@ -1,0 +1,2 @@
+add_executable(aabb_cluster aabb_cluster.cpp)
+target_link_libraries(aabb_cluster arty_core arty_gl)
