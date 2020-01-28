@@ -24,18 +24,9 @@ class Transform {
   Transform(translation_type const& pos, rotation_type const& rot)
       : _translation(pos), _rotation(rot) {}
 
-  matrix_type toMat() const {
-    matrix_type tf;
-    tf.setBlock(0, 0, _rotation);
-    tf.setBlock(0, dimension, _translation);
-    tf(dimension, dimension) = value_type(1);
-    return tf;
-  }
+  matrix_type toMat() const;
 
-  void fromMat(matrix_type const& m) {
-    m.copyBlockTo(0, dimension, _translation);
-    m.copyBlockTo(0, 0, _rotation);
-  }
+  void fromMat(matrix_type const& m);
 
   static self_type from(Mat4x4f const& m) {
     self_type tf;
@@ -130,19 +121,11 @@ using Line3f = Line3<float>;
 template <typename T, int Dim>
 class Edge {
  public:
+  using vector_type = Vec<T, Dim>;
+
   Edge(Vec<T, Dim> const& a, Vec<T, Dim> const& b) : _a(a), _b(b) {}
 
-  Vec<T, Dim> project(Vec<T, Dim> const& p) {
-    Line<T, Dim> line(_a, _b);
-    T coeff = line.dirCoeff(p);
-    if (coeff <= 0) {
-      return _a;
-    }
-    if (coeff >= 1.f) {
-      return _b;
-    }
-    return _a + line.direction() * coeff;
-  }
+  vector_type project(vector_type const& p);
 
   T distanceSquaredTo(Vec<T, Dim> const& p) {
     return (project(p) - p).normsqr();
@@ -261,18 +244,31 @@ class Triangle {
 
 using Trianglef = Triangle<float>;
 
-struct Sphere {
-  Vec3f center;
-  float squaredRadius;
+template <typename T, int Dim>
+class Circle {
+  static_assert(Dim > 1);
 
-  Sphere() = default;
-  Sphere(Vec3f const& c, float r) : center(c), squaredRadius(r) {}
+ public:
+  using value_type = T;
+  using vector_type = Vec<T, Dim>;
+  using self_type = Circle<T, Dim>;
 
-  bool intersect(Sphere const& other) {
-    float dist = (center - other.center).normsqr();
-    return dist <= squaredRadius + other.squaredRadius;
-  }
+  Circle() = default;
+  Circle(vector_type const& c, float radius)
+      : _center(c), _sqrRadius(radius * radius) {}
+
+  bool intersect(self_type const& other);
+
+  bool contains(vector_type const& pt);
+
+  vector_type const& center() const { return _center; }
+  value_type const& sqrRadius() const { return _sqrRadius; }
+
+ private:
+  vector_type _center;
+  float _sqrRadius;
 };
+using Sphere3f = Circle<float, 3>;
 
 template <typename T, int Dim>
 class AABox {
@@ -462,5 +458,7 @@ static Intersection<Vec3<T>> intersect(Line3<T> const& l,
 }  // namespace Geo
 
 }  // namespace arty
+
+#include <arty/core/details/geometry_impl.hpp>
 
 #endif  // GEOMETRY_HPP

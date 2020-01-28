@@ -14,6 +14,8 @@ class IShapeRenderer {
                     const Mat4x4f& view, const Mat4x4f& proj) = 0;
   virtual void draw(const Entity& e, const OBB3f& s, const Mat4x4f& model,
                     const Mat4x4f& view, const Mat4x4f& proj) = 0;
+  virtual void draw(const Entity& e, const Sphere3f& s, const Mat4x4f& model,
+                    const Mat4x4f& view, const Mat4x4f& proj) = 0;
   virtual void draw(const Entity& e, const std::vector<Vec3f>& s,
                     const Mat4x4f& model, const Mat4x4f& view,
                     const Mat4x4f& proj) = 0;

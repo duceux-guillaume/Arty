@@ -57,7 +57,7 @@ Result MouseSystem::process(const Ptr<Memory>& mem, const Ptr<Keyboard>&,
       mem->write(poped, "hitbox", AABox3f::unit());
     } else {
       mem->write(toto, "transform", Tf3f(plano.value()));
-      mem->write(toto, "hitbox", totobox);
+      mem->write(toto, "sphere", Sphere3f(totobox.center(), 2.f));
     }
   }
   return res;

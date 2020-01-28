@@ -47,71 +47,68 @@ static Vec3f flip(Vec3f const& l, Vec3f const& r) {
   return l.apply(r, [](float l, float r) { return l * r; });
 }
 
-static void boxToLines(AABox3f const& b, std::vector<Vec3f>& l) {
-  l.clear();
-  // sup part
-  Vec3f prev = b.center() + b.halfLength();
-  Vec3f next = b.center() + flip(b.halfLength(), Vec3f(-1.f, 1.f, 1.f));
-  l.push_back(prev);
-  l.push_back(next);
-  prev = next;
-  next = b.center() + flip(b.halfLength(), Vec3f(-1.f, -1.f, 1.f));
-  l.push_back(prev);
-  l.push_back(next);
-  prev = next;
-  next = b.center() + flip(b.halfLength(), Vec3f(1.f, -1.f, 1.f));
-  l.push_back(prev);
-  l.push_back(next);
-  prev = next;
-  next = b.center() + flip(b.halfLength(), Vec3f(1.f, 1.f, 1.f));
-  l.push_back(prev);
-  l.push_back(next);
-  // inf part
-  prev = b.center() + flip(b.halfLength(), Vec3f(1.f, 1.f, -1.f));
-  next = b.center() + flip(b.halfLength(), Vec3f(-1.f, 1.f, -1.f));
-  l.push_back(prev);
-  l.push_back(next);
-  prev = next;
-  next = b.center() + flip(b.halfLength(), Vec3f(-1.f, -1.f, -1.f));
-  l.push_back(prev);
-  l.push_back(next);
-  prev = next;
-  next = b.center() + flip(b.halfLength(), Vec3f(1.f, -1.f, -1.f));
-  l.push_back(prev);
-  l.push_back(next);
-  prev = next;
-  next = b.center() + flip(b.halfLength(), Vec3f(1.f, 1.f, -1.f));
-  l.push_back(prev);
-  l.push_back(next);
-  // middle part
-  prev = b.center() + b.halfLength();
-  next = b.center() + flip(b.halfLength(), Vec3f(1.f, 1.f, -1.f));
-  l.push_back(prev);
-  l.push_back(next);
-  prev = b.center() + flip(b.halfLength(), Vec3f(1.f, -1.f, 1.f));
-  next = b.center() + flip(b.halfLength(), Vec3f(1.f, -1.f, -1.f));
-  l.push_back(prev);
-  l.push_back(next);
-  prev = b.center() + flip(b.halfLength(), Vec3f(-1.f, 1.f, 1.f));
-  next = b.center() + flip(b.halfLength(), Vec3f(-1.f, 1.f, -1.f));
-  l.push_back(prev);
-  l.push_back(next);
-  prev = b.center() + flip(b.halfLength(), Vec3f(-1.f, -1.f, 1.f));
-  next = b.center() + flip(b.halfLength(), Vec3f(-1.f, -1.f, -1.f));
-  l.push_back(prev);
-  l.push_back(next);
-}
-
-void GlShapeRenderer::draw(const Entity& e, const AABox3f& s,
+void GlShapeRenderer::draw(const Entity& e, const AABox3f& box,
                            const Mat4x4f& model, const Mat4x4f& view,
                            const Mat4x4f& proj) {
   std::vector<Vec3f> lines;
-  boxToLines(s, lines);
+  // sup part
+  Vec3f prev = box.center() + box.halfLength();
+  Vec3f next = box.center() + flip(box.halfLength(), Vec3f(-1.f, 1.f, 1.f));
+  lines.push_back(prev);
+  lines.push_back(next);
+  prev = next;
+  next = box.center() + flip(box.halfLength(), Vec3f(-1.f, -1.f, 1.f));
+  lines.push_back(prev);
+  lines.push_back(next);
+  prev = next;
+  next = box.center() + flip(box.halfLength(), Vec3f(1.f, -1.f, 1.f));
+  lines.push_back(prev);
+  lines.push_back(next);
+  prev = next;
+  next = box.center() + flip(box.halfLength(), Vec3f(1.f, 1.f, 1.f));
+  lines.push_back(prev);
+  lines.push_back(next);
+  // inf part
+  prev = box.center() + flip(box.halfLength(), Vec3f(1.f, 1.f, -1.f));
+  next = box.center() + flip(box.halfLength(), Vec3f(-1.f, 1.f, -1.f));
+  lines.push_back(prev);
+  lines.push_back(next);
+  prev = next;
+  next = box.center() + flip(box.halfLength(), Vec3f(-1.f, -1.f, -1.f));
+  lines.push_back(prev);
+  lines.push_back(next);
+  prev = next;
+  next = box.center() + flip(box.halfLength(), Vec3f(1.f, -1.f, -1.f));
+  lines.push_back(prev);
+  lines.push_back(next);
+  prev = next;
+  next = box.center() + flip(box.halfLength(), Vec3f(1.f, 1.f, -1.f));
+  lines.push_back(prev);
+  lines.push_back(next);
+  // middle part
+  prev = box.center() + box.halfLength();
+  next = box.center() + flip(box.halfLength(), Vec3f(1.f, 1.f, -1.f));
+  lines.push_back(prev);
+  lines.push_back(next);
+  prev = box.center() + flip(box.halfLength(), Vec3f(1.f, -1.f, 1.f));
+  next = box.center() + flip(box.halfLength(), Vec3f(1.f, -1.f, -1.f));
+  lines.push_back(prev);
+  lines.push_back(next);
+  prev = box.center() + flip(box.halfLength(), Vec3f(-1.f, 1.f, 1.f));
+  next = box.center() + flip(box.halfLength(), Vec3f(-1.f, 1.f, -1.f));
+  lines.push_back(prev);
+  lines.push_back(next);
+  prev = box.center() + flip(box.halfLength(), Vec3f(-1.f, -1.f, 1.f));
+  next = box.center() + flip(box.halfLength(), Vec3f(-1.f, -1.f, -1.f));
+  lines.push_back(prev);
+  lines.push_back(next);
   draw(e, lines, model, view, proj);
 }
 
-static void boxToLines(OBB3f const& b, std::vector<Vec3f>& l) {
-  l.clear();
+void GlShapeRenderer::draw(const Entity& e, const OBB3f& b,
+                           const Mat4x4f& model, const Mat4x4f& view,
+                           const Mat4x4f& proj) {
+  std::vector<Vec3f> l;
   // sup part
   Vec3f prev = b.center() * b.halfLength();
   Vec3f next = b.center() * flip(b.halfLength(), Vec3f(-1.f, 1.f, 1.f));
@@ -163,13 +160,35 @@ static void boxToLines(OBB3f const& b, std::vector<Vec3f>& l) {
   next = b.center() * flip(b.halfLength(), Vec3f(-1.f, -1.f, -1.f));
   l.push_back(prev);
   l.push_back(next);
+  draw(e, l, model, view, proj);
 }
 
-void GlShapeRenderer::draw(const Entity& e, const OBB3f& s,
+void GlShapeRenderer::draw(const Entity& e, const Sphere3f& s,
                            const Mat4x4f& model, const Mat4x4f& view,
                            const Mat4x4f& proj) {
   std::vector<Vec3f> lines;
-  boxToLines(s, lines);
+  static std::size_t num_segments = 50;
+  float angle = M_PI / num_segments * 2.f;
+  float radius = std::sqrt(s.sqrRadius());
+  for (std::size_t jj = 0; jj < num_segments; ++jj) {
+    float phy = jj * M_PI / num_segments - M_PI / 2.f;
+    float z = radius * std::sin(phy);
+    float theta = 0.f * angle;
+    float x = radius * std::cos(theta) * std::cos(phy);
+    float y = radius * std::sin(theta) * std::cos(phy);
+    Vec3f first(x, y, z), prev(x, y, z), next(x, y, z);
+    for (std::size_t ii = 1; ii < num_segments; ++ii) {
+      theta = ii * angle;
+      x = radius * std::cos(theta) * std::cos(phy);
+      y = radius * std::sin(theta) * std::cos(phy);
+      next = Vec3f(x, y, z);
+      lines.push_back(prev);
+      lines.push_back(next);
+      prev = next;
+    }
+    lines.push_back(prev);
+    lines.push_back(first);
+  }
   draw(e, lines, model, view, proj);
 }
 
