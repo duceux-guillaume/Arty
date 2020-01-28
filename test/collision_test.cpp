@@ -11,7 +11,7 @@ struct TestObject {
   AABox3f b;
 };
 
-TestObject makeCube(std::string const& name, Tf3f const& pos,
+TestObject makeBrick(std::string const& name, Tf3f const& pos,
                     Vec3f const& length, float mass) {
   static uint64_t count = 0;
   TestObject obj;
@@ -31,8 +31,8 @@ TEST(CollisionDetection, detect) {
 }
 
 TEST(CollisionSolver, detectAndResolve) {
-  auto obj1 = makeCube("floor", Tf3f(), Vec3f::all(1.f), 0.f);
-  auto obj2 = makeCube("paf", Vec3f{1.5f, 0.f, 0.f}, Vec3f::all(1.f), 1.f);
+  auto obj1 = makeBrick("floor", Tf3f(), Vec3f::all(1.f), 0.f);
+  auto obj2 = makeBrick("paf", Vec3f{1.5f, 0.f, 0.f}, Vec3f::all(1.f), 1.f);
   CollisionDetection detector;
   auto collision =
       detector.detect(obj1.p.position(), obj1.b, obj2.p.position(), obj2.b);

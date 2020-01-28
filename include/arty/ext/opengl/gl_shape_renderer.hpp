@@ -17,13 +17,15 @@ class GlShapeRenderer : public IShapeRenderer {
   GlShapeRenderer() = default;
   Result init() override;
   void release() override;
-  void draw(const Entity &e, const AABox3f &s, const Mat4x4f &model,
-            const Mat4x4f &view, const Mat4x4f &proj) override;
-  void draw(const Entity &e, const std::vector<Vec3f> &s, const Mat4x4f &model,
-            const Mat4x4f &view, const Mat4x4f &proj) override;
+  void draw(const Entity& e, const AABox3f& s, const Mat4x4f& model,
+            const Mat4x4f& view, const Mat4x4f& proj) override;
+  void draw(const Entity& e, const OBB3f& s, const Mat4x4f& model,
+            const Mat4x4f& view, const Mat4x4f& proj) override;
+  void draw(const Entity& e, const std::vector<Vec3f>& s, const Mat4x4f& model,
+            const Mat4x4f& view, const Mat4x4f& proj) override;
 
  private:
-  void import(Entity const &e, const std::vector<Vec3f> &s);
+  void import(Entity const& e, const std::vector<Vec3f>& s);
 };
 
 }  // namespace arty

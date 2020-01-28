@@ -110,6 +110,69 @@ void GlShapeRenderer::draw(const Entity& e, const AABox3f& s,
   draw(e, lines, model, view, proj);
 }
 
+static void boxToLines(OBB3f const& b, std::vector<Vec3f>& l) {
+  l.clear();
+  // sup part
+  Vec3f prev = b.center() * b.halfLength();
+  Vec3f next = b.center() * flip(b.halfLength(), Vec3f(-1.f, 1.f, 1.f));
+  l.push_back(prev);
+  l.push_back(next);
+  prev = next;
+  next = b.center() * flip(b.halfLength(), Vec3f(-1.f, -1.f, 1.f));
+  l.push_back(prev);
+  l.push_back(next);
+  prev = next;
+  next = b.center() * flip(b.halfLength(), Vec3f(1.f, -1.f, 1.f));
+  l.push_back(prev);
+  l.push_back(next);
+  prev = next;
+  next = b.center() * flip(b.halfLength(), Vec3f(1.f, 1.f, 1.f));
+  l.push_back(prev);
+  l.push_back(next);
+  // inf part
+  prev = b.center() * flip(b.halfLength(), Vec3f(1.f, 1.f, -1.f));
+  next = b.center() * flip(b.halfLength(), Vec3f(-1.f, 1.f, -1.f));
+  l.push_back(prev);
+  l.push_back(next);
+  prev = next;
+  next = b.center() * flip(b.halfLength(), Vec3f(-1.f, -1.f, -1.f));
+  l.push_back(prev);
+  l.push_back(next);
+  prev = next;
+  next = b.center() * flip(b.halfLength(), Vec3f(1.f, -1.f, -1.f));
+  l.push_back(prev);
+  l.push_back(next);
+  prev = next;
+  next = b.center() * flip(b.halfLength(), Vec3f(1.f, 1.f, -1.f));
+  l.push_back(prev);
+  l.push_back(next);
+  // middle part
+  prev = b.center() * b.halfLength();
+  next = b.center() * flip(b.halfLength(), Vec3f(1.f, 1.f, -1.f));
+  l.push_back(prev);
+  l.push_back(next);
+  prev = b.center() * flip(b.halfLength(), Vec3f(1.f, -1.f, 1.f));
+  next = b.center() * flip(b.halfLength(), Vec3f(1.f, -1.f, -1.f));
+  l.push_back(prev);
+  l.push_back(next);
+  prev = b.center() * flip(b.halfLength(), Vec3f(-1.f, 1.f, 1.f));
+  next = b.center() * flip(b.halfLength(), Vec3f(-1.f, 1.f, -1.f));
+  l.push_back(prev);
+  l.push_back(next);
+  prev = b.center() * flip(b.halfLength(), Vec3f(-1.f, -1.f, 1.f));
+  next = b.center() * flip(b.halfLength(), Vec3f(-1.f, -1.f, -1.f));
+  l.push_back(prev);
+  l.push_back(next);
+}
+
+void GlShapeRenderer::draw(const Entity& e, const OBB3f& s,
+                           const Mat4x4f& model, const Mat4x4f& view,
+                           const Mat4x4f& proj) {
+  std::vector<Vec3f> lines;
+  boxToLines(s, lines);
+  draw(e, lines, model, view, proj);
+}
+
 void GlShapeRenderer::release() {}
 
 void GlShapeRenderer::import(Entity const& e, std::vector<Vec3f> const& s) {

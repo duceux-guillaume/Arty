@@ -321,6 +321,53 @@ using AABox2f = AABox<float, 2>;
 using AABox3f = AABox<float, 3>;
 
 template <typename T, int Dim>
+class OrientedBox {
+ public:
+  using transform_type = Transform<T, Dim>;
+  using vector_type = Vec<T, Dim>;
+  using self_type = AABox<T, Dim>;
+
+  OrientedBox() = default;
+  OrientedBox(transform_type const& center, vector_type const& halfLength)
+      : _center(center), _halfLength(halfLength) {}
+
+  transform_type const& center() const { return _center; }
+  vector_type const& halfLength() const { return _halfLength; }
+
+  bool intersect(self_type const& other) { return intersection(other).exist(); }
+
+  vector_type max() const { return _center + _halfLength; }
+
+  vector_type min() const { return _center - _halfLength; }
+
+  Intersection<self_type> intersection(self_type const& other) const {
+    vector_type pt_max = max().apply(
+        other.max(), [](float l, float r) { return std::min(l, r); });
+    vector_type pt_min = min().apply(
+        other.min(), [](float l, float r) { return std::max(l, r); });
+    vector_type volume = (pt_max - pt_min) * 0.5f;
+    if (!volume.verify([](float e) { return e >= 0.f; })) {
+      return false;
+    }
+    return self_type((pt_min + pt_max) * 0.5f, volume);
+  }
+
+  self_type move(transform_type const& tf) const {
+    return self_type(tf * _center, _halfLength);
+  }
+
+  static self_type unit() {
+    return self_type(transform_type(), vector_type::all(T(1)));
+  }
+
+ private:
+  transform_type _center;
+  vector_type _halfLength;
+};
+using OBB2f = OrientedBox<float, 2>;
+using OBB3f = OrientedBox<float, 3>;
+
+template <typename T, int Dim>
 class Polygon {
  public:
   using vec_type = Vec<T, Dim>;
