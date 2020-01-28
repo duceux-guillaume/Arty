@@ -188,7 +188,7 @@ number number::pow(const number& b, const number& p, const number& pre) {
 
 number number::pow(const number& b, uint16_t p) {
   number res(1);
-  for (uint i = 0; i < p; ++i) {
+  for (uint16_t i = 0; i < p; ++i) {
     res *= b;
   }
   return res;
