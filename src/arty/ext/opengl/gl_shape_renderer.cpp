@@ -1,5 +1,6 @@
 #include <GL/glew.h>
 
+#include <arty/core/number.hpp>
 #include <arty/ext/opengl/gl_loader.hpp>
 #include <arty/ext/opengl/gl_shape_renderer.hpp>
 
@@ -168,10 +169,10 @@ void GlShapeRenderer::draw(const Entity& e, const Sphere3f& s,
                            const Mat4x4f& proj) {
   std::vector<Vec3f> lines;
   static std::size_t num_segments = 50;
-  float angle = M_PI / num_segments * 2.f;
+  float angle = PI / num_segments * 2.f;
   float radius = std::sqrt(s.sqrRadius());
   for (std::size_t jj = 0; jj < num_segments; ++jj) {
-    float phy = jj * M_PI / num_segments - M_PI / 2.f;
+    float phy = jj * PI / num_segments - PI / 2.f;
     float z = radius * std::sin(phy);
     float theta = 0.f * angle;
     float x = radius * std::cos(theta) * std::cos(phy);

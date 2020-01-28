@@ -93,6 +93,8 @@ inline const number operator/(number l, number const& r) {
   return l;
 }
 
+constexpr double PI = 3.14159265358979323846;
+
 }  // namespace arty
 
 #endif  // NUMBER_HPP
