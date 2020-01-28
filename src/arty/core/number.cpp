@@ -186,7 +186,7 @@ number number::pow(const number& b, const number& p, const number& pre) {
   return number::sqrt(number::pow(b, p * 2, pre * 2), pre);
 }
 
-number number::pow(const number& b, uint p) {
+number number::pow(const number& b, uint16_t p) {
   number res(1);
   for (uint i = 0; i < p; ++i) {
     res *= b;

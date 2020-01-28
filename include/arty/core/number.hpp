@@ -6,6 +6,7 @@
 #include <cstdint>
 #include <iostream>
 #include <string>
+#include <utility>
 
 namespace arty {
 
@@ -52,7 +53,7 @@ class number {
   static number sqrt(number const& num, number const& prec);
   static number sqr(number const& n);
   static number pow(number const& b, number const& p, number const& pre);
-  static number pow(number const& b, uint p);
+  static number pow(number const& b, uint16_t p);
 
  private:
   void reduce();
