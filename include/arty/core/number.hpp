@@ -24,31 +24,23 @@ class number {
   explicit operator std::string() const;
 
   // COMPARISONS
-  bool operator==(number const& o) const {
-    return _den == o._den && _num == o._num;
-  }
-  bool operator<(number const& o) const {
-    return _den * o._num < o._den * _num;
-  }
-  bool operator>(number const& o) const {
-    return !(*this < o) && !(*this == o);
-  }
-  bool operator>=(number const& o) const { return !(*this < o); }
-  bool operator<=(number const& o) const { return (*this < o) || (*this == o); }
-  bool operator!=(number const& o) const { return !(*this == o); }
+  bool operator==(number const& o) const;
+  bool operator<(number const& o) const;
+  bool operator>(number const& o) const;
+  bool operator>=(number const& o) const;
+  bool operator<=(number const& o) const;
+  bool operator!=(number const& o) const;
 
   // OPERATORS
-  number operator-() const { return number(-_den, _num); }
+  number operator-() const;
 
   number& operator+=(number const& other);
 
-  number& operator-=(number const& other) { return *this += (-other); }
+  number& operator-=(number const& other);
 
   number& operator*=(number const& other);
 
-  number& operator/=(number const& other) {
-    return *this *= number(other._num, other._den);
-  }
+  number& operator/=(number const& other);
 
   // INCR
   number& operator++();
@@ -60,12 +52,13 @@ class number {
   static number sqrt(number const& num, number const& prec);
   static number sqr(number const& n);
   static number pow(number const& b, number const& p, number const& pre);
+  static number pow(number const& b, uint p);
 
  private:
   void reduce();
   static int64_t gcd(int64_t l, int64_t r);
 
-  bool is_integer() const { return _num == 1; }
+  bool is_integer() const;
 
   std::pair<int64_t, number> split() const;
 
