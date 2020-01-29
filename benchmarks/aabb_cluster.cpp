@@ -13,7 +13,7 @@
 
 using namespace arty;
 
-void makeBrick(std::string const& name, Tf3f const& pos, Vec3f const& length,
+void makeCube(std::string const& name, Tf3f const& pos, Vec3f const& length,
               float mass, Ptr<Memory> mem) {
   auto entity = mem->createEntity(name);
   mem->write(entity, HitBoxRenderingSystem::DRAW_AABB,
@@ -23,11 +23,11 @@ void makeBrick(std::string const& name, Tf3f const& pos, Vec3f const& length,
 
 class InitSystem : public System {
  private:
-  InputEvent _reset;
+  Event _reset;
 
   void reset(Ptr<Memory> const& mem) {
     mem->clear();
-    makeBrick("floor", Tf3f(), Vec3f(5.f, 5.f, 1.f), 0.f, mem);
+    makeCube("floor", Tf3f(), Vec3f(5.f, 5.f, 1.f), 0.f, mem);
 
     std::random_device rd;
     std::mt19937 gen(rd());
@@ -36,7 +36,7 @@ class InitSystem : public System {
     std::uniform_real_distribution<> zdis(5.f, 20.f);
     std::uniform_real_distribution<> lendis(0.1f, 2.f);
     for (int n = 0; n < 50; ++n) {
-      makeBrick("random", Tf3f(Vec3f(xdis(gen), ydis(gen), zdis(gen))),
+      makeCube("random", Tf3f(Vec3f(xdis(gen), ydis(gen), zdis(gen))),
                Vec3f(lendis(gen), lendis(gen), lendis(gen)), 1.f, mem);
     }
   }
@@ -45,21 +45,44 @@ class InitSystem : public System {
   InitSystem() : _reset("RESET") {}
 
   Result process(const Ptr<Memory>& mem,
-                 Ptr<Keyboard> const& keyboard) override {
-    if (keyboard->occured(_reset)) {
+                 Ptr<InputManager> const& input) override {
+    if (input->pop(_reset)) {
       reset(mem);
     }
     return ok();
   }
-  Result init(const Ptr<Memory>& mem, Ptr<Keyboard> const& keyboard) override {
-    if (!keyboard->registerKeyEvent(Keyboard::SPACE, Keyboard::Action::PRESS,
-                                    _reset)) {
+  Result init(const Ptr<Memory>& mem, Ptr<InputManager> const& input) override {
+    if (!input->attach(Keyboard::SPACE, Keyboard::Action::PRESS, _reset)) {
       return error("couldn't register event");
     }
     reset(mem);
     return ok();
   }
 };
+
+class CursorRenderingSystem : public System {
+ public:
+  Result process(Ptr<Memory> const& mem);
+  CursorRenderingSystem(Ptr<IShapeRenderer> rend) : _renderer(rend) {}
+
+ private:
+  Ptr<IShapeRenderer> _renderer;
+};
+
+Result CursorRenderingSystem::process(const Ptr<Memory>& mem) {
+  Selected cursor;
+  if (!mem->read(MouseSystem::OUTPUT, cursor)) {
+    return error("no cursor to display");
+  }
+  Camera camera;
+  if (!mem->read("camera", camera)) {
+    return error("no camera");
+  }
+  static auto cross = mem->createEntity("cursor");
+  _renderer->draw(cross, AABox3f(cursor.point, Vec3f::all(1.f)),
+                  Mat4x4f::identity(), camera.view(), camera.projection());
+  return ok();
+}
 
 int main(void) {
   GlfwWindow* window_impl = new GlfwWindow;
@@ -72,6 +95,26 @@ int main(void) {
 
   WorldPhysics world;
   world.gravity_strengh = 10.f;
+
+  auto AddFunc = [](Ptr<Memory> const& mem) -> Result {
+    Selected cursor;
+    if (!mem->read(MouseSystem::OUTPUT, cursor)) {
+      return error("no cursor to display");
+    }
+    makeCube("s", cursor.point, Vec3f::all(1.f), 1.f, mem);
+    return ok();
+  };
+
+  auto RmFunc = [](Ptr<Memory> const& mem) -> Result {
+    Selected cursor;
+    if (!mem->read(MouseSystem::OUTPUT, cursor)) {
+      return error("no 3d cursor");
+    }
+    if (cursor.entity) {
+      mem->remove(cursor.entity);
+    }
+    return true;
+  };
 
   Engine engine;
   engine.setBoard(board)
@@ -86,9 +129,20 @@ int main(void) {
       .makeSystem<CollisionDetectionSystem>()
       .makeSystem<CollisionRenderingSystem>(shapeRenderer)
       .makeSystem<CollisionSolverSystem>()
-      .makeSystem<MouseSystem>();
+      .makeSystem<MouseSystem>()
+      .makeSystem<CursorRenderingSystem>(shapeRenderer)
+      .makeSystem<EventSystem>(
+          Input(Mouse::Button::LEFT, Device::Action::PRESS), Event("SPAWN"),
+          AddFunc)
+      .makeSystem<EventSystem>(
+          Input(Mouse::Button::RIGHT, Device::Action::PRESS), Event("DELETE"),
+          RmFunc);
 
-  check_result(engine.start());
-  check_result(engine.run());
-  return ok();
+  auto start = engine.start();
+  std::cout << "START: " << start.message() << std::endl;
+  if (!start) {
+    return -1;
+  }
+  std::cout << "RUN: " << engine.run().message() << std::endl;
+  return 0;
 }

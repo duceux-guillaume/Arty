@@ -29,7 +29,7 @@ Ptr<Mouse> _mouse = nullptr;
 static void mouseCallback(GLFWwindow* /*window*/, int button, int action,
                           int /*mod*/) {
   if (_mouse) {
-    _mouse->process(button, static_cast<InputDevice::Action>(action));
+    _mouse->process(button, static_cast<Device::Action>(action));
   }
 }
 }  // namespace

@@ -8,12 +8,12 @@ Engine& Engine::setWindow(const Ptr<Window>& ptr) {
 }
 
 Engine& Engine::setKeyboard(const Ptr<Keyboard>& ptr) {
-  _keyboard = ptr;
+  _inputs->setKeyboard(ptr);
   return *this;
 }
 
 Engine& Engine::setMouse(const Ptr<Mouse>& ptr) {
-  _mouse = ptr;
+  _inputs->setMouse(ptr);
   return *this;
 }
 
@@ -30,7 +30,7 @@ Engine& Engine::setBoard(const Ptr<Memory>& board) {
 Result Engine::start() {
   check_result(_window->init());
   for (auto const& system : _systems) {
-    check_result(system->init(_state, _keyboard, _mouse));
+    check_result(system->init(_state, _inputs));
   }
   return ok();
 }
@@ -44,7 +44,7 @@ Result Engine::step() {
   _window->clear();
   for (auto system : _systems) {
     if (system) {
-      res = system->process(_state, _keyboard, _mouse);
+      res = system->process(_state, _inputs);
       if (!res) {
         std::cerr << res.message() << std::endl;
       }
@@ -53,8 +53,7 @@ Result Engine::step() {
     }
   }
   _window->swapBuffer();
-  _keyboard->flush();
-  _mouse->flush();
+  _inputs->flush();
   return ok();
 }
 

@@ -21,7 +21,10 @@ class Camera {
 
   mat_type const& projection() const { return _projection; }
   mat_type view() const { return _inv_rot * _inv_tran; }
-  mat_type position() const { return (-_inv_tran) * _inv_rot.transpose(); }
+  mat_type transform() const { return (-_inv_tran) * _inv_rot.transpose(); }
+  point_type position() const {
+    return transform().block<number_type, 3, 1>(0, 3);
+  }
 
   pixel_type worldToPixel(point_type const& pt) const;
 
@@ -33,7 +36,7 @@ class Camera {
 
   ray_type raycast(pixel_type const& pixel) {
     vector_type mpp(pixel, -1.f, 1.f);
-    auto dir = position() * mpp;
+    auto dir = transform() * mpp;
     auto ori = point_type(-_inv_tran(0, 3), -_inv_tran(1, 3), -_inv_tran(2, 3));
     return ray_type(ori, point_type(dir.x(), dir.y(), dir.z()));
   }

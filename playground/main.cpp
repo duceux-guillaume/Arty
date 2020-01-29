@@ -40,7 +40,7 @@ void makeWall(Vec3f min, Vec3f max, std::size_t counth, std::size_t countv,
 
 class InitSystem : public System {
  private:
-  InputEvent _reset;
+  Event _reset;
 
   void reset(Ptr<Memory> const& mem) {
     mem->clear();
@@ -52,15 +52,15 @@ class InitSystem : public System {
   InitSystem() : _reset("RESET") {}
 
   Result process(const Ptr<Memory>& mem,
-                 Ptr<Keyboard> const& keyboard) override {
-    if (keyboard->occured(_reset)) {
+                 Ptr<InputManager> const& inputs) override {
+    if (inputs->pop(_reset)) {
       reset(mem);
     }
     return ok();
   }
-  Result init(const Ptr<Memory>& mem, Ptr<Keyboard> const& keyboard) override {
-    if (!keyboard->registerKeyEvent(Keyboard::SPACE, Keyboard::Action::PRESS,
-                                    _reset)) {
+  Result init(const Ptr<Memory>& mem,
+              Ptr<InputManager> const& inputs) override {
+    if (!inputs->attach(Keyboard::SPACE, Device::Action::PRESS, _reset)) {
       return error("couldn't register event");
     }
     reset(mem);
@@ -95,7 +95,7 @@ int main(void) {
       .makeSystem<CollisionSolverSystem>()
       .makeSystem<MouseSystem>();
 
-  check_result(engine.start());
-  check_result(engine.run());
-  return ok();
+  std::cout << "START: " << engine.start().message() << std::endl;
+  std::cout << "RUN: " << engine.run().message() << std::endl;
+  return 0;
 }

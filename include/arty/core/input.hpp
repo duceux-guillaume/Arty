@@ -2,49 +2,49 @@
 #define INPUT_H
 
 #include <arty/core/math.hpp>
+#include <arty/core/result.hpp>
 #include <iostream>
+#include <memory>
 #include <unordered_map>
 #include <unordered_set>
 
 namespace arty {
 
-class InputEvent {
+class Event {
  private:
   std::string _name;
   int _uuid;
   static int _count;
 
  public:
-  InputEvent(std::string const& name) : _name(name), _uuid(++_count) {}
+  Event(std::string const& name) : _name(name), _uuid(++_count) {}
 
   int uuid() const { return _uuid; }
   std::string const& name() const { return _name; }
 
-  bool operator==(InputEvent const& other) const {
-    return _uuid == other._uuid;
-  }
+  bool operator==(Event const& other) const { return _uuid == other._uuid; }
 };
 }  // namespace arty
 
 namespace std {
 
 template <>
-class hash<arty::InputEvent> {
+class hash<arty::Event> {
  public:
-  size_t operator()(arty::InputEvent const& s) const {
+  size_t operator()(arty::Event const& s) const {
     return std::hash<int>()(s.uuid());
   }
 };
 
-ostream& operator<<(ostream& out, arty::InputEvent const& event);
+ostream& operator<<(ostream& out, arty::Event const& event);
 
 }  // namespace std
 
 namespace arty {
 
-class InputDevice {
+class Device {
  public:
-  using event_t = InputEvent;
+  using event_t = Event;
   enum Action { SUNKNOWN, PRESS, HOLD, RELEASE };
 
   void process(int trigger, Action const& action);
@@ -63,9 +63,9 @@ class InputDevice {
   std::unordered_set<event_t> _pool;
 };
 
-class Keyboard : public InputDevice {
+class Keyboard : public Device {
  public:
-  using event_t = InputEvent;
+  using event_t = Event;
 
   enum Key {
     /* The unknown key */
@@ -196,23 +196,68 @@ class Keyboard : public InputDevice {
   };
 
   void process(Key const& key, Action const& action) {
-    InputDevice::process(key, action);
+    Device::process(key, action);
   }
 
   bool registerKeyEvent(Key const& key, Action const& action,
                         event_t const& event) {
-    return InputDevice::registerEvent(key, action, event);
+    return Device::registerEvent(key, action, event);
   }
 };
 
-class Mouse : public InputDevice {
+class Mouse : public Device {
  public:
   using position_type = Vec2d;
 
-  enum Button { LEFT, RIGHT };
+  enum Button { UNKNOWN = -1, LEFT = 0, RIGHT = 1 };
 
   virtual position_type position() const = 0;
   virtual void set(position_type const& pos) = 0;
+};
+
+class Input {
+ public:
+  enum Type { Keyboard, Mouse };
+
+  Input(Keyboard::Key const& key, Device::Action const& action)
+      : _key(key), _button(Mouse::UNKNOWN), _type(Keyboard), _action(action) {}
+  Input(Mouse::Button const& key, Device::Action const& action)
+      : _key(Keyboard::CUNKNOWN), _button(key), _type(Mouse), _action(action) {}
+
+  Keyboard::Key const& key() const { return _key; }
+  Mouse::Button const& button() const { return _button; }
+  Type const& type() const { return _type; }
+  Device::Action const& action() const { return _action; }
+
+ private:
+  Keyboard::Key _key;
+  Mouse::Button _button;
+  Type _type;
+  Device::Action _action;
+};
+
+class InputManager {
+ public:
+  void setKeyboard(const Ptr<Keyboard>& ptr) { _keyboard = ptr; }
+
+  void setMouse(Ptr<Mouse> const& ptr) { _mouse = ptr; }
+
+  bool attach(Input const& in, Event const& ev);
+  bool attach(Keyboard::Key const& key, Device::Action const& action,
+              Event const& event);
+  bool attach(Mouse::Button const& key, Device::Action const& action,
+              Event const& event);
+
+  bool pop(Event const& event);
+
+  Mouse::position_type position() const;
+  void set(Mouse::position_type const& pos);
+
+  void flush();
+
+ private:
+  Ptr<Mouse> _mouse;
+  Ptr<Keyboard> _keyboard;
 };
 
 }  // namespace arty

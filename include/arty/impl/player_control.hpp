@@ -12,14 +12,15 @@ namespace arty {
 
 class PlayerControlSystem : public System {
  private:
-  InputEvent _up;
+  Event _up;
 
  public:
   // System interface
  public:
   Result process(const Ptr<Memory>& board,
-                 Ptr<Keyboard> const& keyboard) override;
-  Result init(const Ptr<Memory>& board, Ptr<Keyboard> const& keyboard) override;
+                 Ptr<InputManager> const& inputs) override;
+  Result init(const Ptr<Memory>& board,
+              Ptr<InputManager> const& inputs) override;
   void release() override;
 };
 

@@ -3,10 +3,10 @@
 
 namespace arty {
 
-Result MouseSystem::process(const Ptr<Memory>& mem, const Ptr<Keyboard>&,
-                            const Ptr<Mouse>& mouse) {
+Result MouseSystem::process(const Ptr<Memory>& mem,
+                            const Ptr<InputManager>& inputs) {
   Camera camera = mem->read<Camera>("camera");
-  auto line = camera.raycast(Camera::pixel_type(mouse->position()));
+  auto line = camera.raycast(Camera::pixel_type(inputs->position()));
   auto selected = Entity("", 0);
   auto closest = std::numeric_limits<float>::max();
   auto data = Vec3f();
@@ -25,13 +25,25 @@ Result MouseSystem::process(const Ptr<Memory>& mem, const Ptr<Keyboard>&,
     }
     return ok();
   };
-  auto res = mem->process<Tf3f, AABox3f>(INPUT_1, INPUT_2, work);
+  if (!mem->process<Tf3f, AABox3f>(INPUT_1, INPUT_2, work)) {
+    return error("failed to compute cursor 3d position");
+  }
 
+  Selected s;
+  s.entity = selected;
+  s.point = data;
+  if (!selected) {
+    auto plano = Geo::intersect(line, Plane3f(Vec3f(), Vec3f(0.f, 0.f, 1.f)));
+    if (!plano.empty()) {
+      s.point = plano.value();
+    }
+  }
+  mem->write(OUTPUT, s);
+
+  /*
   static auto toto = mem->createEntity("toto");
   static AABox3f totobox(Vec3f(), Vec3f::all(0.1f));
   if (selected.isValid()) {
-    mem->write(selected, OUTPUT, data);
-
     if (mouse->occured(_pop)) {
       auto poped = mem->createEntity("poped");
       Tf3f pose(data);
@@ -60,17 +72,7 @@ Result MouseSystem::process(const Ptr<Memory>& mem, const Ptr<Keyboard>&,
       mem->write(toto, "sphere", Sphere3f(totobox.center(), 2.f));
     }
   }
-  return res;
-}
-
-Result MouseSystem::init(const Ptr<Memory>&, const Ptr<Keyboard>&,
-                         const Ptr<Mouse>& mouse) {
-  if (!mouse->registerEvent(Mouse::LEFT, InputDevice::Action::PRESS, _pop)) {
-    return error("couldn't register event");
-  }
-  if (!mouse->registerEvent(Mouse::RIGHT, InputDevice::Action::PRESS, _del)) {
-    return error("couldn't register event");
-  }
+  */
   return ok();
 }
 

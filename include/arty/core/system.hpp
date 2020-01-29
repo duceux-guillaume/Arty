@@ -12,18 +12,32 @@ class System {
   virtual ~System() {}
 
   virtual Result process(Ptr<Memory> const& board,
-                         Ptr<Keyboard> const& keyboard,
-                         Ptr<Mouse> const& mouse);
-  virtual Result process(Ptr<Memory> const& board,
-                         Ptr<Keyboard> const& keyboard);
+                         Ptr<InputManager> const& inputs);
   virtual Result process(Ptr<Memory> const& board);
-  virtual Result init(Ptr<Memory> const& board, Ptr<Keyboard> const& keyboard,
-                      Ptr<Mouse> const& mouse);
-  virtual Result init(Ptr<Memory> const& board, Ptr<Keyboard> const& keyboard);
+  virtual Result init(Ptr<Memory> const& board,
+                      Ptr<InputManager> const& inputs);
   virtual Result init(Ptr<Memory> const& board);
   virtual void release();
 
  protected:
+};
+
+class EventSystem : public System {
+ public:
+  using job_func = std::function<Result(Ptr<Memory> const& board)>;
+
+  EventSystem(Input const& input, Event const& event, job_func job)
+      : _input(input), _event(event), _job(job){};
+
+  Result process(Ptr<Memory> const& board,
+                 Ptr<InputManager> const& inputs) override;
+  Result init(Ptr<Memory> const& board,
+              Ptr<InputManager> const& inputs) override;
+
+ private:
+  Input _input;
+  Event _event;
+  job_func _job;
 };
 
 };  // namespace arty

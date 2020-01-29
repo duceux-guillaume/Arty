@@ -46,6 +46,7 @@ struct Entity {
   bool operator>=(Entity const& rhs) const { return !(*this < rhs); }
   bool operator<=(Entity const& rhs) const { return !(*this > rhs); }
   bool isValid() const { return _id != 0 && !_name.empty(); }
+  explicit operator bool() const { return isValid(); }
 
   static Entity generate(std::string const& name) {
     return Entity(name, ++_count);
@@ -117,6 +118,16 @@ class Memory {
     } catch (const std::bad_any_cast&) {
       return T();
     }
+  }
+
+  template <typename T>
+  bool read(std::string const& component, T& val) {
+    try {
+      val = std::any_cast<T>(_configuration[component]);
+    } catch (const std::bad_any_cast&) {
+      return false;
+    }
+    return true;
   }
 
   std::size_t count(std::string const& component) const {

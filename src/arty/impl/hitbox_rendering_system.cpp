@@ -5,7 +5,7 @@ namespace arty {
 Result HitBoxRenderingSystem::process(const Ptr<Memory>& board) {
   auto cam = board->read<Camera>("camera");
 
-  {  // AABB
+  if (board->count(DRAW_AABB)) {  // AABB
     auto work = [=](Entity const& e, Tf3f const& t,
                     AABox3f const& b) -> Result {
       _renderer->draw(e, b, t.toMat(), cam.view(), cam.projection());
@@ -13,14 +13,14 @@ Result HitBoxRenderingSystem::process(const Ptr<Memory>& board) {
     };
     board->process<Tf3f, AABox3f>("transform", DRAW_AABB, work);
   }
-  {  // OBB
+  if (board->count(DRAW_OBB)) {  // OBB
     auto work = [=](Entity const& e, Tf3f const& t, OBB3f const& b) -> Result {
       _renderer->draw(e, b, t.toMat(), cam.view(), cam.projection());
       return ok();
     };
     board->process<Tf3f, OBB3f>("transform", DRAW_OBB, work);
   }
-  {  // Sphere
+  if (board->count("sphere")) {  // Sphere
     auto work = [=](Entity const& e, Tf3f const& t,
                     Sphere3f const& b) -> Result {
       _renderer->draw(e, b, t.toMat(), cam.view(), cam.projection());

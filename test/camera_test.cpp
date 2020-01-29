@@ -68,6 +68,6 @@ TEST(Camera, position) {
   Camera camera;
   camera.perspective(radians(45.f), 16.f / 9.f, 0.1f, 100.0f);
   camera.lookAt(pt_t{10.f, 0.f, 0.f}, pt_t{0.f, 0.f, 0.f}, pt_t{1.f, 0.f, 0.f});
-  auto camera_pos = camera.position().block<float, 3, 1>(0, 3);
+  auto camera_pos = camera.transform().block<float, 3, 1>(0, 3);
   ASSERT_EQ(camera_pos, pt_t(10.f, 0.f, 0.f));
 }

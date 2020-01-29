@@ -4,8 +4,14 @@
 #include <arty/core/input.hpp>
 #include <arty/core/system.hpp>
 #include <arty/impl/camera_system.hpp>
+#include <arty/impl/hitbox_rendering_system.hpp>
 
 namespace arty {
+
+struct Selected {
+  Entity entity;
+  Vec3f point;
+};
 
 class MouseSystem : public System {
  public:
@@ -13,17 +19,10 @@ class MouseSystem : public System {
   static constexpr const char* INPUT_2 = "hitbox";
   static constexpr const char* OUTPUT = "selected";
 
-  MouseSystem() : _pop("POP"), _del("DEL") {}
-
-  Result process(Ptr<Memory> const& mem, Ptr<Keyboard> const& /*keyboard*/,
-                 Ptr<Mouse> const& mouse) override;
-
-  Result init(const Ptr<Memory>&, Ptr<Keyboard> const&,
-              Ptr<Mouse> const& mouse) override;
+  Result process(Ptr<Memory> const& mem,
+                 Ptr<InputManager> const& inputs) override;
 
  private:
-  InputEvent _pop;
-  InputEvent _del;
 };
 
 }  // namespace arty

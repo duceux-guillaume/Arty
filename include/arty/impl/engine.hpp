@@ -10,7 +10,7 @@ namespace arty {
 
 class Engine {
  public:
-  Engine() : _window(), _systems(), _state() {}
+  Engine() : _window(), _systems(), _state(), _inputs(new InputManager) {}
 
   Engine& setWindow(Ptr<Window> const& ptr);
 
@@ -46,8 +46,7 @@ class Engine {
   Ptr<Window> _window;
   std::vector<Ptr<System>> _systems;
   Ptr<Memory> _state;
-  Ptr<Keyboard> _keyboard;
-  Ptr<Mouse> _mouse;
+  Ptr<InputManager> _inputs;
 };
 
 }  // namespace arty
