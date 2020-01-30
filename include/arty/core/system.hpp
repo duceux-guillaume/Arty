@@ -40,6 +40,21 @@ class EventSystem : public System {
   job_func _job;
 };
 
+class SimpleSystem : public System {
+ public:
+  using job_func =
+      std::function<Result(Ptr<Memory> const&, Ptr<InputManager> const&)>;
+
+  SimpleSystem(job_func job) : _job(job) {}
+  Result process(Ptr<Memory> const& mem,
+                 Ptr<InputManager> const& inputs) override {
+    return _job(mem, inputs);
+  }
+
+ private:
+  job_func _job;
+};
+
 };  // namespace arty
 
 #endif  // SYSTEM_HPP

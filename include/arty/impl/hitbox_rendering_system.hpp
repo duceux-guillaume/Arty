@@ -24,10 +24,6 @@ class IShapeRenderer {
 
 class HitBoxRenderingSystem : public System {
  public:
-  static constexpr const char* DRAW_AABB = "hitbox";
-  static constexpr const char* DRAW_OBB = "obb";
-
- public:
   HitBoxRenderingSystem(Ptr<IShapeRenderer> rend) : _renderer(rend) {}
 
  private:

@@ -87,58 +87,14 @@ class Memory {
     return Entity::generate(name);
   }
 
-  /**
-   * @brief set value to property of entity
-   */
-  template <typename T>
-  bool write(Entity const& entity, std::string const& component, T const& val) {
-    _components[component][entity] = val;
-    return true;
-  }
-
-  template <typename T>
-  bool write(std::string const& conf, T const& val) {
-    _configuration[conf] = val;
-    return true;
-  }
-
   template <typename T>
   bool write(T const& val) {
-    _configuration[typeid(T).name()] = val;
-    return true;
+    return write(Entity(), val);
   }
 
   template <typename T>
   bool write(Entity const& entity, T const& val) {
     _components[typeid(T).name()][entity] = val;
-    return true;
-  }
-
-  template <typename T>
-  T read(Entity const& entity, std::string const& component) {
-    try {
-      return std::any_cast<T>(_components[component][entity]);
-    } catch (const std::bad_any_cast&) {
-      return T();
-    }
-  }
-
-  template <typename T>
-  T read(std::string const& component) {
-    try {
-      return std::any_cast<T>(_configuration[component]);
-    } catch (const std::bad_any_cast&) {
-      return T();
-    }
-  }
-
-  template <typename T>
-  bool read(std::string const& component, T& val) {
-    try {
-      val = std::any_cast<T>(_configuration[component]);
-    } catch (const std::bad_any_cast&) {
-      return false;
-    }
     return true;
   }
 
@@ -161,32 +117,26 @@ class Memory {
 
   template <typename T>
   bool read(T& val) {
-    auto it = _configuration.find(typeid(T).name());
-    if (it != _configuration.end()) {
-      try {
-        val = std::any_cast<T>(it->second);
-      } catch (const std::bad_any_cast&) {
-        return false;
-      }
-      return true;
-    }
-    return false;
+    return read(Entity(), val);
   }
 
-  std::size_t count(std::string const& component) const {
-    auto it = _components.find(component);
+  template <typename T>
+  std::size_t count() const {
+    auto it = _components.find(typeid(T).name());
     if (it != _components.end()) {
       return it->second.size();
     }
     return 0;
   }
 
-  bool remove(std::string const& component) {
-    return _components.erase(component) > 0;
+  template <typename T>
+  bool remove() {
+    return _components.erase(typeid(T).name()) > 0;
   }
 
-  bool remove(Entity const& entity, std::string const& component) {
-    return _components[component].erase(entity) > 0;
+  template <typename T>
+  bool remove(Entity const& entity) {
+    return _components[typeid(T).name()].erase(entity) > 0;
   }
 
   bool remove(Entity const& entity) {
@@ -196,25 +146,24 @@ class Memory {
     return true;
   }
 
-  void clear() {
-    _components.clear();
-    _configuration.clear();
-  }
+  void clear() { _components.clear(); }
 
   template <typename T>
   Result process(
-      std::string const& component,
       std::function<Result(Entity const& e, T const& comp)> updateFunc) {
-    auto componentContainer = _components[component];
+    auto componentContainer = _components[typeid(T).name()];
     if (componentContainer.size() == 0) {
-      return error("unknown component: " + component);
+      return error("unknown component: " + typeid(T).name());
     }
     auto compIt = componentContainer.begin();
     auto itEnd = componentContainer.end();
     try {
       for (; compIt != itEnd; ++compIt) {
         T const* val = std::any_cast<T>(&compIt->second);
-        check_result(updateFunc(compIt->first, *val));
+        Result r = updateFunc(compIt->first, *val);
+        if (!r) {
+          return r;
+        }
       }
     } catch (const std::bad_any_cast& e) {
       return error(e.what());
@@ -228,18 +177,17 @@ class Memory {
       std::function<Result(Entity const&, T1 const&, T2 const&)>;
 
   template <typename T1, typename T2>
-  Result process(std::string const& c1, std::string const& c2,
-                 ProcessFunc2<T1, T2> updateFunc) {
-    auto container1 = _components[c1];
+  Result process(ProcessFunc2<T1, T2> updateFunc) {
+    auto container1 = _components[typeid(T1).name()];
     if (container1.size() == 0) {
-      return error("unknown component: " + c1);
+      return error("unknown component: " + typeid(T1).name());
     }
     auto c1It = container1.begin();
     auto c1ItEnd = container1.end();
 
-    auto container2 = _components[c2];
+    auto container2 = _components[typeid(T2).name()];
     if (container2.size() == 0) {
-      return error("unknown component: " + c2);
+      return error("unknown component: " + typeid(T2).name());
     }
     auto c2It = container2.begin();
     auto c2ItEnd = container2.end();
@@ -278,7 +226,6 @@ class Memory {
 
  private:
   std::map<std::string, std::map<Entity, std::any>> _components;
-  std::map<std::string, std::any> _configuration;
 };
 
 }  // namespace arty

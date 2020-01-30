@@ -24,7 +24,7 @@ Result FixedCameraSystem::process(const Ptr<Memory>& board) {
   camera.perspective(radians(_fov), ratio, 0.1f, 100.0f);
   camera.lookAt(Vec3f{0.f, -20.f, 20.f}, Vec3f{0.f, 0.f, 2.f},
                 Vec3f{0.f, 1.f, 0.f});
-  board->write("camera", camera);
+  board->write(camera);
 
   return ok();
 }

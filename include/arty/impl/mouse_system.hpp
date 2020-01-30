@@ -15,10 +15,6 @@ struct Selected {
 
 class MouseSystem : public System {
  public:
-  static constexpr const char* INPUT_1 = "transform";
-  static constexpr const char* INPUT_2 = "hitbox";
-  static constexpr const char* OUTPUT = "selected";
-
   Result process(Ptr<Memory> const& mem,
                  Ptr<InputManager> const& inputs) override;
 

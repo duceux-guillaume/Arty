@@ -5,16 +5,16 @@ namespace arty {
 Result PhysicsSystem::process(const Ptr<Memory>& mem) {
   auto work = [mem, this](Entity const& e, Physics const& p) -> Result {
     if (p.isStatic()) {
-      mem->write(e, OUTPUT, p.position());
+      mem->write(e, p.position());
       return ok();
     }
     auto newPhy = p;
     _solver.update(_world, &newPhy);
-    mem->write(e, OUTPUT, newPhy.position());
-    mem->write(e, INPUT, newPhy);
+    mem->write(e, newPhy.position());
+    mem->write(e, newPhy);
     return ok();
   };
-  mem->process<Physics>(INPUT, work);
+  mem->process<Physics>(work);
   return ok();
 }
 

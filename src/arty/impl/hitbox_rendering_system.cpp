@@ -3,30 +3,33 @@
 
 namespace arty {
 Result HitBoxRenderingSystem::process(const Ptr<Memory>& board) {
-  auto cam = board->read<Camera>("camera");
+  Camera cam;
+  if (!board->read<Camera>(cam)) {
+    return error("no camera");
+  }
 
-  if (board->count(DRAW_AABB)) {  // AABB
+  if (board->count<AABox3f>()) {  // AABB
     auto work = [=](Entity const& e, Tf3f const& t,
                     AABox3f const& b) -> Result {
       _renderer->draw(e, b, t.toMat(), cam.view(), cam.projection());
       return ok();
     };
-    board->process<Tf3f, AABox3f>("transform", DRAW_AABB, work);
+    board->process<Tf3f, AABox3f>(work);
   }
-  if (board->count(DRAW_OBB)) {  // OBB
+  if (board->count<OBB3f>()) {  // OBB
     auto work = [=](Entity const& e, Tf3f const& t, OBB3f const& b) -> Result {
       _renderer->draw(e, b, t.toMat(), cam.view(), cam.projection());
       return ok();
     };
-    board->process<Tf3f, OBB3f>("transform", DRAW_OBB, work);
+    board->process<Tf3f, OBB3f>(work);
   }
-  if (board->count("sphere")) {  // Sphere
+  if (board->count<Sphere3f>()) {  // Sphere
     auto work = [=](Entity const& e, Tf3f const& t,
                     Sphere3f const& b) -> Result {
       _renderer->draw(e, b, t.toMat(), cam.view(), cam.projection());
       return ok();
     };
-    board->process<Tf3f, Sphere3f>("transform", "sphere", work);
+    board->process<Tf3f, Sphere3f>(work);
   }
 
   return ok();

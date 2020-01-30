@@ -7,12 +7,9 @@
 
 namespace arty {
 
-class CollisionDetectionSystem : public System {
- public:
-  static constexpr const char* INPUT_1 = "transform";
-  static constexpr const char* INPUT_2 = "hitbox";
-  static constexpr const char* OUTPUT = "collision";
+using CollisionArray = std::vector<Collision>;
 
+class CollisionDetectionSystem : public System {
  private:
   CollisionDetection _collision;
   // System interface
@@ -22,20 +19,13 @@ class CollisionDetectionSystem : public System {
 
 class CollisionSolverSystem : public System {
  private:
-  static constexpr const char* INPUT = "collision";
-
   CollisionSolver _solver;
   // System interface
  public:
   Result process(const Ptr<Memory>& board) override;
-  Result init(const Ptr<Memory>& board) override;
-  void release() override;
 };
 
 class CollisionRenderingSystem : public System {
- public:
-  static constexpr const char* INPUT = "collision";
-
  public:
   CollisionRenderingSystem(Ptr<IShapeRenderer> rend) : _renderer(rend) {}
 

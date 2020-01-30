@@ -16,8 +16,8 @@ using namespace arty;
 void makeBrick(std::string const& name, Tf3f const& pos, Vec3f const& length,
                float mass, Ptr<Memory> mem) {
   auto entity = mem->createEntity(name);
-  mem->write(entity, HitBoxRenderingSystem::DRAW_OBB, OBB3f(Tf3f(), length));
-  mem->write(entity, PhysicsSystem::INPUT, Physics(pos, mass));
+  mem->write(entity, OBB3f(Tf3f(), length));
+  mem->write(entity, Physics(pos, mass));
 }
 
 void makeWall(Vec3f min, Vec3f max, std::size_t counth, std::size_t countv,
@@ -79,11 +79,11 @@ class CursorRenderingSystem : public System {
 
 Result CursorRenderingSystem::process(const Ptr<Memory>& mem) {
   Selected cursor;
-  if (!mem->read(MouseSystem::OUTPUT, cursor)) {
+  if (!mem->read(cursor)) {
     return error("no cursor to display");
   }
   Camera camera;
-  if (!mem->read("camera", camera)) {
+  if (!mem->read(camera)) {
     return error("no camera");
   }
   static auto cross = mem->createEntity("cursor");
@@ -104,6 +104,36 @@ int main(void) {
   WorldPhysics world;
   world.gravity_strengh = 10.f;
 
+  auto AddFunc = [](Ptr<Memory> const& mem) -> Result {
+    Selected cursor;
+    if (!mem->read(cursor)) {
+      return error("no cursor to display");
+    }
+    // Let's make an explosion
+    auto xplsn = mem->createEntity("explosion");
+    mem->write(xplsn, Tf3f(cursor.point));
+    mem->write(xplsn, Sphere3f(Vec3f(), 0.5f));
+    mem->write(xplsn, 5);
+    return ok();
+  };
+
+  Input leftClick(Mouse::Button::LEFT, Device::Action::PRESS);
+
+  auto XplozUpdate = [](Ptr<Memory> const& mem,
+                        Ptr<InputManager> const&) -> Result {
+    mem->process<int, Sphere3f>(
+        [mem](Entity const& e, int remaining, Sphere3f const& s) -> Result {
+          if (remaining > 0) {
+            mem->write(e, --remaining);
+            mem->write(e, Sphere3f(Vec3f(), std::sqrt(s.sqrRadius()) * 1.1f));
+          } else {
+            mem->remove(e);
+          }
+          return ok();
+        });
+    return ok();
+  };
+
   Engine engine;
   engine.setBoard(board)
       .setWindow(window)
@@ -118,7 +148,9 @@ int main(void) {
       //.makeSystem<CollisionRenderingSystem>(shapeRenderer)
       //.makeSystem<CollisionSolverSystem>()
       .makeSystem<MouseSystem>()
-      .makeSystem<CursorRenderingSystem>(shapeRenderer);
+      .makeSystem<CursorRenderingSystem>(shapeRenderer)
+      .makeSystem<EventSystem>(leftClick, Event("XPLOZ"), AddFunc)
+      .makeSystem<SimpleSystem>(XplozUpdate);
 
   std::cout << "START: " << engine.start().message() << std::endl;
   std::cout << "RUN: " << engine.run().message() << std::endl;

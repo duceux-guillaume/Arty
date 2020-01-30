@@ -16,9 +16,8 @@ using namespace arty;
 void makeCube(std::string const& name, Tf3f const& pos, Vec3f const& length,
               float mass, Ptr<Memory> mem) {
   auto entity = mem->createEntity(name);
-  mem->write(entity, HitBoxRenderingSystem::DRAW_AABB,
-             AABox3f(Vec3f(0.f, 0.f, 0.f), length));
-  mem->write(entity, PhysicsSystem::INPUT, Physics(pos, mass));
+  mem->write(entity, AABox3f(Vec3f(0.f, 0.f, 0.f), length));
+  mem->write(entity, Physics(pos, mass));
 }
 
 class InitSystem : public System {
@@ -71,11 +70,11 @@ class CursorRenderingSystem : public System {
 
 Result CursorRenderingSystem::process(const Ptr<Memory>& mem) {
   Selected cursor;
-  if (!mem->read(MouseSystem::OUTPUT, cursor)) {
+  if (!mem->read(cursor)) {
     return error("no cursor to display");
   }
   Camera camera;
-  if (!mem->read("camera", camera)) {
+  if (!mem->read(camera)) {
     return error("no camera");
   }
   static auto cross = mem->createEntity("cursor");
@@ -98,7 +97,7 @@ int main(void) {
 
   auto AddFunc = [](Ptr<Memory> const& mem) -> Result {
     Selected cursor;
-    if (!mem->read(MouseSystem::OUTPUT, cursor)) {
+    if (!mem->read(cursor)) {
       return error("no cursor to display");
     }
     makeCube("s", cursor.point, Vec3f::all(1.f), 1.f, mem);
@@ -107,7 +106,7 @@ int main(void) {
 
   auto RmFunc = [](Ptr<Memory> const& mem) -> Result {
     Selected cursor;
-    if (!mem->read(MouseSystem::OUTPUT, cursor)) {
+    if (!mem->read(cursor)) {
       return error("no 3d cursor");
     }
     if (cursor.entity) {
