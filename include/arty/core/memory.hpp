@@ -103,6 +103,18 @@ class Memory {
   }
 
   template <typename T>
+  bool write(T const& val) {
+    _configuration[typeid(T).name()] = val;
+    return true;
+  }
+
+  template <typename T>
+  bool write(Entity const& entity, T const& val) {
+    _components[typeid(T).name()][entity] = val;
+    return true;
+  }
+
+  template <typename T>
   T read(Entity const& entity, std::string const& component) {
     try {
       return std::any_cast<T>(_components[component][entity]);
@@ -128,6 +140,37 @@ class Memory {
       return false;
     }
     return true;
+  }
+
+  template <typename T>
+  bool read(Entity const& entity, T& val) {
+    auto it = _components.find(typeid(T).name());
+    if (it != _components.end()) {
+      auto it2 = it->second.find(entity);
+      if (it2 != it->second.end()) {
+        try {
+          val = std::any_cast<T>(it2->second);
+          return true;
+        } catch (const std::bad_any_cast&) {
+          return false;
+        }
+      }
+    }
+    return false;
+  }
+
+  template <typename T>
+  bool read(T& val) {
+    auto it = _configuration.find(typeid(T).name());
+    if (it != _configuration.end()) {
+      try {
+        val = std::any_cast<T>(it->second);
+      } catch (const std::bad_any_cast&) {
+        return false;
+      }
+      return true;
+    }
+    return false;
   }
 
   std::size_t count(std::string const& component) const {

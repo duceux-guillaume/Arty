@@ -29,7 +29,7 @@ TEST(Memory, SetGet) {
   ASSERT_EQ(ptr2, Vec3f({1, 2, 3}));
 }
 
-TEST(Blackboad, SetGet2) {
+TEST(Memory, SetGet2) {
   Memory board;
   Entity world = board.createEntity("world");
   board.write(world, "position", Vec3f());
@@ -38,7 +38,7 @@ TEST(Blackboad, SetGet2) {
   ASSERT_EQ(board.read<Vec3f>(world, "position"), Vec3f(1.f));
 }
 
-TEST(Blackboad, ClearProperties) {
+TEST(Memory, ClearProperties) {
   Memory board;
   Entity player = board.createEntity("player");
   board.write(player, "position", Vec3f());
@@ -47,7 +47,7 @@ TEST(Blackboad, ClearProperties) {
   ASSERT_EQ(board.count("position"), 0);
 }
 
-TEST(Blackboard, Iterate) {
+TEST(Memory, Iterate) {
   Memory board;
   board.write(Entity("toto", 1), "position", Vec3f());
   board.write(Entity("toto", 10), "position", Vec3f());
@@ -63,7 +63,7 @@ TEST(Blackboard, Iterate) {
   ASSERT_EQ(count, 2);
 }
 
-TEST(Blackboard, Remove) {
+TEST(Memory, Remove) {
   Memory board;
   Entity player = board.createEntity("player");
   ASSERT_FALSE(board.remove(player, "position"));
@@ -74,7 +74,7 @@ TEST(Blackboard, Remove) {
   ASSERT_EQ(board.count("position"), 0);
 }
 
-TEST(Blackboard, EasyTwoIterate) {
+TEST(Memory, EasyTwoIterate) {
   Memory board;
   board.write(Entity("toto", 1), "position", Vec3f());
   board.write(Entity("toto", 10), "position", Vec3f());
@@ -94,7 +94,7 @@ TEST(Blackboard, EasyTwoIterate) {
   ASSERT_EQ(count, 2);
 }
 
-TEST(Blackboard, TwoIterate) {
+TEST(Memory, TwoIterate) {
   Memory board;
   board.write(Entity("toto", 1), "position", Vec3f());
   board.write(Entity("toto", 10), "position", Vec3f());
@@ -113,4 +113,20 @@ TEST(Blackboard, TwoIterate) {
       });
   ASSERT_TRUE(iterationResult);
   ASSERT_EQ(count, 2);
+}
+
+TEST(Memory, ReadWriteV2) {
+  Memory board;
+  ASSERT_TRUE(board.write(Vec3f(1.f, 2.f, 3.f)));
+  Vec3f read;
+  ASSERT_TRUE(board.read(read));
+  ASSERT_EQ(read, Vec3f(1.f, 2.f, 3.f));
+}
+
+TEST(Memory, ReadWrite2V2) {
+  Memory board;
+  ASSERT_TRUE(board.write(Entity("toto", 1), Vec3f(1.f, 2.f, 3.f)));
+  Vec3f read;
+  ASSERT_TRUE(board.read(Entity("toto", 1), read));
+  ASSERT_EQ(read, Vec3f(1.f, 2.f, 3.f));
 }

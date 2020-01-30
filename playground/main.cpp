@@ -68,6 +68,30 @@ class InitSystem : public System {
   }
 };
 
+class CursorRenderingSystem : public System {
+ public:
+  Result process(Ptr<Memory> const& mem);
+  CursorRenderingSystem(Ptr<IShapeRenderer> rend) : _renderer(rend) {}
+
+ private:
+  Ptr<IShapeRenderer> _renderer;
+};
+
+Result CursorRenderingSystem::process(const Ptr<Memory>& mem) {
+  Selected cursor;
+  if (!mem->read(MouseSystem::OUTPUT, cursor)) {
+    return error("no cursor to display");
+  }
+  Camera camera;
+  if (!mem->read("camera", camera)) {
+    return error("no camera");
+  }
+  static auto cross = mem->createEntity("cursor");
+  _renderer->draw(cross, Sphere3f(cursor.point, 0.1f), Mat4x4f::identity(),
+                  camera.view(), camera.projection());
+  return ok();
+}
+
 int main(void) {
   GlfwWindow* window_impl = new GlfwWindow;
   Ptr<Keyboard> keyboard = window_impl->provideKeyboard();
@@ -90,10 +114,11 @@ int main(void) {
       .makeSystem<FixedCameraSystem>(window)
       .makeSystem<HitBoxRenderingSystem>(shapeRenderer)
       .makeSystem<PhysicsSystem>(world)
-      .makeSystem<CollisionDetectionSystem>()
-      .makeSystem<CollisionRenderingSystem>(shapeRenderer)
-      .makeSystem<CollisionSolverSystem>()
-      .makeSystem<MouseSystem>();
+      //.makeSystem<CollisionDetectionSystem>()
+      //.makeSystem<CollisionRenderingSystem>(shapeRenderer)
+      //.makeSystem<CollisionSolverSystem>()
+      .makeSystem<MouseSystem>()
+      .makeSystem<CursorRenderingSystem>(shapeRenderer);
 
   std::cout << "START: " << engine.start().message() << std::endl;
   std::cout << "RUN: " << engine.run().message() << std::endl;

@@ -183,12 +183,12 @@ void GlShapeRenderer::draw(const Entity& e, const Sphere3f& s,
       x = radius * std::cos(theta) * std::cos(phy);
       y = radius * std::sin(theta) * std::cos(phy);
       next = Vec3f(x, y, z);
-      lines.push_back(prev);
-      lines.push_back(next);
+      lines.push_back(s.center() + prev);
+      lines.push_back(s.center() + first);
       prev = next;
     }
-    lines.push_back(prev);
-    lines.push_back(first);
+    lines.push_back(s.center() + prev);
+    lines.push_back(s.center() + first);
   }
   draw(e, lines, model, view, proj);
 }

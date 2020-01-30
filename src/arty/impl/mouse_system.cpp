@@ -7,27 +7,33 @@ Result MouseSystem::process(const Ptr<Memory>& mem,
                             const Ptr<InputManager>& inputs) {
   Camera camera = mem->read<Camera>("camera");
   auto line = camera.raycast(Camera::pixel_type(inputs->position()));
-  auto selected = Entity("", 0);
+  Entity selected;
   auto closest = std::numeric_limits<float>::max();
   auto data = Vec3f();
 
-  auto work = [&](Entity const& e, Tf3f const& t, AABox3f const& b) -> Result {
-    auto box = b.move(t);
-    auto intersection = Geo::intersect(line, box);
-    if (intersection.exist()) {
-      /* if closer to camera, select this one */
-      auto dist = (line.origin() - intersection.value()).normsqr();
-      if (dist < closest) {
-        selected = e;
-        closest = dist;
-        data = intersection.value();
+  if (mem->count(INPUT_2)) {
+    auto work = [&](Entity const& e, Tf3f const& t,
+                    AABox3f const& b) -> Result {
+      auto box = b.move(t);
+      auto intersection = Geo::intersect(line, box);
+      if (intersection.exist()) {
+        /* if closer to camera, select this one */
+        auto dist = (line.origin() - intersection.value()).normsqr();
+        if (dist < closest) {
+          selected = e;
+          closest = dist;
+          data = intersection.value();
+        }
       }
+      return ok();
+    };
+    if (!mem->process<Tf3f, AABox3f>(INPUT_1, INPUT_2, work)) {
+      return error("failed to compute cursor 3d position");
     }
-    return ok();
-  };
-  if (!mem->process<Tf3f, AABox3f>(INPUT_1, INPUT_2, work)) {
-    return error("failed to compute cursor 3d position");
   }
+
+  std::cout << line.origin() << std::endl;
+  std::cout << line.direction() << std::endl;
 
   Selected s;
   s.entity = selected;
@@ -38,6 +44,8 @@ Result MouseSystem::process(const Ptr<Memory>& mem,
       s.point = plano.value();
     }
   }
+  std::cout << s.point << std::endl;
+
   mem->write(OUTPUT, s);
 
   /*
