@@ -42,6 +42,10 @@ arty::number::operator double() const {
   return s.first + static_cast<double>(s.second._den) / s.second._num;
 }
 
+arty::number::operator float() const {
+  return static_cast<float>(static_cast<double>(*this));
+}
+
 bool number::operator==(const number& o) const {
   return _den == o._den && _num == o._num;
 }

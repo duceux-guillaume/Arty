@@ -3,19 +3,22 @@
 namespace arty {
 
 Result PhysicsSystem::process(const Ptr<Memory>& mem) {
-  auto work = [mem, this](Entity const& e, Physics const& p) -> Result {
-    if (p.isStatic()) {
-      mem->write(e, p.position());
-      return ok();
+  return integrateMotion(mem);
+}
+
+Result PhysicsSystem::integrateMotion(const Ptr<Memory>& mem) {
+  auto work = [mem, this](Entity const& e, Particle const& p) -> Result {
+    Particle np = p;
+    _integrator->integrate(np, 0.01666666666);
+    if (np.position.z() < -5) {
+      mem->remove(e);
+    } else {
+      mem->write(e, np);
+      mem->write(e, Tf3f(static_cast<Vec3f>(np.position)));
     }
-    auto newPhy = p;
-    _solver.update(_world, &newPhy);
-    mem->write(e, newPhy.position());
-    mem->write(e, newPhy);
     return ok();
   };
-  mem->process<Physics>(work);
-  return ok();
+  return mem->process<Particle>(work);
 }
 
 }  // namespace arty

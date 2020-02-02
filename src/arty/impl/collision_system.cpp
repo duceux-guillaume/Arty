@@ -54,15 +54,15 @@ Result CollisionRenderingSystem::process(const Ptr<Memory>& mem) {
 Result CollisionRenderingSystem::init(const Ptr<Memory>&) {
   return _renderer->init();
 }
-
+/*
 Result CollisionSolverSystem::process(Ptr<Memory> const& mem) {
   auto work = [&](Entity const& e, std::vector<Collision> const& b) -> Result {
     for (auto const& col : b) {
-      Physics phy1, phy2;
-      if (!mem->read<Physics>(col.entities().first, phy1)) {
+      PointPhysics phy1, phy2;
+      if (!mem->read<PointPhysics>(col.entities().first, phy1)) {
         continue;
       }
-      if (!mem->read<Physics>(col.entities().second, phy2)) {
+      if (!mem->read<PointPhysics>(col.entities().second, phy2)) {
         continue;
       }
       if (e == col.entities().first) {
@@ -80,5 +80,5 @@ Result CollisionSolverSystem::process(Ptr<Memory> const& mem) {
   }
   return ok();
 }
-
+*/
 }  // namespace arty

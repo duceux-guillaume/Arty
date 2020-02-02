@@ -37,15 +37,15 @@ class CollisionDetection {
 
  private:
 };
-
+/*
 class CollisionSolver {
  public:
-  void solve(Collision const& c, Physics* target, Physics other);
+  void solve(Collision const& c, Particle* target, Particle other);
 
  private:
   Vec3f argmin(const Vec3f& tf) const;
 };
-
+*/
 }  // namespace arty
 
 #endif  // COLLISION_HPP

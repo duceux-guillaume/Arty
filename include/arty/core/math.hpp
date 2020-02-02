@@ -329,7 +329,10 @@ class Mat {
 
   T normsqr() const { return this->dot(*this); }
 
-  T norm() const { return std::sqrt(this->normsqr()); }
+  T norm() const {
+    using std::sqrt;
+    return sqrt(this->normsqr());
+  }
 
   self_type normalize() const {
     T invsqrt = static_cast<T>(1) / this->norm();

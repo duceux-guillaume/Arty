@@ -16,7 +16,7 @@ class CollisionDetectionSystem : public System {
  public:
   Result process(const Ptr<Memory>& board) override;
 };
-
+/*
 class CollisionSolverSystem : public System {
  private:
   CollisionSolver _solver;
@@ -24,7 +24,7 @@ class CollisionSolverSystem : public System {
  public:
   Result process(const Ptr<Memory>& board) override;
 };
-
+*/
 class CollisionRenderingSystem : public System {
  public:
   CollisionRenderingSystem(Ptr<IShapeRenderer> rend) : _renderer(rend) {}

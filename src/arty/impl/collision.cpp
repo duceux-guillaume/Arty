@@ -13,9 +13,9 @@ Collision CollisionDetection::detect(const Tf3f& tf1, const AABox3f& b1,
   }
   return Collision(intersection.value());
 }
-
-void CollisionSolver::solve(const Collision& c, Physics* target,
-                            Physics other) {
+/*
+void CollisionSolver::solve(const Collision& c, Particle* target,
+                            Particle other) {
   if (target->isStatic()) {
     return;
   }
@@ -45,5 +45,5 @@ Vec3f CollisionSolver::argmin(const Vec3f& v) const {
   }
   return Vec3f{0., 0.f, v.z()};
 }
-
+*/
 }  // namespace arty

@@ -8,17 +8,16 @@ namespace arty {
 
 class PhysicsSystem : public System {
  public:
-  static constexpr const char* OUTPUT = "transform";
-  static constexpr const char* INPUT = "physics";
-
-  PhysicsSystem(WorldPhysics const& world) : _world(world), _solver() {}
+  PhysicsSystem(Ptr<Integrator> integrator) : _integrator(integrator) {}
 
  private:
-  WorldPhysics _world;
-  PhysicsSolver _solver;
+  Ptr<Integrator> _integrator;
   // System interface
  public:
   Result process(const Ptr<Memory>& board) override;
+
+ public:
+  Result integrateMotion(Ptr<Memory> const& mem);
 };
 
 }  // namespace arty

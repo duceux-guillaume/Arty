@@ -21,6 +21,7 @@ class number {
 
   // CAST
   explicit operator double() const;
+  explicit operator float() const;
   explicit operator int() const;
   explicit operator std::string() const;
 
@@ -94,6 +95,8 @@ inline const number operator/(number l, number const& r) {
 }
 
 constexpr double PI = 3.14159265358979323846;
+
+static inline number sqrt(number const& n) { return number::sqrt(n, 4); }
 
 }  // namespace arty
 

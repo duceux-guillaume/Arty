@@ -2,23 +2,24 @@
 
 namespace arty {
 
-void PhysicsSolver::update(WorldPhysics const& world, Physics* phy) {
-  assert(phy);
-  if (phy->isStatic()) {
-    return;
-  }
-  float deltaTime = 0.016f;
-  phy->move(phy->velocity().translation() * deltaTime);
-  phy->impulse(phy->acceleration().translation() * deltaTime);
+void FastIntegrator::integrate(Particle& p, double duration) const {
+  assert(duration > 0.);
+  Particle::number_t dt(duration);
+  auto acceleration = p.gravity + p.forceaccu * p.invmass;
+  p.velocity = p.velocity * p.damping + acceleration * dt;
+  p.position += p.velocity * dt;
+  p.forceaccu = Particle::vector_t();
+}
 
-  Vec3f gravity = Vec3f(0.f, 0.f, -1.f) * world.gravity_strengh;
-  phy->apply(gravity);
-  Physics::vector_type total;
-  for (auto f : phy->forces()) {
-    total += f;
-  }
-  phy->acceleration() = total * 1.f / phy->mass();
-  phy->flush();
+void AccurateIntegrator::integrate(Particle& p, double duration) const {
+  assert(duration > 0.);
+  Particle::number_t dt(duration);
+  Particle::number_t half(0.5);
+  auto acceleration = p.gravity + p.forceaccu * p.invmass;
+  auto powd = Particle::number_t::pow(p.damping, dt, 1);
+  p.velocity = p.velocity * powd + acceleration * dt;
+  p.position += p.velocity * dt + acceleration * dt * dt * half;
+  p.forceaccu = Particle::vector_t();
 }
 
 }  // namespace arty

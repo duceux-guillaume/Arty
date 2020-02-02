@@ -5,22 +5,6 @@
 
 using namespace arty;
 
-struct TestObject {
-  Entity e;
-  Physics p;
-  AABox3f b;
-};
-
-TestObject makeBrick(std::string const& name, Tf3f const& pos,
-                    Vec3f const& length, float mass) {
-  static uint64_t count = 0;
-  TestObject obj;
-  obj.e = Entity(name, ++count);
-  obj.p = Physics(pos, mass);
-  obj.b = AABox3f(Vec3f::zero(), length);
-  return obj;
-}
-
 TEST(CollisionDetection, detect) {
   Tf3f tf1;
   Tf3f tf2(Vec3f{1.5f, 0.f, 0.f});
@@ -29,7 +13,7 @@ TEST(CollisionDetection, detect) {
   auto collision = detector.detect(tf1, box, tf2, box);
   ASSERT_TRUE(collision.exist());
 }
-
+/*
 TEST(CollisionSolver, detectAndResolve) {
   auto obj1 = makeBrick("floor", Tf3f(), Vec3f::all(1.f), 0.f);
   auto obj2 = makeBrick("paf", Vec3f{1.5f, 0.f, 0.f}, Vec3f::all(1.f), 1.f);
@@ -47,3 +31,4 @@ TEST(CollisionSolver, detectAndResolve) {
   ASSERT_TRUE(collision.exist());
   ASSERT_FALSE(collision.hasVolume());
 }
+*/

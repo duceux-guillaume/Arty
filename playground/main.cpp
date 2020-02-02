@@ -12,12 +12,12 @@
 #include <random>
 
 using namespace arty;
-
+/*
 void makeBrick(std::string const& name, Tf3f const& pos, Vec3f const& length,
                float mass, Ptr<Memory> mem) {
   auto entity = mem->createEntity(name);
   mem->write(entity, OBB3f(Tf3f(), length));
-  mem->write(entity, Physics(pos, mass));
+  mem->write(entity, PointPhysics(pos, mass));
 }
 
 void makeWall(Vec3f min, Vec3f max, std::size_t counth, std::size_t countv,
@@ -37,6 +37,24 @@ void makeWall(Vec3f min, Vec3f max, std::size_t counth, std::size_t countv,
     }
   }
 }
+*/
+void makeAABB(std::string const& name, Vec3f const& pos, Vec3f const& length,
+              float mass, Ptr<Memory> mem) {
+  auto entity = mem->createEntity(name);
+  mem->write(entity, AABox3f(Vec3f(0.f, 0.f, 0.f), length));
+  Particle p;
+  p.position = static_cast<Vec3<Particle::number_t>>(pos);
+  p.invmass = 1.f / mass;
+  mem->write(entity, p);
+}
+
+void makeTower(std::size_t height, Ptr<Memory> mem) {
+  for (std::size_t i = 0; i < height; ++i) {
+    Vec3f positio(8.f, 0.f, 2.f * (i + 1));
+    Vec3f hl = Vec3f::all(1.f);
+    makeAABB("block", positio, hl, 1.f, mem);
+  }
+}
 
 class InitSystem : public System {
  private:
@@ -44,8 +62,8 @@ class InitSystem : public System {
 
   void reset(Ptr<Memory> const& mem) {
     mem->clear();
-    makeBrick("floor", Tf3f(), Vec3f(5.f, 5.f, 1.f), 0.f, mem);
-    makeWall(Vec3f(-5.f, 0.f, 1.f), Vec3f(5.f, 0.2f, 5.f), 10, 4, mem);
+    makeAABB("floor", Vec3f(), Vec3f(10.f, 2.f, 1.f), 0.f, mem);
+    makeTower(3, mem);
   }
 
  public:
@@ -101,19 +119,24 @@ int main(void) {
   Ptr<ITextRenderer> textRenderer(new GlTextRenderer());
   Ptr<IShapeRenderer> shapeRenderer(new GlShapeRenderer());
 
-  WorldPhysics world;
-  world.gravity_strengh = 10.f;
-
   auto AddFunc = [](Ptr<Memory> const& mem) -> Result {
     Selected cursor;
     if (!mem->read(cursor)) {
       return error("no cursor to display");
     }
-    // Let's make an explosion
-    auto xplsn = mem->createEntity("explosion");
-    mem->write(xplsn, Tf3f(cursor.point));
-    mem->write(xplsn, Sphere3f(Vec3f(), 0.5f));
-    mem->write(xplsn, 5);
+    // Let's shoot
+    auto bullet = mem->createEntity("bullet");
+    mem->write(bullet, AABox3f(Vec3f(0.f, 0.f, 0.f), Vec3f::all(0.1f)));
+    Particle p;
+    p.position = Particle::vector_t(-10, 0, 1);
+    p.invmass = 1.f;
+    p.gravity = Particle::vector_t(0, 0, -10);
+    p.damping = Particle::number_t(1);
+    Particle::number_t strength(100);
+    Particle::vector_t tdc(cursor.point);
+    Particle::vector_t dir = (tdc - p.position).normalize();
+    p.velocity = dir * strength;
+    mem->write(bullet, p);
     return ok();
   };
 
@@ -143,13 +166,13 @@ int main(void) {
       .makeSystem<DebugHidSystem>(window, textRenderer)
       .makeSystem<FixedCameraSystem>(window)
       .makeSystem<HitBoxRenderingSystem>(shapeRenderer)
-      .makeSystem<PhysicsSystem>(world)
-      //.makeSystem<CollisionDetectionSystem>()
-      //.makeSystem<CollisionRenderingSystem>(shapeRenderer)
+      .makeSystem<PhysicsSystem>(Ptr<Integrator>(new AccurateIntegrator))
+      .makeSystem<CollisionDetectionSystem>()
+      .makeSystem<CollisionRenderingSystem>(shapeRenderer)
       //.makeSystem<CollisionSolverSystem>()
       .makeSystem<MouseSystem>()
       .makeSystem<CursorRenderingSystem>(shapeRenderer)
-      .makeSystem<EventSystem>(leftClick, Event("XPLOZ"), AddFunc)
+      .makeSystem<EventSystem>(leftClick, Event("SHOOT"), AddFunc)
       .makeSystem<SimpleSystem>(XplozUpdate);
 
   std::cout << "START: " << engine.start().message() << std::endl;
