@@ -11,7 +11,7 @@ OpenGlRenderer::OpenGlRenderer() : _renderer() {}
 OpenGlRenderer::~OpenGlRenderer() { std::cout << "ByeBye" << std::endl; }
 
 Result OpenGlRenderer::init(Ptr<Memory> const& /*board*/) {
-  check_result(_renderer.init());
+  return_if_error(_renderer.init());
   return ok();
 }
 

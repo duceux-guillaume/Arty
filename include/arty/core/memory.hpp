@@ -217,7 +217,7 @@ class Memory {
       if (!v1 || !v2) {
         return error("bad_any_cast");
       }
-      check_result(updateFunc(c1It->first, *v1, *v2));
+      return_if_error(updateFunc(c1It->first, *v1, *v2));
       ++c1It;
       ++c2It;
     }

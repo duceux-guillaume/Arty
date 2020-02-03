@@ -54,6 +54,7 @@ class Particle {
     if (m == 0) {
       _is_static = true;
       _invmass = 0;
+      gravity = vector_t();
     } else {
       _is_static = false;
       _invmass = 1 / m;
@@ -63,7 +64,7 @@ class Particle {
 
   Particle()
       : Particle(vector_t(), vector_t(), vector_t(0, 0, -10), vector_t(),
-                 number_t(0.99), number_t(1), number_t(0.1)) {}
+                 number_t(0.9), number_t(1), number_t(0.1)) {}
 
   Particle(vector_t p, vector_t v, vector_t g, vector_t f, number_t d,
            number_t m, number_t r)
@@ -80,35 +81,25 @@ class Particle {
     }
   }
 
+  Tf3f transform() const { return Tf3f(static_cast<Vec3f>(position)); }
+
  private:
   number_t _invmass;
   bool _is_static;
 };
 
-struct Integrator {
-  virtual void integrate(Particle& p, double duration) const = 0;
-};
-class FastIntegrator : public Integrator {
+class Physics {
  public:
-  void integrate(Particle& p, double duration) const override;
-};
-class AccurateIntegrator : public Integrator {
- public:
-  void integrate(Particle& p, double duration) const override;
-};
-
-struct CollisionDetection {
-  Collision detect(Tf3f const& tf1, AABox3f const& b1, Tf3f const& tf2,
-                   AABox3f const& b2);
-};
-
-class CollisionSolver {
- public:
-  void resolve(Collision const& c, Particle& p1, Particle& p2) const;
-
- private:
-  void resolveVelocity(Collision const& c, Particle& p1, Particle& p2) const;
+  void integrateMotion(Particle& p, double duration) const;
+  Collision detectCollision(Tf3f const& tf1, AABox3f const& b1, Tf3f const& tf2,
+                            AABox3f const& b2);
+  void resolveVelocity(Collision const& c, Particle& p1, Particle& p2,
+                       double duration) const;
   void resolvePenetration(Collision const& c, Particle& p1, Particle& p2) const;
+  void resolve(Collision const& c, Particle& p1, Particle& p2,
+               double duration) const;
+  number_t separatingVelocity(const Collision& c, const Particle& p1,
+                              const Particle& p2) const;
 };
 
 }  // namespace arty

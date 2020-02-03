@@ -28,9 +28,9 @@ Engine& Engine::setBoard(const Ptr<Memory>& board) {
 }
 
 Result Engine::start() {
-  check_result(_window->init());
+  return_if_error(_window->init());
   for (auto const& system : _systems) {
-    check_result(system->init(_state, _inputs));
+    return_if_error(system->init(_state, _inputs));
   }
   return ok();
 }

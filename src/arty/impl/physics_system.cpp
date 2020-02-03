@@ -3,18 +3,22 @@
 
 namespace arty {
 
+static constexpr double SPF = 1. / 60. / 30.;
+
 Result PhysicsSystem::process(const Ptr<Memory>& mem) {
-  auto r = resolveCollision(mem);
-  if (!r) {
-    return r;
+  for (int i = 0; i < 30; ++i) {
+    return_if_error(detectCollision(mem));
+    return_if_error(resolveCollision(mem));
+    return_if_error(integrateMotion(mem));
   }
-  return integrateMotion(mem);
+  return ok();
 }
 
 Result PhysicsSystem::integrateMotion(const Ptr<Memory>& mem) const {
-  auto work = [mem, this](Entity const& e, Particle const& p) -> Result {
+  auto work = [mem](Entity const& e, Particle const& p) -> Result {
     Particle np = p;
-    _integrator->integrate(np, 0.01666666666);
+    Physics phy;
+    phy.integrateMotion(np, SPF);
     if (np.position.z() < -5) {
       mem->remove(e);
     } else {
@@ -28,7 +32,7 @@ Result PhysicsSystem::integrateMotion(const Ptr<Memory>& mem) const {
 
 Result PhysicsSystem::resolveCollision(const Ptr<Memory>& mem) const {
   auto work = [mem](Entity const& e, CollisionArray const& buffer) -> Result {
-    CollisionSolver solver;
+    Physics solver;
     for (auto const& c : buffer) {
       Particle p1, p2;
       if (!mem->read(c.entities().first, p1)) {
@@ -40,7 +44,7 @@ Result PhysicsSystem::resolveCollision(const Ptr<Memory>& mem) const {
       if (e == c.entities().second) {
         std::swap(p1, p2);
       }
-      solver.resolve(c, p1, p2);
+      solver.resolve(c, p1, p2, SPF);
       mem->write(c.entities().first, p1);
       mem->write(c.entities().second, p2);
     }
@@ -52,17 +56,17 @@ Result PhysicsSystem::resolveCollision(const Ptr<Memory>& mem) const {
   return ok();
 }
 
-Result CollisionDetectionSystem::process(Ptr<Memory> const& mem) {
+Result PhysicsSystem::detectCollision(const Ptr<Memory>& mem) const {
   mem->remove<CollisionArray>();
-  auto first_loop = [mem, this](Entity const& e1, Tf3f const& t,
-                                AABox3f const& b) -> Result {
-    auto second_loop = [mem, this, e1, t, b](Entity const& e2, Tf3f const& t2,
-                                             AABox3f const& b2) -> Result {
+  auto first_loop = [mem](Entity const& e1, Tf3f const& t,
+                          AABox3f const& b) -> Result {
+    auto second_loop = [mem, e1, t, b](Entity const& e2, Tf3f const& t2,
+                                       AABox3f const& b2) -> Result {
       if (e1 >= e2) {
         return ok();
       }
-
-      Collision col = _collision.detect(t, b, t2, b2);
+      Physics _collision;
+      Collision col = _collision.detectCollision(t, b, t2, b2);
       if (col.exist()) {
         col.set(e1, e2);
         CollisionArray cols1, cols2;
@@ -75,8 +79,11 @@ Result CollisionDetectionSystem::process(Ptr<Memory> const& mem) {
     };
     return mem->process<Tf3f, AABox3f>(second_loop);
   };
-  return mem->process<Tf3f, AABox3f>(first_loop);
-}  // namespace arty
+  if (mem->count<Tf3f>()) {
+    return mem->process<Tf3f, AABox3f>(first_loop);
+  }
+  return ok();
+}
 
 Result CollisionRenderingSystem::process(const Ptr<Memory>& mem) {
   Camera cam;

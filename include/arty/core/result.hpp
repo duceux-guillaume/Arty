@@ -4,14 +4,12 @@
 #include <iostream>
 #include <memory>
 
-#define check_result(result)                                           \
-  do {                                                                 \
-    Result res = result;                                               \
-    if (!res) {                                                        \
-      std::cerr << __FILE__ << ":" << __LINE__ << ":" << res.message() \
-                << std::endl;                                          \
-      return res;                                                      \
-    }                                                                  \
+#define return_if_error(result) \
+  do {                          \
+    Result res = result;        \
+    if (!res) {                 \
+      return res;               \
+    }                           \
   } while (0);
 
 namespace arty {

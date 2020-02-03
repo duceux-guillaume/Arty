@@ -36,7 +36,7 @@ Result HitBoxRenderingSystem::process(const Ptr<Memory>& board) {
 }
 
 Result HitBoxRenderingSystem::init(const Ptr<Memory>& /*board*/) {
-  check_result(_renderer->init());
+  return_if_error(_renderer->init());
   return ok();
 }
 

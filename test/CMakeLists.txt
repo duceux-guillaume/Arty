@@ -6,9 +6,9 @@ add_executable(memory_test memory_test.cpp)
 target_link_libraries(memory_test gtest_main arty_core)
 add_test(NAME memory_test COMMAND memory_test)
 
-add_executable(collision_test collision_test.cpp)
-target_link_libraries(collision_test gtest_main arty_core)
-add_test(NAME collision_test COMMAND collision_test)
+add_executable(physics_test physics_test.cpp)
+target_link_libraries(physics_test gtest_main arty_core)
+add_test(NAME physics_test COMMAND physics_test)
 
 add_executable(geometry_test geometry_test.cpp)
 target_link_libraries(geometry_test gtest_main arty_core)

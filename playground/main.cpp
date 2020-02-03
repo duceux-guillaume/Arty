@@ -47,9 +47,9 @@ void makeAABB(std::string const& name, Vec3f const& pos, Vec3f const& length,
   mem->write(entity, p);
 }
 
-void makeTower(std::size_t height, Ptr<Memory> mem) {
+void makeTower(float x, std::size_t height, Ptr<Memory> mem) {
   for (std::size_t i = 0; i < height; ++i) {
-    Vec3f positio(8.f, 0.f, 2.f * (i + 1));
+    Vec3f positio(x, 0.f, 2.f * (i + 1));
     Vec3f hl = Vec3f::all(1.f);
     makeAABB("block", positio, hl, 1.f, mem);
   }
@@ -61,8 +61,9 @@ class InitSystem : public System {
 
   void reset(Ptr<Memory> const& mem) {
     mem->clear();
-    makeAABB("floor", Vec3f(), Vec3f(10.f, 2.f, 1.f), 0.f, mem);
-    makeTower(3, mem);
+    makeAABB("floor", Vec3f(), Vec3f(20.f, 2.f, 1.f), 0.f, mem);
+    makeTower(8.f, 3, mem);
+    makeTower(5.f, 5, mem);
   }
 
  public:
@@ -128,6 +129,7 @@ int main(void) {
     mem->write(bullet, AABox3f(Vec3f(0.f, 0.f, 0.f), Vec3f::all(0.1f)));
     Particle p;
     p.position = vector_t(-10, 0, 2);
+    p.setMass(0.1);
     number_t strength(100);
     vector_t tdc(cursor.point);
     vector_t dir = (tdc - p.position).normalize();
@@ -147,8 +149,7 @@ int main(void) {
       .makeSystem<DebugHidSystem>(window, textRenderer)
       .makeSystem<FixedCameraSystem>(window)
       .makeSystem<HitBoxRenderingSystem>(shapeRenderer)
-      .makeSystem<PhysicsSystem>(Ptr<Integrator>(new FastIntegrator))
-      .makeSystem<CollisionDetectionSystem>()
+      .makeSystem<PhysicsSystem>()
       .makeSystem<CollisionRenderingSystem>(shapeRenderer)
       //.makeSystem<CollisionSolverSystem>()
       .makeSystem<MouseSystem>()
