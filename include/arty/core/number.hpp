@@ -97,6 +97,9 @@ inline const number operator/(number l, number const& r) {
 constexpr double PI = 3.14159265358979323846;
 
 static inline number sqrt(number const& n) { return number::sqrt(n, 4); }
+static inline number pow(number const& n, number const& p) {
+  return number::pow(n, p, 1);
+}
 
 }  // namespace arty
 

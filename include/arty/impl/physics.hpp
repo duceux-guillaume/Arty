@@ -2,33 +2,113 @@
 #define PHYSICS_HPP
 
 #include <arty/core/geometry.hpp>
+#include <arty/core/memory.hpp>
 #include <arty/core/number.hpp>
+#include <utility>
 #include <vector>
 
 namespace arty {
+using number_t = double;
+using vector_t = Vec3<number_t>;
 
-struct Particle {
-  using number_t = number;
-  using vector_t = Vec3<number_t>;
+class Collision {
+ private:
+  bool _exist;
+  std::pair<Entity, Entity> _entities;
+  vector_t _normal;
+  vector_t _center;
+  number_t _penetration;
 
+ public:
+  Collision() : _exist(false) {}
+  Collision(vector_t const& normal, vector_t const& center,
+            number_t penetration)
+      : _exist(true),
+        _normal(normal),
+        _center(center),
+        _penetration(penetration) {}
+
+  bool exist() const { return _exist; }
+  vector_t const& center() const { return _center; }
+  vector_t const& normal() const { return _normal; }
+  number_t const& penetration() const { return _penetration; }
+
+  std::pair<Entity, Entity>& entities() { return _entities; }
+  std::pair<Entity, Entity> const& entities() const { return _entities; }
+  void set(Entity const& first, Entity const& second) {
+    _entities.first = first;
+    _entities.second = second;
+  }
+};  // namespace arty
+
+class Particle {
+ public:
   vector_t position;
   vector_t velocity;
-  number_t damping;
-  number_t invmass;
   vector_t gravity;
   vector_t forceaccu;
+  number_t damping;
+  number_t restitution;
+  bool isStatic() { return _is_static; }
+  void setMass(number_t m) {
+    if (m == 0) {
+      _is_static = true;
+      _invmass = 0;
+    } else {
+      _is_static = false;
+      _invmass = 1 / m;
+    }
+  }
+  number_t const& inverseMass() const { return _invmass; }
+
+  Particle()
+      : Particle(vector_t(), vector_t(), vector_t(0, 0, -10), vector_t(),
+                 number_t(0.99), number_t(1), number_t(0.1)) {}
+
+  Particle(vector_t p, vector_t v, vector_t g, vector_t f, number_t d,
+           number_t m, number_t r)
+      : position(p),
+        velocity(v),
+        gravity(g),
+        forceaccu(f),
+        damping(d),
+        restitution(r),
+        _invmass(1 / m),
+        _is_static(false) {
+    if (m == 0) {
+      _is_static = true;
+    }
+  }
+
+ private:
+  number_t _invmass;
+  bool _is_static;
 };
 
 struct Integrator {
-  virtual void integrate(Particle& p, double time) const = 0;
+  virtual void integrate(Particle& p, double duration) const = 0;
 };
 class FastIntegrator : public Integrator {
  public:
-  void integrate(Particle& p, double time) const override;
+  void integrate(Particle& p, double duration) const override;
 };
 class AccurateIntegrator : public Integrator {
  public:
-  void integrate(Particle& p, double time) const override;
+  void integrate(Particle& p, double duration) const override;
+};
+
+struct CollisionDetection {
+  Collision detect(Tf3f const& tf1, AABox3f const& b1, Tf3f const& tf2,
+                   AABox3f const& b2);
+};
+
+class CollisionSolver {
+ public:
+  void resolve(Collision const& c, Particle& p1, Particle& p2) const;
+
+ private:
+  void resolveVelocity(Collision const& c, Particle& p1, Particle& p2) const;
+  void resolvePenetration(Collision const& c, Particle& p1, Particle& p2) const;
 };
 
 }  // namespace arty

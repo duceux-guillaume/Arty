@@ -3,7 +3,6 @@
 #include <arty/ext/opengl/2d_renderer.hpp>
 #include <arty/ext/opengl/gl_shape_renderer.hpp>
 #include <arty/impl/camera_system.hpp>
-#include <arty/impl/collision_system.hpp>
 #include <arty/impl/debug_hid_system.hpp>
 #include <arty/impl/engine.hpp>
 #include <arty/impl/hitbox_rendering_system.hpp>
@@ -43,8 +42,8 @@ void makeAABB(std::string const& name, Vec3f const& pos, Vec3f const& length,
   auto entity = mem->createEntity(name);
   mem->write(entity, AABox3f(Vec3f(0.f, 0.f, 0.f), length));
   Particle p;
-  p.position = static_cast<Vec3<Particle::number_t>>(pos);
-  p.invmass = 1.f / mass;
+  p.position = static_cast<Vec3<number_t>>(pos);
+  p.setMass(mass);
   mem->write(entity, p);
 }
 
@@ -128,34 +127,16 @@ int main(void) {
     auto bullet = mem->createEntity("bullet");
     mem->write(bullet, AABox3f(Vec3f(0.f, 0.f, 0.f), Vec3f::all(0.1f)));
     Particle p;
-    p.position = Particle::vector_t(-10, 0, 1);
-    p.invmass = 1.f;
-    p.gravity = Particle::vector_t(0, 0, -10);
-    p.damping = Particle::number_t(1);
-    Particle::number_t strength(100);
-    Particle::vector_t tdc(cursor.point);
-    Particle::vector_t dir = (tdc - p.position).normalize();
+    p.position = vector_t(-10, 0, 2);
+    number_t strength(100);
+    vector_t tdc(cursor.point);
+    vector_t dir = (tdc - p.position).normalize();
     p.velocity = dir * strength;
     mem->write(bullet, p);
     return ok();
   };
 
   Input leftClick(Mouse::Button::LEFT, Device::Action::PRESS);
-
-  auto XplozUpdate = [](Ptr<Memory> const& mem,
-                        Ptr<InputManager> const&) -> Result {
-    mem->process<int, Sphere3f>(
-        [mem](Entity const& e, int remaining, Sphere3f const& s) -> Result {
-          if (remaining > 0) {
-            mem->write(e, --remaining);
-            mem->write(e, Sphere3f(Vec3f(), std::sqrt(s.sqrRadius()) * 1.1f));
-          } else {
-            mem->remove(e);
-          }
-          return ok();
-        });
-    return ok();
-  };
 
   Engine engine;
   engine.setBoard(board)
@@ -166,14 +147,13 @@ int main(void) {
       .makeSystem<DebugHidSystem>(window, textRenderer)
       .makeSystem<FixedCameraSystem>(window)
       .makeSystem<HitBoxRenderingSystem>(shapeRenderer)
-      .makeSystem<PhysicsSystem>(Ptr<Integrator>(new AccurateIntegrator))
+      .makeSystem<PhysicsSystem>(Ptr<Integrator>(new FastIntegrator))
       .makeSystem<CollisionDetectionSystem>()
       .makeSystem<CollisionRenderingSystem>(shapeRenderer)
       //.makeSystem<CollisionSolverSystem>()
       .makeSystem<MouseSystem>()
       .makeSystem<CursorRenderingSystem>(shapeRenderer)
-      .makeSystem<EventSystem>(leftClick, Event("SHOOT"), AddFunc)
-      .makeSystem<SimpleSystem>(XplozUpdate);
+      .makeSystem<EventSystem>(leftClick, Event("SHOOT"), AddFunc);
 
   std::cout << "START: " << engine.start().message() << std::endl;
   std::cout << "RUN: " << engine.run().message() << std::endl;

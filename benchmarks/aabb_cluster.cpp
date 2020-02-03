@@ -3,7 +3,6 @@
 #include <arty/ext/opengl/2d_renderer.hpp>
 #include <arty/ext/opengl/gl_shape_renderer.hpp>
 #include <arty/impl/camera_system.hpp>
-#include <arty/impl/collision_system.hpp>
 #include <arty/impl/debug_hid_system.hpp>
 #include <arty/impl/engine.hpp>
 #include <arty/impl/hitbox_rendering_system.hpp>
@@ -18,9 +17,9 @@ void makeCube(std::string const& name, Vec3f const& pos, Vec3f const& length,
   auto entity = mem->createEntity(name);
   mem->write(entity, AABox3f(Vec3f(0.f, 0.f, 0.f), length));
   Particle p;
-  p.position = static_cast<Vec3<Particle::number_t>>(pos);
-  p.invmass = 1.f / mass;
-  p.gravity = Particle::vector_t(0, 0, -10);
+  p.position = static_cast<Vec3<number_t>>(pos);
+  p.setMass(mass);
+  p.gravity = vector_t(0, 0, -10);
   mem->write(entity, p);
 }
 
