@@ -85,6 +85,20 @@ TEST(Number, Plus) {
             number(141421356238, 100000000000));
 }
 
+TEST(Number, Limits) {
+  ASSERT_TRUE(number::inf().isInf());
+  ASSERT_TRUE((-number::inf()).isInf());
+}
+
+TEST(Number, PlusLvl2) {
+  ASSERT_EQ(number::inf() + number::inf(), number::inf());
+  ASSERT_EQ(number::inf() - number::inf(), number::und());
+  ASSERT_EQ(-number::inf() + number::inf(), number::und());
+  ASSERT_EQ(-number::inf() - number::inf(), -number::inf());
+  ASSERT_EQ((number::max() - 1) + number::eps(),
+            number(4611686018427387902, 4611686018427387903));
+}
+
 TEST(Number, Minus) {
   ASSERT_EQ(number() - number(), number());
   ASSERT_EQ(number(1) - number(2), number(-1));
@@ -94,11 +108,14 @@ TEST(Number, Minus) {
             number(1414213562, 1000000000));
 }
 
+TEST(Number, multIsSafe) { ASSERT_TRUE(details::multIsSafe(-2, -2)); }
+
 TEST(Number, Times) {
   ASSERT_EQ(number() * number(), number());
   ASSERT_EQ(number(1) * number(2), number(2));
   ASSERT_EQ(number(2) * number(1), number(2));
   ASSERT_EQ(number(1, 2) * number(1, 3), number(1, 6));
+  ASSERT_EQ(number(10, 1) * number(-1, 1), number(-10, 1));
 }
 
 TEST(Number, Over) {

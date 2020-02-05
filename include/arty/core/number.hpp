@@ -5,10 +5,21 @@
 #include <cmath>
 #include <cstdint>
 #include <iostream>
+#include <limits>
 #include <string>
 #include <utility>
 
 namespace arty {
+
+namespace details {
+constexpr int64_t INTMAX = std::numeric_limits<int64_t>::max();
+constexpr int64_t INTMIN = std::numeric_limits<int64_t>::min();
+bool addIsSafe(int64_t a, int64_t b);
+bool subIsSafe(int64_t a, int64_t b);
+bool multIsSafe(int64_t a, int64_t b);
+int64_t gcd(int64_t l, int64_t r);
+
+}  // namespace details
 
 class number {
  public:
@@ -56,11 +67,19 @@ class number {
   static number pow(number const& b, number const& p, number const& pre);
   static number pow(number const& b, uint16_t p);
 
+  bool isInt() const;
+  bool isInf() const;
+  bool isDec() const;
+
+  static number inf();
+  static number max();
+  static number min();
+  static number eps();
+  static number und();
+
  private:
   void reduce();
-  static int64_t gcd(int64_t l, int64_t r);
-
-  bool is_integer() const;
+  void reducePrecision();
 
   std::pair<int64_t, number> split() const;
 
