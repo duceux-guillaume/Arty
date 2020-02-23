@@ -8,7 +8,7 @@
 #include <vector>
 
 namespace arty {
-using number_t = number;
+using number_t = double;
 using vector_t = Vec3<number_t>;
 
 class Collision {

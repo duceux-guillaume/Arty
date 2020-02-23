@@ -21,3 +21,12 @@ add_test(NAME camera_test COMMAND camera_test)
 add_executable(number_test number_test.cpp)
 target_link_libraries(number_test gtest_main arty_core)
 add_test(NAME number_test COMMAND number_test)
+
+add_executable(machine_learning_test machine_learning_test.cpp)
+target_link_libraries(machine_learning_test gtest_main arty_core)
+add_test(NAME machine_learning_test COMMAND machine_learning_test)
+
+add_executable(dynamic_matrix_test dynamic_matrix_test.cpp)
+target_link_libraries(dynamic_matrix_test gtest_main arty_core)
+add_test(NAME dynamic_matrix_test COMMAND dynamic_matrix_test)
+

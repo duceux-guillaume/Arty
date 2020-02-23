@@ -1,3 +1,4 @@
+
 #ifndef MATH_H
 #define MATH_H
 
@@ -58,7 +59,7 @@ class Mat {
   using const_iterator_type = value_type const*;
 
  protected:
-  T _arr[size];
+  value_type _arr[size];
 
  public:
   Mat() : _arr{0} {}
