@@ -62,6 +62,26 @@ TEST(Mat, Multiply) {
                                }));
 }
 
+TEST(Mat, Addition) {
+  ASSERT_EQ(Matrix(4, 4, 1) + Matrix(4, 4, 1), Matrix(4, 4, 2));
+}
+
+TEST(Mat, Substraction) {
+  ASSERT_EQ(Matrix(4, 4) - Matrix(4, 4, 1), Matrix(4, 4, -1));
+}
+
+TEST(Mat, MultiplyScaler) { ASSERT_EQ(Matrix(4, 4, 1) * 2, Matrix(4, 4, 2)); }
+
+TEST(Mat, Norm) {
+  auto I = Matrix(2, 1, {1, 0});
+  ASSERT_EQ(I.norm(), 1);
+}
+
+TEST(Mat, Transpose) {
+  ASSERT_EQ(Matrix(2, 1, {1, 0}).transpose(), Matrix(1, 2, {1, 0}));
+  ASSERT_EQ(Matrix(2, 2, {0, 0, 1, 0}).transpose(), Matrix(2, 2, {0, 1, 0, 0}));
+}
+
 TEST(Mat, Ostream) {
   ASSERT_NO_THROW(std::cout << Matrix::identity(4) << std::endl);
 }

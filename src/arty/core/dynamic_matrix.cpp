@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <arty/core/dynamic_matrix.hpp>
+#include <cmath>
 
 namespace arty {
 
@@ -18,6 +19,18 @@ Matrix::size_t Matrix::rows() const { return _rows; }
 Matrix::size_t Matrix::cols() const { return _cols; }
 
 Matrix::size_t Matrix::size() const { return _arr.size(); }
+
+const Matrix::val_t& Matrix::at(Matrix::size_t i, Matrix::size_t j) const {
+  assert(i < _rows);
+  assert(j < _cols);
+  return _arr[i * _cols + j];
+}
+
+Matrix::val_t& Matrix::at(Matrix::size_t i, Matrix::size_t j) {
+  assert(i < _rows);
+  assert(j < _cols);
+  return _arr[i * _cols + j];
+}
 
 const Matrix::val_t& Matrix::operator()(Matrix::size_t i,
                                         Matrix::size_t j) const {
@@ -42,10 +55,22 @@ Matrix::val_t& Matrix::operator[](Matrix::size_t i) {
   return _arr[i];
 }
 
+Matrix& Matrix::operator*=(const Matrix::val_t& s) {
+  std::for_each(_arr.begin(), _arr.end(), [&s](val_t& n) { n *= s; });
+  return *this;
+}
+
 Matrix& Matrix::operator+=(const Matrix& o) {
   assert(_arr.size() == o._arr.size());
   std::transform(o._arr.begin(), o._arr.end(), _arr.begin(), _arr.begin(),
                  [](val_t const& a, val_t const& b) -> val_t { return a + b; });
+  return *this;
+}
+
+Matrix& Matrix::operator-=(const Matrix& o) {
+  assert(_arr.size() == o._arr.size());
+  std::transform(_arr.begin(), _arr.end(), o._arr.begin(), _arr.begin(),
+                 [](val_t const& a, val_t const& b) -> val_t { return a - b; });
   return *this;
 }
 
@@ -74,15 +99,42 @@ Matrix::it_t Matrix::begin() { return _arr.begin(); }
 
 Matrix::it_t Matrix::end() { return _arr.end(); }
 
+Matrix::val_t Matrix::dot(const Matrix& r) const {
+  assert(_arr.size() == r._arr.size());
+  val_t res(0);
+  for (size_t i = 0; i < _arr.size(); ++i) {
+    res += _arr[i] * r[i];
+  }
+  return res;
+}
+
+Matrix::val_t Matrix::normsqr() const { return dot(*this); }
+
+Matrix::val_t Matrix::norm() const {
+  using std::sqrt;
+  return sqrt(this->normsqr());
+}
+
+Matrix Matrix::transpose() const {
+  Matrix r(_cols, _rows);
+  for (size_t i = 0; i < _rows; ++i) {
+    for (size_t j = 0; j < _cols; ++j) {
+      r(j, i) = at(i, j);
+    }
+  }
+  return r;
+}
+
 }  // namespace arty
 
 std::ostream& operator<<(std::ostream& out, const arty::Matrix& mat) {
+  out << "\n";
   for (std::size_t i = 0; i < mat.rows(); ++i) {
-    out << "\n|";
+    out << "|";
     for (std::size_t j = 0; j < mat.cols(); ++j) {
       out << " " << mat(i, j);
     }
-    out << "|";
+    out << "|\n";
   }
   return out;
 }

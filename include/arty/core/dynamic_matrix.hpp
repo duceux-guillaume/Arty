@@ -34,13 +34,17 @@ class Matrix {
   size_t size() const;
 
   // Getters
+  val_t const& at(size_t i, size_t j) const;
+  val_t& at(size_t i, size_t j);
   val_t const& operator()(size_t i, size_t j) const;
   val_t& operator()(size_t i, size_t j);
   val_t const& operator[](size_t i) const;
   val_t& operator[](size_t i);
 
   // Operators
+  Matrix& operator*=(val_t const& s);
   Matrix& operator+=(Matrix const& o);
+  Matrix& operator-=(Matrix const& o);
   Matrix operator*(Matrix const& o) const;
 
   bool operator==(Matrix const& r) const;
@@ -52,11 +56,32 @@ class Matrix {
   it_t begin();
   it_t end();
 
+  // Matrix
+  val_t dot(Matrix const& r) const;
+  val_t normsqr() const;
+  val_t norm() const;
+  Matrix transpose() const;
+
  private:
   size_t _rows;
   size_t _cols;
   arr_t _arr;
 };
+
+inline const Matrix operator*(Matrix l, Matrix::val_t const& r) {
+  l *= r;
+  return l;
+}
+
+inline const Matrix operator+(Matrix l, Matrix const& r) {
+  l += r;
+  return l;
+}
+
+inline const Matrix operator-(Matrix l, Matrix const& r) {
+  l -= r;
+  return l;
+}
 
 }  // namespace arty
 
