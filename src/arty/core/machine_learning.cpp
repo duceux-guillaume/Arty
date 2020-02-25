@@ -5,6 +5,9 @@ namespace arty {
 
 Block::array_type WeightBlock::forward(const Block::array_type& input) {
   _input = input;
+  if (_input.cols() > 1) {
+    _input = _input.flatten();
+  }
   _output = _params * _input;
   return _output;
 }

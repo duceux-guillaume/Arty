@@ -24,6 +24,10 @@ class Matrix {
       : _rows(rows), _cols(cols), _arr(l) {
     assert(l.size() == _rows * _cols);
   }
+  Matrix(size_t rows, size_t cols, arr_t v)
+      : _rows(rows), _cols(cols), _arr(v) {
+    assert(_arr.size() == _rows * _cols);
+  }
 
   // SPECIAL CONSTRUCTOR
   static Matrix diagonal(size_t s, val_t const& v);
@@ -61,6 +65,7 @@ class Matrix {
   val_t normsqr() const;
   val_t norm() const;
   Matrix transpose() const;
+  Matrix flatten() const;
 
  private:
   size_t _rows;

@@ -131,6 +131,8 @@ Matrix Matrix::transpose() const {
   return r;
 }
 
+Matrix Matrix::flatten() const { return Matrix(_rows * _cols, 1, _arr); }
+
 }  // namespace arty
 
 std::ostream& operator<<(std::ostream& out, const arty::Matrix& mat) {

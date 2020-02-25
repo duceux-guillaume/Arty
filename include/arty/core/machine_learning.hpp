@@ -113,18 +113,24 @@ class Learner {
 
   void train(Block::array_type const& example, Block::array_type const& label) {
     auto error = test(example, label);
-    std::for_each(_machine.rbegin(), _machine.rend(),
-                  [&error](Block::Ptr& layer) {
-                    layer->gradient(error);
-                    error = layer->backward(error);
-                  });
+    // std::cout << "error: " << error << error.norm() << std::endl;
+    std::for_each(
+        _machine.rbegin(), _machine.rend(), [this, &error](Block::Ptr& layer) {
+          // std::cout << "params:" << layer->params();
+          auto gradient = layer->gradient(error);
+          error = layer->backward(error);
+          layer->setParams(layer->params() - gradient * _learning_rate);
+        });
   }
 
   Block::array_type test(Block::array_type const& example,
                          Block::array_type const& label) {
     auto error = label - _machine.forward(example);
-    std::cout << "error" << error.norm() << std::endl;
     return error;
+  }
+
+  Block::array_type forward(Block::array_type const& input) {
+    return _machine.forward(input);
   }
 
  private:

@@ -164,6 +164,7 @@ TEST(FuncBlock, BackwardFuncBlock) {
   auto output = sum.forward(input);
   Matrix error = truth - output;
   auto score = error.norm();
+  std::cout << "params" << sum.params();
   std::cout << "input" << input;
   std::cout << "ouput" << output;
   std::cout << "error" << error << score << std::endl;
@@ -253,11 +254,11 @@ TEST(Learner, VanillaNet) {
     return result;
   };
   Block::Ptr fun(
-      new FuncBlock(Block::RandomMatrix(3, 1, -1., 1.), relu, inv, der));
+      new FuncBlock(Block::RandomMatrix(4, 1, -1., 1.), relu, inv, der));
   machine.addBlock(fun);
 
   Learner learner;
-  learner.machine(machine);
+  learner.machine(machine).learningRate(0.1);
 
   std::vector<Matrix> dataset{zero, one, two, three};
   std::vector<Matrix> label{
@@ -265,8 +266,24 @@ TEST(Learner, VanillaNet) {
       Matrix(4, 1, {0, 0, 1, 0}), Matrix(4, 1, {0, 0, 0, 1})};
 
   std::size_t iteration = 0;
+  std::cout << "start 0" << learner.forward(zero);
+  std::cout << "error 0" << learner.test(zero, label[0]).norm() << std::endl;
+  std::cout << "start 1" << learner.forward(one);
+  std::cout << "error 1" << learner.test(one, label[1]).norm() << std::endl;
+  std::cout << "start 2" << learner.forward(two);
+  std::cout << "error 2" << learner.test(two, label[2]).norm() << std::endl;
+  std::cout << "start 3" << learner.forward(three);
+  std::cout << "error 3" << learner.test(three, label[3]).norm() << std::endl;
   do {
     learner.train(dataset[iteration % 4], label[iteration % 4]);
     learner.test(dataset[iteration % 4], label[iteration % 4]);
   } while (++iteration < 100);
+  std::cout << "0" << learner.forward(zero);
+  std::cout << "error 0" << learner.test(zero, label[0]).norm() << std::endl;
+  std::cout << "1" << learner.forward(one);
+  std::cout << "error 1" << learner.test(one, label[1]).norm() << std::endl;
+  std::cout << "2" << learner.forward(two);
+  std::cout << "error 2" << learner.test(two, label[2]).norm() << std::endl;
+  std::cout << "3" << learner.forward(three);
+  std::cout << "error 3" << learner.test(three, label[3]).norm() << std::endl;
 }
