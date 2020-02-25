@@ -87,6 +87,12 @@ Matrix Matrix::operator*(const Matrix& o) const {
   return res;
 }
 
+Matrix Matrix::operator-() const {
+  Matrix r(*this);
+  std::for_each(r.begin(), r.end(), [](val_t& v) { v = -v; });
+  return r;
+}
+
 bool Matrix::operator==(const Matrix& r) const { return _arr == r._arr; }
 
 bool Matrix::operator!=(const Matrix& r) const { return !(*this == r); }

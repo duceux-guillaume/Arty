@@ -82,6 +82,8 @@ TEST(Mat, Transpose) {
   ASSERT_EQ(Matrix(2, 2, {0, 0, 1, 0}).transpose(), Matrix(2, 2, {0, 1, 0, 0}));
 }
 
+TEST(Mat, UniryMinus) { ASSERT_EQ(-Matrix(2, 1, 1), Matrix(1, 2, -1)); }
+
 TEST(Mat, Ostream) {
   ASSERT_NO_THROW(std::cout << Matrix::identity(4) << std::endl);
 }

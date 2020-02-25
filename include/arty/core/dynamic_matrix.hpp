@@ -46,7 +46,7 @@ class Matrix {
   Matrix& operator+=(Matrix const& o);
   Matrix& operator-=(Matrix const& o);
   Matrix operator*(Matrix const& o) const;
-
+  Matrix operator-() const;
   bool operator==(Matrix const& r) const;
   bool operator!=(Matrix const& r) const;
 
