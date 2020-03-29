@@ -35,8 +35,6 @@ set(OPENGL_LIBRARY
 )
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 
-### GLEW ###
-
 set(GLEW_SOURCE
   glew-1.13.0/src/glew.c
 )
@@ -53,3 +51,9 @@ target_link_libraries(GLEW_1130
   ${OPENGL_LIBRARY}
   ${EXTRA_LIBS}
 )
+
+### BULLET ###
+
+#don't build bullet unit test cause it interfer with our gtest target
+option(BUILD_UNIT_TESTS "" OFF)
+add_subdirectory (bullet3)
