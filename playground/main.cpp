@@ -87,9 +87,6 @@ int main(void) {
       .addSystem(cam_sys)
       .makeSystem<TileRenderingSystem>(shapeRenderer)
       .makeSystem<HitBoxRenderingSystem>(shapeRenderer)
-      //.makeSystem<PhysicsSystem>()
-      //.makeSystem<CollisionRenderingSystem>(shapeRenderer)
-      //.makeSystem<CollisionSolverSystem>()
       .makeSystem<MouseSystem>()
       .makeSystem<CursorRenderingSystem>(shapeRenderer)
       .makeSystem<EventSystem>(leftClick, Event("SHOOT"), AddFunc);

@@ -136,6 +136,11 @@ int GlfwWindow::height() {
   return height;
 }
 
+bool GlfwWindow::isVisible() {
+  int res = glfwGetWindowAttrib(_window, GLFW_FOCUSED);
+  return res;
+}
+
 Ptr<Keyboard> GlfwWindow::provideKeyboard() { return _keyboard; }
 
 Ptr<Mouse> GlfwWindow::provideMouse() {

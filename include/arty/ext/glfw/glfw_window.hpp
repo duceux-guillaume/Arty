@@ -52,6 +52,8 @@ class GlfwWindow : public Window {
 
   int height() override;
 
+  bool isVisible() override;
+
   Ptr<Keyboard> provideKeyboard();
 
   Ptr<Mouse> provideMouse();

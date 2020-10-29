@@ -15,6 +15,7 @@ class Window {
   virtual double getTime() = 0;
   virtual int width() = 0;
   virtual int height() = 0;
+  virtual bool isVisible() = 0;
 };
 }  // namespace arty
 

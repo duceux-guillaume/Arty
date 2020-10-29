@@ -77,7 +77,7 @@ Result Engine::run() {
     }
     res = step();
     count++;
-  } while (res && _window->isOk());
+  } while (res && _window->isOk() && _window->isVisible());
   return res;
 }
 
