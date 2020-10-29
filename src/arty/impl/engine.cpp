@@ -77,7 +77,7 @@ Result Engine::run() {
     }
     res = step();
     count++;
-  } while (res && _window->isOk() && count < 10000);
+  } while (res && _window->isOk());
   return res;
 }
 

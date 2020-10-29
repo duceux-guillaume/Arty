@@ -58,12 +58,21 @@ class FixedCameraSystem : public System {
 
   Result process(Ptr<Memory> const& board) override;
 
+  void setEye(Vec3f const& eye) { _eye = eye; }
+
+  void setTarget(Vec3f const& target) { _target = target; }
+
+  void setUpdir(Vec3f const& updir) { _updir = updir; }
+
  private:
   Ptr<Window> _window;
   Mat4x4f _view;
   Mat4x4f _projection;
   Mat4x4f _camFromWorld;
   float _fov;
+  Vec3f _eye;
+  Vec3f _target;
+  Vec3f _updir;
 };
 
 }  // namespace arty

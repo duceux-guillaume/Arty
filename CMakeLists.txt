@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 3.0)
+cmake_minimum_required (VERSION 3.18.2)
 project (Arty)
 
 ###############
@@ -102,7 +102,7 @@ endif(OPENGL_FOUND)
 if(OPENGL_FOUND)
 
 add_executable(playground playground/main.cpp)
-target_link_libraries(playground PUBLIC arty_core arty_gl)
+target_link_libraries(playground arty_core arty_gl)
 
 if(CMAKE_COMPILER_IS_GNUCXX)
 add_custom_command(
@@ -130,13 +130,6 @@ set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 # Add googletest directly to our build. This defines
 # the gtest and gtest_main targets.
 add_subdirectory(external/googletest EXCLUDE_FROM_ALL)
-
-# The gtest/gtest_main targets carry header search path
-# dependencies automatically when using CMake 2.8.11 or
-# later. Otherwise we have to add them here ourselves.
-if (CMAKE_VERSION VERSION_LESS 2.8.11)
-  include_directories("${gtest_SOURCE_DIR}/include")
-endif()
 
 add_subdirectory(test)
 endif(CMAKE_COMPILER_IS_GNUCXX)

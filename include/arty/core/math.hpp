@@ -691,6 +691,7 @@ template <typename T>
 using Vec2 = Vec<T, 2>;
 using Vec2f = Vec2<float>;
 using Vec2d = Vec2<double>;
+using Vec2ui8 = Vec2<uint8_t>;
 
 template <typename T>
 using Vec3 = Vec<T, 3>;

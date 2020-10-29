@@ -13,7 +13,10 @@ FixedCameraSystem::FixedCameraSystem(const Ptr<Window>& w)
       _view(),
       _projection(),
       _camFromWorld(origin),
-      _fov(45.0f) {}
+      _fov(45.0f),
+      _eye(0.f, -20.f, 20.f),
+      _target(0.f, 0.f, 2.f),
+      _updir(0.f, 1.f, 0.f) {}
 
 Result FixedCameraSystem::process(const Ptr<Memory>& board) {
   float ratio = static_cast<float>(_window->width()) / _window->height();
@@ -22,8 +25,7 @@ Result FixedCameraSystem::process(const Ptr<Memory>& board) {
   }
   Camera camera;
   camera.perspective(radians(_fov), ratio, 0.1f, 100.0f);
-  camera.lookAt(Vec3f{0.f, -20.f, 20.f}, Vec3f{0.f, 0.f, 2.f},
-                Vec3f{0.f, 1.f, 0.f});
+  camera.lookAt(_eye, _target, _updir);
   board->write(camera);
 
   return ok();
