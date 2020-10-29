@@ -40,6 +40,4 @@ Result HitBoxRenderingSystem::init(const Ptr<Memory>& /*board*/) {
   return ok();
 }
 
-IShapeRenderer::~IShapeRenderer() {}
-
 }  // namespace arty

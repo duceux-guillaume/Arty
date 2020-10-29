@@ -101,7 +101,7 @@ endif(OPENGL_FOUND)
 
 if(OPENGL_FOUND)
 
-add_executable(playground playground/main.cpp)
+add_executable(playground playground/main.cpp playground/tile_systems.cpp playground/tile_systems.hpp)
 target_link_libraries(playground arty_core arty_gl)
 
 if(CMAKE_COMPILER_IS_GNUCXX)

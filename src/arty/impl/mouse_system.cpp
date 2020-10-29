@@ -45,7 +45,6 @@ Result MouseSystem::process(const Ptr<Memory>& mem,
     }
   }
   mem->write(s);
-
   return ok();
 }
 

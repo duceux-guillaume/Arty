@@ -6,9 +6,8 @@
 
 #define return_if_error(result) \
   do {                          \
-    Result res = result;        \
-    if (!res) {                 \
-      return res;               \
+    if (!result) {              \
+      return Result(#result);   \
     }                           \
   } while (0);
 
