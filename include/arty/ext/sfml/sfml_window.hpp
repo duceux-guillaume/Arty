@@ -11,6 +11,8 @@ class SfmlWindow : public Window {
   sf::Window* _window;
 
  public:
+  SfmlWindow(WindowMode mode, std::string const name)
+      : Window(mode, name), _window(nullptr) {}
   ~SfmlWindow();
 
   // Window interface
@@ -19,11 +21,11 @@ class SfmlWindow : public Window {
 
   void clear() override {}
 
-  void swapBuffer() override;
+  void refresh() override;
 
   bool isOk() const override;
 
-  void close() override {}
+  void close() override;
 
   double getTime() override { return 0.; }
 

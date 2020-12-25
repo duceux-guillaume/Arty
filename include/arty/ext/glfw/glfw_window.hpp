@@ -30,7 +30,7 @@ class GlfwWindow : public Window {
   GLFWwindow* _window;
 
  public:
-  GlfwWindow() : _window() {}
+  GlfwWindow() : Window(WindowMode::FullScreen(), ""), _window(nullptr) {}
 
   GLFWwindow* window() const { return _window; }
 
@@ -40,19 +40,19 @@ class GlfwWindow : public Window {
 
   void clear() override;
 
-  void swapBuffer() override;
+  void refresh() override;
 
-  bool isOk() override;
+  bool isOk() const override;
 
   void close() override;
 
   double getTime() override;
 
-  int width() override;
+  int width() const override;
 
-  int height() override;
+  int height() const override;
 
-  bool isVisible() override;
+  bool isVisible() const override;
 
   Ptr<Keyboard> provideKeyboard();
 

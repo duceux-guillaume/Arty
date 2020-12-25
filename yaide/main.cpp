@@ -4,7 +4,7 @@
 using namespace arty;
 
 int main(void) {
-  SfmlWindow* window_impl = new SfmlWindow;
+  SfmlWindow* window_impl = new SfmlWindow(WindowMode::FullScreen(), "YAIDE");
   Ptr<Window> window(window_impl);
   Ptr<Memory> board(new Memory);
 

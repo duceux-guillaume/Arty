@@ -52,7 +52,7 @@ Result Engine::step() {
       return error("Null ptr system");
     }
   }
-  _window->swapBuffer();
+  _window->refresh();
   _inputs->flush();
   return ok();
 }

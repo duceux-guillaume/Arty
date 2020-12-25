@@ -106,13 +106,13 @@ void GlfwWindow::clear() {
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
-void GlfwWindow::swapBuffer() {
+void GlfwWindow::refresh() {
   // Swap buffers
   glfwSwapBuffers(_window);
   glfwPollEvents();
 }
 
-bool GlfwWindow::isOk() {
+bool GlfwWindow::isOk() const {
   return glfwGetKey(_window, GLFW_KEY_ESCAPE) != GLFW_PRESS &&
          glfwWindowShouldClose(_window) == 0;
 }
@@ -124,19 +124,19 @@ void GlfwWindow::close() {
 
 double GlfwWindow::getTime() { return glfwGetTime(); }
 
-int GlfwWindow::width() {
+int GlfwWindow::width() const {
   int width, height;
   glfwGetWindowSize(_window, &width, &height);
   return width;
 }
 
-int GlfwWindow::height() {
+int GlfwWindow::height() const {
   int width, height;
   glfwGetWindowSize(_window, &width, &height);
   return height;
 }
 
-bool GlfwWindow::isVisible() {
+bool GlfwWindow::isVisible() const {
   int res = glfwGetWindowAttrib(_window, GLFW_FOCUSED);
   return res;
 }
