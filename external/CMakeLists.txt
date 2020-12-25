@@ -57,3 +57,6 @@ target_link_libraries(GLEW_1130
 #don't build bullet unit test cause it interfer with our gtest target
 option(BUILD_UNIT_TESTS "" OFF)
 add_subdirectory (bullet3)
+
+### SFML ###
+add_subdirectory (SFML)
