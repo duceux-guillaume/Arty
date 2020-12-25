@@ -19,7 +19,7 @@ class SfmlWindow : public Window {
  public:
   Result init() override;
 
-  void clear() override {}
+  void clear() override;
 
   void refresh() override;
 

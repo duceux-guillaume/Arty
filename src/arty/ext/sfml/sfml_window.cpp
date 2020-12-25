@@ -35,6 +35,7 @@ void SfmlWindow::refresh() {
     // "close requested" event: we close the window
     if (event.type == sf::Event::Closed) close();
   }
+  _window->display();
 }
 
 int SfmlWindow::width() const {
@@ -51,6 +52,11 @@ int SfmlWindow::height() const {
 void SfmlWindow::close() {
   assert(_window);
   _window->close();
+}
+
+void SfmlWindow::clear() {
+  assert(_window);
+  _window->setActive();
 }
 
 }  // namespace arty
