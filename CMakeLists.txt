@@ -72,7 +72,7 @@ endif(OPENGL_FOUND)
 
 if(OPENGL_FOUND)
 
-file(GLOB_RECURSE ARTY_GL_FILES include/arty/ext/* src/arty/ext/*)
+file(GLOB_RECURSE ARTY_GL_FILES include/arty/ext/opengl/* src/arty/ext/opengl/* include/arty/ext/glfw/* src/arty/ext/glfw/*)
 add_library(arty_gl ${ARTY_GL_FILES})
 target_link_libraries(arty_gl PUBLIC arty_core ${ALL_LIBS})
 target_compile_features(arty_gl PUBLIC cxx_std_17)
@@ -94,6 +94,30 @@ target_include_directories(arty_gl
 )
 
 endif(OPENGL_FOUND)
+
+###############
+## ARTY SFML ##
+###############
+
+add_subdirectory (external/SFML)
+file(GLOB_RECURSE ARTY_SFML_FILES include/arty/ext/sfml/* src/arty/ext/sfml/*)
+add_library(arty_sfml ${ARTY_SFML_FILES})
+target_link_libraries(arty_sfml PUBLIC arty_core sfml-window sfml-system)
+target_compile_features(arty_sfml PUBLIC cxx_std_17)
+if(CMAKE_COMPILER_IS_GNUCXX)
+  target_compile_options(arty_sfml PUBLIC -Werror -Wall -Wextra)
+endif(CMAKE_COMPILER_IS_GNUCXX)
+target_include_directories(arty_sfml
+    PUBLIC
+        $<INSTALL_INTERFACE:include>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/src
+)
+target_include_directories(arty_sfml
+  SYSTEM PUBLIC
+  external/SFML/include/
+)
 
 ##############
 ## ARTY EXE ##
@@ -133,3 +157,10 @@ add_subdirectory(external/googletest EXCLUDE_FROM_ALL)
 
 add_subdirectory(test)
 endif(CMAKE_COMPILER_IS_GNUCXX)
+
+##############
+## YAIDE    ##
+##############
+
+add_executable(yaide yaide/main.cpp)
+target_link_libraries(yaide arty_core arty_sfml)
