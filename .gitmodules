@@ -4,3 +4,6 @@
 [submodule "external/bullet3"]
 	path = external/bullet3
 	url = https://github.com/bulletphysics/bullet3.git
+[submodule "external/SFML"]
+	path = external/SFML
+	url = https://github.com/SFML/SFML.git
