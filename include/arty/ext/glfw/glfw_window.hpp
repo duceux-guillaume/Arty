@@ -30,7 +30,9 @@ class GlfwWindow : public Window {
   GLFWwindow* _window;
 
  public:
-  GlfwWindow() : Window(WindowMode::FullScreen(), ""), _window(nullptr) {}
+  GlfwWindow(WindowMode mode, std::string const name)
+      : Window(mode, name), _window(nullptr) {}
+  GlfwWindow() : GlfwWindow(WindowMode::FullScreen(), "") {}
 
   GLFWwindow* window() const { return _window; }
 

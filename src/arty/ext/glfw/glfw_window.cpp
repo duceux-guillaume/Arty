@@ -54,8 +54,15 @@ Result GlfwWindow::init() {
   glfwWindowHint(GLFW_GREEN_BITS, mode->greenBits);
   glfwWindowHint(GLFW_BLUE_BITS, mode->blueBits);
   glfwWindowHint(GLFW_REFRESH_RATE, mode->refreshRate);
-  _window =
-      glfwCreateWindow(mode->width, mode->height, "BareMetal", monitor, NULL);
+
+  if (Window::_mode.type() == WindowMode::FULLSCREEN) {
+    _window = glfwCreateWindow(mode->width, mode->height, Window::_name.c_str(),
+                               monitor, NULL);
+  } else {
+    _window = glfwCreateWindow(Window::_mode.width(), Window::_mode.height(),
+                               Window::_name.c_str(), monitor, NULL);
+  }
+
   if (_window == NULL) {
     glfwTerminate();
     return Result(
