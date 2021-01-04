@@ -99,6 +99,8 @@ endif(OPENGL_FOUND)
 ## ARTY SFML ##
 ###############
 
+if(OPENGL_FOUND)
+
 add_subdirectory (external/SFML)
 file(GLOB_RECURSE ARTY_SFML_FILES include/arty/ext/sfml/* src/arty/ext/sfml/*)
 add_library(arty_sfml ${ARTY_SFML_FILES})
@@ -118,6 +120,8 @@ target_include_directories(arty_sfml
   SYSTEM PUBLIC
   external/SFML/include/
 )
+
+endif(OPENGL_FOUND)
 
 ##############
 ## ARTY EXE ##
@@ -139,6 +143,7 @@ add_subdirectory(benchmarks)
 
 endif(OPENGL_FOUND)
 
+add_subdirectory(yaide)
 
 ###########
 ## GTEST ##
@@ -158,9 +163,4 @@ add_subdirectory(external/googletest EXCLUDE_FROM_ALL)
 add_subdirectory(test)
 endif(CMAKE_COMPILER_IS_GNUCXX)
 
-##############
-## YAIDE    ##
-##############
 
-add_executable(yaide yaide/main.cpp)
-target_link_libraries(yaide arty_core arty_sfml)
