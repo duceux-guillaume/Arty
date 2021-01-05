@@ -13,7 +13,7 @@ void RandomBoardInitSystem::reset(Ptr<Memory> const& mem) {
   static auto type_rand = std::bind(std::uniform_int_distribution<int>{0, 1},
                                     std::default_random_engine{time_seed});
   static auto endpoint_rand =
-      std::bind(std::uniform_int_distribution<uint8_t>{0, 3},
+      std::bind(std::uniform_int_distribution<int>{0, 3},
                 std::default_random_engine{time_seed});
 
   for (uint8_t i = 0; i < board.rows; ++i) {
