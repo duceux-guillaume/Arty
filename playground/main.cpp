@@ -47,7 +47,7 @@ int main(void) {
   Ptr<Mouse> mouse = window_impl->provideMouse();
   Ptr<Window> window(window_impl);
   Ptr<Memory> board(new Memory);
-  Ptr<ITextRenderer> textRenderer(new GlTextRenderer());
+  Ptr<IRenderer2D> textRenderer(new GlRenderer2D());
   Ptr<IShapeRenderer> shapeRenderer(new GlShapeRenderer());
 
   auto AddFunc = [](Ptr<Memory> const& mem) -> Result {

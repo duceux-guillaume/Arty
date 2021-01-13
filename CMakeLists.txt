@@ -104,7 +104,7 @@ if(OPENGL_FOUND)
 add_subdirectory (external/SFML)
 file(GLOB_RECURSE ARTY_SFML_FILES include/arty/ext/sfml/* src/arty/ext/sfml/*)
 add_library(arty_sfml ${ARTY_SFML_FILES})
-target_link_libraries(arty_sfml PUBLIC arty_core sfml-window sfml-system)
+target_link_libraries(arty_sfml PUBLIC arty_core sfml-window sfml-system ${OPENGL_LIBRARY} GLEW_1130)
 target_compile_features(arty_sfml PUBLIC cxx_std_17)
 if(CMAKE_COMPILER_IS_GNUCXX)
   target_compile_options(arty_sfml PUBLIC -Werror -Wall -Wextra)
@@ -119,6 +119,34 @@ target_include_directories(arty_sfml
 target_include_directories(arty_sfml
   SYSTEM PUBLIC
   external/SFML/include/
+  external/glew-1.13.0/include/
+)
+
+endif(OPENGL_FOUND)
+
+###################
+## ARTY FREETYPE ##
+###################
+
+if(OPENGL_FOUND)
+file(GLOB_RECURSE ARTY_FREETYPE_FILES include/arty/ext/freetype-gl/* src/arty/ext/freetype-gl/*)
+add_library(arty_sfml ${ARTY_SFML_FILES})
+target_link_libraries(arty_sfml PUBLIC arty_core sfml-window sfml-system ${OPENGL_LIBRARY} GLEW_1130)
+target_compile_features(arty_sfml PUBLIC cxx_std_17)
+if(CMAKE_COMPILER_IS_GNUCXX)
+  target_compile_options(arty_sfml PUBLIC -Werror -Wall -Wextra)
+endif(CMAKE_COMPILER_IS_GNUCXX)
+target_include_directories(arty_sfml
+    PUBLIC
+        $<INSTALL_INTERFACE:include>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/src
+)
+target_include_directories(arty_sfml
+  SYSTEM PUBLIC
+  external/SFML/include/
+  external/glew-1.13.0/include/
 )
 
 endif(OPENGL_FOUND)

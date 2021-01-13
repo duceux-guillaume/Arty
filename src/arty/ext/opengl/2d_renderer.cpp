@@ -6,9 +6,9 @@
 
 namespace arty {
 
-Result GlTextRenderer::initText2D(const char *texturePath) {
-  glGenVertexArrays(1, &_test2DVertexArrayID);
-  glBindVertexArray(_test2DVertexArrayID);
+Result GlRenderer2D::initText2D(const char* texturePath) {
+  glGenVertexArrays(1, &_text2DVertexArrayID);
+  glBindVertexArray(_text2DVertexArrayID);
 
   // Initialize text'ure
   _text2DTextureID = loadDDS(texturePath);
@@ -33,7 +33,7 @@ Result GlTextRenderer::initText2D(const char *texturePath) {
   return ok();
 }
 
-void GlTextRenderer::printText2D(const char *text, int x, int y, int size) {
+void GlRenderer2D::drawText2D(const char* text, int x, int y, int size) {
   unsigned int length = std::strlen(text);
 
   // Fill buffers
@@ -90,12 +90,12 @@ void GlTextRenderer::printText2D(const char *text, int x, int y, int size) {
   // 1rst attribute buffer : vertices
   glEnableVertexAttribArray(0);
   glBindBuffer(GL_ARRAY_BUFFER, _text2DVertexBufferID);
-  glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, (void *)0);
+  glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
 
   // 2nd attribute buffer : UVs
   glEnableVertexAttribArray(1);
   glBindBuffer(GL_ARRAY_BUFFER, _text2DUVBufferID);
-  glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, (void *)0);
+  glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
 
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -109,7 +109,7 @@ void GlTextRenderer::printText2D(const char *text, int x, int y, int size) {
   glDisableVertexAttribArray(1);
 }
 
-void GlTextRenderer::cleanupText2D() {
+void GlRenderer2D::releaseText2D() {
   // Delete buffers
   glDeleteBuffers(1, &_text2DVertexBufferID);
   glDeleteBuffers(1, &_text2DUVBufferID);

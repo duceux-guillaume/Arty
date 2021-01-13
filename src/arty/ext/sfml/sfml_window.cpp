@@ -10,15 +10,28 @@ SfmlWindow::~SfmlWindow() {
 }
 
 Result SfmlWindow::init() {
+  sf::ContextSettings settings;
+  settings.depthBits = 24;
+  settings.stencilBits = 8;
+  settings.majorVersion = 3;
+  settings.minorVersion = 2;
+
   _window = new sf::Window;
   if (_mode.type() == WindowMode::FULLSCREEN) {
     auto listsfmode = sf::VideoMode::getFullscreenModes();
     if (listsfmode.size()) {
-      _window->create(listsfmode.front(), _name);
+      _window->create(listsfmode.front(), _name,
+                      sf::Style::Titlebar | sf::Style::Close, settings);
       return ok();
     }
   }
-  _window->create(sf::VideoMode(800, 600), _name);
+  _window->create(sf::VideoMode(_mode.width(), _mode.height()), _name,
+                  sf::Style::Titlebar | sf::Style::Close, settings);
+
+  // Initialize GLEW
+  glewExperimental = GL_TRUE;
+  glewInit();
+
   return ok();
 }
 

@@ -7,10 +7,27 @@
 
 namespace arty {
 
+class GuiSystem : public System {
+ private:
+  Ptr<Window> _window;
+  Ptr<Renderer> _renderer;
+
+  // System interface
+ public:
+  Result process(const Ptr<Memory>& board);
+  Result init(const Ptr<Memory>& board);
+  void release();
+
+ public:
+  GuiSystem(Ptr<Window> window, Ptr<Renderer> renderer)
+      : _window(window), _renderer(renderer) {}
+};
+
 struct ButtonBuilder;
 
 struct Button {
   Text text;
+  Rectangle rect;
 
   static ButtonBuilder builder();
 };
@@ -28,33 +45,32 @@ struct ButtonBuilder {
   }
 
   ButtonBuilder& position(unsigned x, unsigned y) {
-    button.text.position = Vec2u(x, y);
+    button.text.position = Text::position_t(x, y);
+    // button.rect.position = button.text.position;
+    button.rect.halfLength.x() = button.text.content.size();
     return *this;
   }
 
   ButtonBuilder& size(unsigned s) {
     button.text.size = s;
+    button.rect.halfLength.y() = s;
     return *this;
   }
 };
 
-class GuiSystem : public System {
+class GuiFactory {
  private:
-  Ptr<Window> _window;
-  Ptr<Renderer> _renderer;
   std::vector<Button> _buttons;
 
-  // System interface
- public:
-  Result process(const Ptr<Memory>& board);
-  Result init(const Ptr<Memory>& board);
-  void release();
+ private:
+  GuiFactory() = default;
 
  public:
-  GuiSystem(Ptr<Window> window, Ptr<Renderer> renderer)
-      : _window(window), _renderer(renderer) {}
+  static GuiFactory make() { return GuiFactory(); }
 
-  GuiSystem& add(Button button);
+  GuiFactory& add(Button button);
+
+  void build(Ptr<Memory> const& mem);
 };
 
 }  // namespace arty

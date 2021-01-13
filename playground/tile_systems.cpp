@@ -19,7 +19,7 @@ void RandomBoardInitSystem::reset(Ptr<Memory> const& mem) {
   for (uint8_t i = 0; i < board.rows; ++i) {
     for (uint8_t j = 0; j < board.cols; ++j) {
       auto entity = mem->createEntity("tile");
-      Vec2ui8 tile_pos(i, j);
+      Vec2u8 tile_pos(i, j);
       mem->write(entity, tile_pos);
       mem->write(entity, board.tile2box(tile_pos));
       mem->write(entity, board.tile2tf(tile_pos));
@@ -49,13 +49,13 @@ Result TileRenderingSystem::process(const Ptr<Memory>& mem) {
   return_if_error(mem->read(board));
 
   if (mem->count<TileWire>()) {  // Tile wiring
-    auto work = [=](Entity const& e, Vec2ui8 const& pos,
+    auto work = [=](Entity const& e, Vec2u8 const& pos,
                     TileWire const& wire) -> Result {
       _renderer->draw(e, board.wire2segments(pos, wire),
                       board.tile2tf(pos).toMat(), cam.view(), cam.projection());
       return ok();
     };
-    mem->process<Vec2ui8, TileWire>(work);
+    mem->process<Vec2u8, TileWire>(work);
   }
 
   return ok();

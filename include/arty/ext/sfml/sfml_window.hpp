@@ -1,6 +1,14 @@
 #ifndef ARTY_EXT_SFML_WINDOW_HPP
 #define ARTY_EXT_SFML_WINDOW_HPP
 
+// Link statically with GLEW
+#ifndef GLEW_STATIC
+#define GLEW_STATI
+#endif  // !GLEW_STATIC
+
+// Headers
+#include <GL/glew.h>
+
 #include <SFML/Window.hpp>
 #include <arty/core/window.hpp>
 

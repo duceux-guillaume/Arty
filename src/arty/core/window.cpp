@@ -10,4 +10,12 @@ WindowMode WindowMode::FullScreen() {
   return mode;
 }
 
+WindowMode WindowMode::Windowed(int w, int h) {
+  WindowMode mode;
+  mode._type = WINDOWED;
+  mode._width = w;
+  mode._height = h;
+  return mode;
+}
+
 }  // namespace arty

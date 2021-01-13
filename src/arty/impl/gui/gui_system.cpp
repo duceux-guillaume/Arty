@@ -5,31 +5,34 @@ namespace arty {
 ButtonBuilder Button::builder() { return ButtonBuilder(); }
 
 Result GuiSystem::process(Ptr<Memory> const& board) {
-  if (board->count<Text>()) {  // Text
-    auto work = [=](Entity const& /*e*/, Text const& t) -> Result {
-      _renderer->draw(t);
+  if (board->count<Button>()) {  // Text
+    auto work = [=](Entity const& /*e*/, Button const& b) -> Result {
+      _renderer->draw(b.rect);
+      //_renderer->draw(b.text);
       return ok();
     };
-    board->process<Text>(work);
+    board->process<Button>(work);
   }
   return ok();
 }
 
-Result GuiSystem::init(Ptr<Memory> const& board) {
-  return_if_error(_renderer->loadFont("../models/Holstein.DDS"));
-
-  for (auto const& button : _buttons) {
-    auto e = board->createEntity("button");
-    board->write(e, button.text);
-  }
-
-  return ok();
+Result GuiSystem::init(Ptr<Memory> const& /*board*/) {
+  return _renderer->loadTextTexture("../models/Holstein.DDS");
 }
 
 void GuiSystem::release() { _renderer->release(); }
 
-GuiSystem& GuiSystem::add(Button button) {
+GuiFactory& GuiFactory::add(Button button) {
   _buttons.push_back(button);
   return *this;
 }
+
+void GuiFactory::build(Ptr<Memory> const& mem) {
+  for (auto const& button : _buttons) {
+    auto e = mem->createEntity("button");
+    mem->write(e, button);
+  }
+  _buttons.clear();
+}
+
 }  // namespace arty

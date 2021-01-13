@@ -10,14 +10,18 @@ Result DebugHidSystem::process(Ptr<Memory> const& /*board*/) {
   lastTime = currentTime;
   std::string fps =
       std::to_string(std::round(100. / deltaTime) / 100.) + std::string(" fps");
-  _renderer->printText2D(fps, 10, 10, 20);
+  Text text;
+  text.content = fps;
+  text.position = Text::position_t(10, 10);
+  text.size = 20;
+  _renderer->draw(text);
   return ok();
 }
 
 Result DebugHidSystem::init(Ptr<Memory> const& /*board*/) {
-  return _renderer->initText2D("../models/Holstein.DDS");
+  return _renderer->loadTextTexture("../models/Holstein.DDS");
 }
 
-void DebugHidSystem::release() { _renderer->cleanupText2D(); }
+void DebugHidSystem::release() { _renderer->release(); }
 
 }  // namespace arty

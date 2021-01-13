@@ -7,7 +7,7 @@ using namespace arty;
 
 struct TileWire {
   TileWire(uint8_t i, uint8_t j) : endpoint(i, j) {}
-  Vec2ui8 endpoint;
+  Vec2u8 endpoint;
 };
 
 struct TileBoard {
@@ -19,19 +19,19 @@ struct TileBoard {
   TileBoard(uint8_t r, uint8_t c)
       : rows(r), cols(c), tileHalfLength(0.4f, 0.4f, 0.1f) {}
 
-  AABox3f tile2box(Vec2ui8 const& /*tile*/) const {
+  AABox3f tile2box(Vec2u8 const& /*tile*/) const {
     AABox3f box(Vec3f(0.f, 0.f, 0.f), tileHalfLength);
     return box;
   }
 
-  Tf3f tile2tf(Vec2ui8 const& tile) const {
+  Tf3f tile2tf(Vec2u8 const& tile) const {
     float x = tile.x() - rows / 2;
     float y = tile.y() - cols / 2;
     Tf3f tf(Vec3f(x, y, 0));
     return tf;
   }
 
-  std::vector<Vec3f> wire2segments(Vec2ui8 const& /*tile*/,
+  std::vector<Vec3f> wire2segments(Vec2u8 const& /*tile*/,
                                    TileWire const& wire) const {
     std::vector<Vec3f> res;
     // Middle

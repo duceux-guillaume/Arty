@@ -10,6 +10,7 @@ class WindowMode {
   enum Type { WINDOWED, FULLSCREEN };
 
   static WindowMode FullScreen();
+  static WindowMode Windowed(int w, int h);
 
   Type type() const { return _type; }
   int width() const { return _width; }

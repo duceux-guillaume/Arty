@@ -57,10 +57,10 @@ Result GlfwWindow::init() {
 
   if (Window::_mode.type() == WindowMode::FULLSCREEN) {
     _window = glfwCreateWindow(mode->width, mode->height, Window::_name.c_str(),
-                               monitor, NULL);
+                               monitor, nullptr);
   } else {
     _window = glfwCreateWindow(Window::_mode.width(), Window::_mode.height(),
-                               Window::_name.c_str(), monitor, NULL);
+                               Window::_name.c_str(), nullptr, nullptr);
   }
 
   if (_window == NULL) {
