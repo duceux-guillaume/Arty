@@ -3,3 +3,6 @@
 _*
 *~
 build
+external
+bin
+.vscode
