@@ -16,3 +16,7 @@ dirs = "*"
 
 [target.'cfg(unix)'.dependencies]
 termion = "*"
+
+
+[target.'cfg(windows)'.dependencies]
+crossterm = "*"
