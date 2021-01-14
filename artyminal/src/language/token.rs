@@ -1,9 +1,9 @@
 use std::fmt;
 
-use std::result;
 use std::error::Error;
+use std::result;
 
-type Result<T> = result::Result<T, Box<Error>>;
+type Result<T> = result::Result<T, Box<dyn Error>>;
 
 #[derive(Clone, PartialEq, Debug)]
 pub enum Token {
@@ -23,7 +23,7 @@ pub enum Token {
     ParC,
     CheO,
     CheC,
-/***************************************************/
+    /***************************************************/
     // Shell
     Cmd(String),
     CmdArgs(String),
@@ -56,7 +56,7 @@ impl Token {
             Token::ChangeDir => "ChangeDir",
             Token::Pipe => "Pipe",
             _ => "None",
-        })
+        });
     }
 
     pub fn rprec(&self) -> u32 {
@@ -81,17 +81,15 @@ impl Token {
             Token::ChangeDir => 500,
             Token::Path(ref _str) => 500,
             _ => 1,
-        }
+        };
     }
-
 
     pub fn lprec(&self) -> u32 {
         return match *self {
             Token::Minus => 1000,
             _ => self.rprec(),
-        }
+        };
     }
-
 
     pub fn as_string(&self) -> String {
         return match *self {
@@ -102,7 +100,7 @@ impl Token {
             Token::CmdArgs(ref str) => str.clone(),
             Token::Path(ref str) => str.clone(),
             _ => String::new(),
-        }
+        };
     }
 
     pub fn len(&self) -> usize {
@@ -115,7 +113,7 @@ impl Token {
             Token::Path(ref data) => data.len(),
             Token::ChangeDir => 2,
             _ => 1,
-        }
+        };
     }
 }
 
@@ -153,26 +151,22 @@ pub struct Number {
 impl Number {
     pub fn from_string(string: String) -> Result<Self> {
         let tmp = string.parse()?;
-        return Ok(Number {
-            data: tmp,
-        })
+        return Ok(Number { data: tmp });
     }
 
     pub fn from_token(token: Token) -> Result<Self> {
         if let Token::Number(str) = token {
-            return Ok(Number {
-                data: str.parse()?,
-            })
+            return Ok(Number { data: str.parse()? });
         }
-        return Err(From::from("No a number".to_string()))
+        return Err(From::from("No a number".to_string()));
     }
 
     pub fn as_string(&self) -> String {
-        return self.data.to_string()
+        return self.data.to_string();
     }
 
     pub fn as_token(&self) -> Token {
-        return Token::Number(self.data.to_string())
+        return Token::Number(self.data.to_string());
     }
 }
 
@@ -182,7 +176,7 @@ impl ops::Add<Number> for Number {
     fn add(self, rhs: Number) -> Number {
         return Number {
             data: self.data + rhs.data,
-        }
+        };
     }
 }
 
@@ -192,7 +186,7 @@ impl ops::Sub<Number> for Number {
     fn sub(self, rhs: Number) -> Number {
         return Number {
             data: self.data - rhs.data,
-        }
+        };
     }
 }
 
@@ -202,7 +196,7 @@ impl ops::Mul<Number> for Number {
     fn mul(self, rhs: Number) -> Number {
         return Number {
             data: self.data * rhs.data,
-        }
+        };
     }
 }
 
@@ -212,6 +206,6 @@ impl ops::Div<Number> for Number {
     fn div(self, rhs: Number) -> Number {
         return Number {
             data: self.data / rhs.data,
-        }
+        };
     }
 }

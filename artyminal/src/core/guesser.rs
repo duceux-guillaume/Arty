@@ -7,7 +7,7 @@ impl GuessRequest {
         return GuessRequest {
             user_input,
             current_dir,
-        }
+        };
     }
 }
 
@@ -23,10 +23,7 @@ pub struct Guess {
 
 impl Guess {
     pub fn new(guess: String, missing: String) -> Guess {
-        return Guess {
-            guess,
-            missing,
-        }
+        return Guess { guess, missing };
     }
 
     pub fn as_string(&self) -> &String {
@@ -39,7 +36,7 @@ impl Guess {
 }
 
 pub struct GuesserManager {
-    workers: Vec<Box<Guesser>>,
+    workers: Vec<Box<dyn Guesser>>,
     guesses: Vec<Guess>,
     index: usize,
     user_input: String,
@@ -54,7 +51,7 @@ impl GuesserManager {
         };
     }
 
-    pub fn add(&mut self, guesser: Box<Guesser>) {
+    pub fn add(&mut self, guesser: Box<dyn Guesser>) {
         self.workers.push(guesser);
     }
 
@@ -79,9 +76,9 @@ impl GuesserManager {
         let mut tmp = self.user_input.clone();
         if let Some(guess) = self.next() {
             tmp.push_str(guess.missing().as_str());
-            return Some(tmp.chars().collect())
+            return Some(tmp.chars().collect());
         } else {
-            return None
+            return None;
         }
     }
 

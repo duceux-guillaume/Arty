@@ -1,13 +1,13 @@
-use language::token::Token;
-use language::token::Number;
 use language::lexer::Lexer;
-use std::result;
+use language::token::Number;
+use language::token::Token;
+use std;
 use std::error;
 use std::process::{Command, Stdio};
-use std;
-type Result<T> = result::Result<T, Box<error::Error>>;
-use std::path::PathBuf;
+use std::result;
+type Result<T> = result::Result<T, Box<dyn error::Error>>;
 use feature::shell::Context;
+use std::path::PathBuf;
 
 pub struct ParsingState {
     lexer: Lexer,
@@ -51,7 +51,12 @@ impl Parser {
         return res;
     }
 
-    fn command(token: String, state: &mut ParsingState, ctx: &mut Context, stdin: Stdio) -> Result<Token> {
+    fn command(
+        token: String,
+        state: &mut ParsingState,
+        ctx: &mut Context,
+        stdin: Stdio,
+    ) -> Result<Token> {
         let mut cmd = Command::new(token);
         cmd.current_dir(ctx.current_directory());
         cmd.stdin(stdin);
@@ -68,15 +73,19 @@ impl Parser {
                 } else {
                     Err(From::from("Failed".to_string()))
                 }
-            },
+            }
             Token::Pipe => {
                 let handle = cmd.stdout(Stdio::piped()).spawn()?;
-                Parser::command(Parser::next(state).as_string(), state, ctx, Stdio::from(handle.stdout.unwrap()))
+                Parser::command(
+                    Parser::next(state).as_string(),
+                    state,
+                    ctx,
+                    Stdio::from(handle.stdout.unwrap()),
+                )
             }
             _ => Err(From::from("Not implemented yet".to_string())),
-        }
+        };
     }
-
 
     fn call_expr(token: Token, state: &mut ParsingState, ctx: &mut Context) -> Result<Token> {
         return match token {
@@ -93,10 +102,8 @@ impl Parser {
                         .as_str(),
                 );
                 Ok(Token::Number(res))
-            },
-            Token::Cmd(cmd_tok) => {
-                return Parser::command(cmd_tok, state, ctx, Stdio::inherit())
-            },
+            }
+            Token::Cmd(cmd_tok) => return Parser::command(cmd_tok, state, ctx, Stdio::inherit()),
             Token::CmdArgs(ref str) => {
                 let right = Parser::expression(500, state, ctx)?;
                 if right.as_string().is_empty() {
@@ -162,12 +169,11 @@ impl Parser {
                 (Number::from_token(left)? - Number::from_token(right)?).as_token()
             }
             Token::Times => (Number::from_token(left)?
-                * Number::from_token(Parser::expression(token.rprec(), state, ctx)?)?).as_token(),
-            Token::Divide => (Number::from_token(left)? / Number::from_token(Parser::expression(
-                token.rprec(),
-                state,
-                ctx,
-            )?)?).as_token(),
+                * Number::from_token(Parser::expression(token.rprec(), state, ctx)?)?)
+            .as_token(),
+            Token::Divide => (Number::from_token(left)?
+                / Number::from_token(Parser::expression(token.rprec(), state, ctx)?)?)
+            .as_token(),
             _ => token,
         });
     }

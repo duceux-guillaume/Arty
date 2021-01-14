@@ -1,10 +1,10 @@
 [package]
-name = "arty"
+name = "artyminal"
 version = "0.1.0"
 authors = ["papadoc"]
 
 [lib]
-name = "arty"
+name = "artyminal"
 path = "src/lib.rs"
 
 [[bin]]
@@ -12,5 +12,7 @@ name = "artyshell"
 path = "src/main.rs"
 
 [dependencies]
-termion = "1.5.1"
-dirs = "1.0.4"
+dirs = "*"
+
+[target.'cfg(unix)'.dependencies]
+termion = "*"

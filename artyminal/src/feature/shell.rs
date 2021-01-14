@@ -13,7 +13,7 @@ impl Context {
     pub fn new() -> Context {
         return Context {
             current_directory: std::env::current_dir().unwrap(),
-        }
+        };
     }
 
     pub fn current_directory(&self) -> &std::path::PathBuf {
@@ -25,12 +25,11 @@ impl Context {
     }
 }
 
-
 pub struct ShellController {
     buffer: Vec<char>,
     insert_index: usize,
-    keyboard: Box<Keyboard>,
-    terminal: Box<Terminal>,
+    keyboard: Box<dyn Keyboard>,
+    terminal: Box<dyn Terminal>,
     guesser: GuesserManager,
     interpreter: Interpreter,
     context: Context,
@@ -54,20 +53,31 @@ impl ShellController {
                 println!("bye bye");
                 return;
             }
-            self.interpreter.process(self.buffer.iter().collect(), &mut self.context);
+            self.interpreter
+                .process(self.buffer.iter().collect(), &mut self.context);
             self.session_history.record(self.buffer.iter().collect());
         }
     }
 
     fn guess(&mut self) {
-        self.guesser.process(&GuessRequest::new(self.buffer.iter().collect(),
-                                                self.context.current_directory().clone()));
+        self.guesser.process(&GuessRequest::new(
+            self.buffer.iter().collect(),
+            self.context.current_directory().clone(),
+        ));
     }
 
     fn compute_prompt(&self) -> String {
-        return format!("{}@{}{}", "\x1B[38;5;1m",
-                       self.context.current_directory().file_name().unwrap().to_str().unwrap(),
-                       "\x1B[38;5;15m")
+        return format!(
+            "{}@{}{}",
+            "\x1B[38;5;1m",
+            self.context
+                .current_directory()
+                .file_name()
+                .unwrap()
+                .to_str()
+                .unwrap(),
+            "\x1B[38;5;15m"
+        );
     }
 
     fn read_user_input(&mut self) -> bool {
@@ -88,7 +98,7 @@ impl ShellController {
                     self.guess();
                 }
                 Key::Left => {
-                   if self.insert_index > 0 {
+                    if self.insert_index > 0 {
                         self.insert_index -= 1;
                     }
                 }
@@ -143,23 +153,29 @@ impl ShellController {
                             self.session_index = 1;
                         }
                         let index = history_size - self.session_index;
-                        self.buffer = self.session_history.entries()[index].trim().chars().collect();
+                        self.buffer = self.session_history.entries()[index]
+                            .trim()
+                            .chars()
+                            .collect();
                         self.insert_index = self.buffer.len();
                     }
-                },
+                }
                 Key::Down => {
                     let history_size = self.session_history.entries().len();
                     if history_size > 0 {
                         if self.session_index > 1 {
                             self.session_index -= 1;
                             let index = history_size - self.session_index;
-                            self.buffer = self.session_history.entries()[index].trim().chars().collect();
+                            self.buffer = self.session_history.entries()[index]
+                                .trim()
+                                .chars()
+                                .collect();
                             self.insert_index = self.buffer.len();
                         } else {
                             self.reset();
                         }
                     }
-},
+                }
                 _ => {
                     return false;
                 }
@@ -168,8 +184,8 @@ impl ShellController {
     }
 
     pub fn new(
-        keyboard: Box<Keyboard>,
-        terminal: Box<Terminal>,
+        keyboard: Box<dyn Keyboard>,
+        terminal: Box<dyn Terminal>,
         guesser: GuesserManager,
         interpreter: Interpreter,
     ) -> ShellController {

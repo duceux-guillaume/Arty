@@ -1,19 +1,19 @@
-use language::math::Number;
+use language::interface;
+use language::interface::State;
 use language::math::MathOp;
-use language::name::Empty;
+use language::math::Number;
+use language::name::ChangeDir;
 use language::name::Cmd;
 use language::name::CmdArgs;
-use language::interface::State;
-use language::interface;
-use language::token::Token;
-use language::name::ChangeDir;
+use language::name::Empty;
 use language::name::Path;
 use language::name::StringLexer;
+use language::token::Token;
 
-use std::result;
+use std::env;
 use std::error::Error;
 use std::fmt;
-use std::env;
+use std::result;
 
 use filesystem::SearchFor;
 
@@ -38,10 +38,10 @@ impl fmt::Display for LexicalError {
     }
 }
 
-type Result<T> = result::Result<T, Box<Error>>;
+type Result<T> = result::Result<T, Box<dyn Error>>;
 
 pub struct Lexer {
-    automatas: Vec<Box<interface::ILexer>>,
+    automatas: Vec<Box<dyn interface::ILexer>>,
     data: String,
     tokens: Vec<Token>,
     scanner_pos: usize,
@@ -107,7 +107,7 @@ impl Lexer {
         return Ok(Token::Eof);
     }
 
-    fn select_lexer(&self) -> Vec<Box<interface::ILexer>> {
+    fn select_lexer(&self) -> Vec<Box<dyn interface::ILexer>> {
         if self.tokens.is_empty() {
             return vec![
                 Box::new(Number::new()),
